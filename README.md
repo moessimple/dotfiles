@@ -14,6 +14,8 @@ These dotfiles reflect my personal workflow and are meant to be forked and adapt
 - Develop Laravel projects locally with Herd
 - Navigate, search, and work faster with Oh My Zsh and modern command-line tools
 - Keep Claude Code settings, agents, commands, hooks, rules, and skills version-controlled
+- Keep Claude Code changes disciplined with Addy Osmani's [agent-skills](https://skills.addy.ie) workflow and an
+  automatic quality gate (Pint, PHPStan, Rector, Pest/PHPUnit)
 - Install, update, and reconfigure the whole setup with one script each
 
 ## Requirements
@@ -107,6 +109,8 @@ These are the commands I use most often. The full list lives in [`home/.aliases`
 - `pp` runs the test suite in parallel.
 - `pf <filter>` runs tests matching a name.
 - `pw` watches files and reruns the test suite.
+- `quality [full]` runs the PHP/Laravel quality gate (Pint, PHPStan, Rector, Pest/PHPUnit) by hand; `quality status`
+  shows the last recorded run.
 
 ### Git and GitHub
 
@@ -126,6 +130,19 @@ These are the commands I use most often. The full list lives in [`home/.aliases`
   shards).
 - `code` opens VS Code.
 - `https://tinkerbench.test` runs PHP snippets against Herd-linked projects.
+
+### Claude Code Commands
+
+- `/debug` finds and fixes the root cause of a bug through a reproduce-first diagnosis loop.
+- `/pr` turns the current branch into a pull request, writing a why-and-outcome description (never from the diff or
+  commit messages) and waiting for approval before creating it.
+- `/review-pr` reviews a GitHub PR across five code axes plus whether it delivers what was promised, and delivers
+  the verdict in the chat without posting to GitHub.
+
+Two things keep changes disciplined without me having to think about it: [Addy Osmani's
+agent-skills](https://skills.addy.ie) workflow (spec, plan, build, test, review, ship) and a [quality
+gate](home/.claude/hooks/README.md) that runs Pint, PHPStan, Rector, and Pest/PHPUnit against whatever Laravel/PHP
+project is being edited.
 
 ## Maintenance
 
