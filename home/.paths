@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Add directories to PATH without adding duplicates when the shell reloads.
+add_to_path() {
+    if [[ -d "$1" ]] && [[ ":$PATH:" != *":$1:"* ]]; then
+        export PATH="$1:$PATH"
+    fi
+}
+
+# === Dotfiles ===
+add_to_path "$DOTFILES_DIR/bin"
+
+# === Composer ===
+add_to_path ~/.composer/vendor/bin
+
+# === Node ===
+add_to_path ~/.node/bin
+
+# === Ruby ===
+add_to_path ~/.gem/bin
+
+# === Yarn ===
+add_to_path ~/.yarn/bin
+
+# === Homebrew ===
+if command -v brew &>/dev/null; then
+    BREW_PREFIX="$(brew --prefix)"
+    add_to_path "$BREW_PREFIX/bin"
+    add_to_path "$BREW_PREFIX/sbin"
+    add_to_path "$BREW_PREFIX/opt/coreutils/libexec/gnubin"
+    add_to_path "$BREW_PREFIX/opt/libxml2/bin"
+    add_to_path "$BREW_PREFIX/opt/ruby/bin"
+    unset BREW_PREFIX
+fi

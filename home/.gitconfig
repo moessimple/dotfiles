@@ -1,0 +1,98 @@
+[user]
+   email = maurice.hadamczyk@icloud.com
+   name = Maurice Hadamczyk
+
+[init]
+    defaultBranch = main
+
+[alias]
+    branches = "!git branch -a"
+    current-branch = "!git rev-parse --abbrev-ref HEAD"
+    default-branch = "!git remote show origin | awk '/HEAD branch/ {print $NF}'"
+
+[core]
+    # Use custom `.global-gitignore`.
+    excludesfile = ~/.global-gitignore
+    pager = delta
+
+[color]
+    # Use colors in Git commands that are capable of colored output when
+	# outputting to the terminal. (This is the default setting in Git ≥ 1.8.4.)
+	ui = auto
+
+[color "branch"]
+	current = yellow reverse
+	local = yellow
+	remote = green
+
+[color "diff"]
+	meta = yellow bold
+	frag = magenta bold # line info
+	old = red # deletions
+	new = green # additions
+
+[color "status"]
+	added = yellow
+	changed = green
+	untracked = cyan
+
+[push]
+    # https://git-scm.com/docs/git-config#Documentation/git-config.txt-pushdefault
+    default = simple
+
+[pull]
+    ff = only
+
+[fetch]
+	prune = true
+
+[diff]
+    # Detect copies as well as renames.
+    renames = copies
+    # Show blocks of moved text of at least 20 alphanumeric characters differently than adds/deletes
+    # https://blog.github.com/2018-04-05-git-217-released/
+    colorMoved = default
+    renameLimit = 10000
+    tool = vscode
+
+[difftool "vscode"]
+    cmd = code --wait --diff $LOCAL $REMOTE
+
+[diff "bin"]
+    # Use `hexdump` to diff binary files.
+	textconv = hexdump -v -C
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	required = true
+	process = git-lfs filter-process
+
+# URL shorthands
+[url "git@github.com:"]
+	insteadOf = "gh:"
+	pushInsteadOf = "github:"
+	pushInsteadOf = "git://github.com/"
+
+[url "git://github.com/"]
+	insteadOf = "github:"
+
+[url "git@gist.github.com:"]
+	insteadOf = "gst:"
+	pushInsteadOf = "gist:"
+	pushInsteadOf = "git://gist.github.com/"
+
+[url "git://gist.github.com/"]
+	insteadOf = "gist:"
+
+[interactive]
+	diffFilter = delta --color-only
+
+[delta]
+	navigate = true
+	light = false
+	side-by-side = true
+	line-numbers = true
+
+[merge]
+	conflictstyle = diff3

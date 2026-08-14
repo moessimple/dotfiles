@@ -1,0 +1,647 @@
+#!/usr/bin/env zsh
+
+# === General Utilities ===
+
+# Open VS Code with an increased memory limit
+code() {
+    command code -max-old-space-size=8192 "${@:-.}"
+}
+
+# Search file contents with ripgrep and open the result in VS Code via fzf
+fif() {
+    local rg_cmd="rg --color=always --line-number --no-heading --smart-case \
+        --glob '!{vendor,git,node_modules}/*' \
+        --glob '!{phpstan-baseline.neon,phparkitect-baseline.json}'"
+
+    fzf --ansi \
+        --style full \
+        --color "hl:-1:underline,hl+:-1:underline:reverse" \
+        --disabled --query "${*:-}" \
+        --bind "change:reload:sleep 0.1; $rg_cmd {q} || true" \
+        --bind "alt-enter:unbind(change,alt-enter)+change-prompt(2. fzf> )+enable-search+clear-query" \
+        --bind 'enter:become(code -g {1}:{2})' \
+        --delimiter : \
+        --preview 'bat --color=always {1} --highlight-line {2}' \
+        --preview-window 'up,60%,border-bottom,+{2}+3/3,~3'
+}
+
+# Create a directory and enter it
+mkd() {
+    mkdir -p "$@" && cd "$@"
+}
+
+# Create a data URL from a file and copy it to the clipboard
+dataurl() {
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "Usage: dataurl <file>"
+        echo "  file  File to encode as a data URL (result copied to clipboard)"
+        return 0
+    fi
+
+    local mimeType=$(file -b --mime-type "$1")
+    if [[ $mimeType == text/* ]]; then
+        mimeType="${mimeType};charset=utf-8"
+    fi
+    echo "data:${mimeType};base64,$(openssl base64 -in "$1" | tr -d '\n')" | pbcopy && echo 'Copied to clipboard.'
+}
+
+# Open the current directory in Finder, or a given path
+o() {
+    open "${@:-.}"
+}
+
+# Show a colorized directory tree, excluding .git/node_modules/bower_components
+tre() {
+    tree -aC -I '.git|node_modules|bower_components' --dirsfirst "$@" | less -FRNX
+}
+
+# Show all DNS records for a domain
+digga() {
+    dig +nocmd "$1" any +multiline +noall +answer
+}
+
+# Create a ZIP archive from a file or directory
+archive() {
+    zip -r "$1.zip" "$1"
+}
+
+# Remove a host key from known_hosts
+removehost() {
+    ssh-keygen -R "$1"
+}
+
+# Show a weather forecast for a city (defaults to Castrop-Rauxel)
+weather() {
+    local city="${1:-Castrop-Rauxel}"
+    curl http://wttr.in/${city// /+}\?F
+}
+
+# Run a command N times in parallel to reproduce race conditions
+cmdp() {
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "Usage: cmdp <n> <command>"
+        echo "  n        Number of parallel processes"
+        echo "  command  Command to run in parallel"
+        return 0
+    fi
+
+    local n="$1"
+    shift || return 1
+
+    if [[ -z "$n" || "$n" != <-> || "$n" -lt 1 ]]; then
+        echo "cmdp: n must be a positive integer" >&2
+        return 1
+    fi
+
+    if (( $# == 0 )); then
+        echo "cmdp: command required" >&2
+        echo "Usage: cmdp <n> <command>" >&2
+        return 1
+    fi
+
+    local cmd
+    if (( $# == 1 )); then
+        cmd="$1"
+    else
+        cmd="${(j: :)${(q)@}}"
+    fi
+
+    seq 1 "$n" | rush -j "$n" -I "$cmd"
+}
+
+# === Git ===
+
+# Fork a GitHub repository via SSH and clone it locally
+fork() {
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "Usage: fork <repo>"
+        echo "  repo  GitHub repository to fork and clone (owner/name)"
+        return 0
+    fi
+
+    [ -z "$1" ] && { echo "No repo was given."; return 1; }
+
+    gh config set -h github.com git_protocol ssh
+    gh repo fork "$1" --clone
+}
+
+# Stage all changes and commit; auto-generates a message via Claude or asks for one
+commit() {
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "Usage: commit [message]"
+        echo "  message  Commit message (generated via Claude or prompted for if omitted)"
+        return 0
+    fi
+
+    local commitMessage="$*"
+    local prompt="Write a single-line commit message for this diff. Output ONLY the message, no quotes, no explanation, no markdown."
+
+    git add --all || return
+
+    if [ "$commitMessage" = "" ]; then
+        {
+            spinner="⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+            while true; do
+                for (( i=0; i<${#spinner}; i++ )); do
+                    printf "\r${spinner:$i:1} Generating commit message..."
+                    sleep 0.1
+                done
+            done
+        } &!
+        spinner_pid=$!
+
+        clean_it() {
+            { kill $spinner_pid; wait $spinner_pid; } 2>/dev/null
+            printf "\r\033[K"
+            trap - INT
+            return 1
+        }
+        trap clean_it INT
+
+        local diff_input=$(echo "=== Summary ===" && git diff --cached --stat && echo -e "\n=== Diff (truncated if large) ===" && git diff --cached | head -c 50000)
+
+        local claude_result=""
+
+        if command -v claude &>/dev/null \
+            && claude_result=$(echo "$diff_input" | claude -p --no-session-persistence --output-format json "$prompt" 2>/dev/null); then
+            commitMessage=$(echo "$claude_result" | jq -er 'select(.type == "result" and .is_error == false) | .result | select(type == "string" and test("\\S"))') || commitMessage=""
+        else
+            commitMessage=""
+        fi
+
+        trap - INT
+        { kill $spinner_pid; wait $spinner_pid; } 2>/dev/null
+        printf "\r\033[K"
+
+        if [[ -z "${commitMessage//[[:space:]]/}" ]]; then
+            read -r "commitMessage?Claude was unavailable. Commit message: "
+
+            if [[ -z "${commitMessage//[[:space:]]/}" ]]; then
+                echo "Commit cancelled: no message provided."
+                return 1
+            fi
+        fi
+    fi
+
+    git commit -m "$commitMessage"
+}
+
+# === PHP / Testing ===
+
+# Run PHPStan static analysis with an increased memory limit
+phpstan() {
+    php -d memory_limit=4096M ./vendor/bin/phpstan -vvv "$@"
+}
+
+# Run Rector, preferring the local vendor binary over a global installation
+rector() {
+    if [ -f ./vendor/bin/rector ]; then
+        php ./vendor/bin/rector "$@"
+    else
+        command rector "$@"
+    fi
+}
+
+# Run tests (Pest or PHPUnit) with testdox output
+p() {
+    if [ -f vendor/bin/pest ]; then
+        php -d memory_limit=8192M ./vendor/bin/pest --testdox "$@"
+    else
+        php -d memory_limit=8192M ./vendor/bin/phpunit --testdox "$@"
+    fi
+}
+
+# Run tests filtered by name
+pf() {
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "Usage: pf <filter>"
+        echo "  filter  Test name filter passed to pest/phpunit --filter"
+        return 0
+    fi
+
+    if [ -f vendor/bin/pest ]; then
+        php -d memory_limit=8192M ./vendor/bin/pest --testdox --filter "$@"
+    else
+        php -d memory_limit=8192M ./vendor/bin/phpunit --testdox --filter "$@"
+    fi
+}
+
+# Run tests with code coverage
+pc() {
+    if [ -f vendor/bin/pest ]; then
+        herd coverage -d memory_limit=8192M ./vendor/bin/pest --testdox --coverage "$@"
+    else
+        herd coverage -d memory_limit=8192M ./vendor/bin/phpunit --testdox --coverage-html build/coverage "$@"
+    fi
+}
+
+# Run tests in parallel
+pp() {
+    if [ -f vendor/bin/pest ]; then
+        php -d memory_limit=8192M ./vendor/bin/pest --parallel "$@"
+    else
+        php -d memory_limit=8192M artisan test --parallel --passthru-php "'-d' 'memory_limit=8192M'" --no-coverage "$@"
+    fi
+}
+
+# Watch for file changes and re-run tests automatically
+pw()  { PHP_OPTIONS="-d memory_limit=8192M" php "$(which phpunit-watcher)" watch --testdox "$@"; }
+pwf() { PHP_OPTIONS="-d memory_limit=8192M" php "$(which phpunit-watcher)" watch --testdox --filter "$@"; }
+
+_run_until_fail() {
+    local count=0
+    while true; do
+        ((count++))
+        if ! "$@"; then
+            echo "❌ Failed after $count run(s)"
+            return 1
+        fi
+        echo "✅ Pass #$count — running again..."
+    done
+}
+
+# Reproduce a flaky test by running a single test case in a loop until it fails (sequential)
+puff() {
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "Usage: puff <filter>"
+        echo "  filter  Test name filter to run sequentially until it fails"
+        return 0
+    fi
+
+    [ -z "$1" ] && { echo "test case required" 1>&2; return 1; }
+    _run_until_fail php -d memory_limit=8192M ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure --filter "$1"
+}
+
+# Reproduce a flaky test by running a single test case in a loop until it fails (parallel)
+ppuff() {
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "Usage: ppuff <filter>"
+        echo "  filter  Test name filter to run in parallel until it fails"
+        return 0
+    fi
+
+    [ -z "$1" ] && { echo "test case required" 1>&2; return 1; }
+    _run_until_fail php artisan test --parallel --passthru-php "'-d' 'memory_limit=8192M'" --no-coverage --stop-on-error --stop-on-failure --filter "$1"
+}
+
+# Reproduce a flaky test by running a test file or directory in a loop until it fails (sequential)
+puf() {
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "Usage: puf <file|directory>"
+        echo "  file|directory  Test file or directory to run sequentially until it fails"
+        return 0
+    fi
+
+    [ -z "$1" ] && { echo "file or directory required" 1>&2; return 1; }
+    _run_until_fail php -d memory_limit=8192M ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure "$1"
+}
+
+# Reproduce a flaky test by running a test file or directory in a loop until it fails (parallel)
+ppuf() {
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "Usage: ppuf <file|directory>"
+        echo "  file|directory  Test file or directory to run in parallel until it fails"
+        return 0
+    fi
+
+    [ -z "$1" ] && { echo "file or directory required" 1>&2; return 1; }
+    _run_until_fail php artisan test --parallel --passthru-php "'-d' 'memory_limit=8192M'" --no-coverage --stop-on-error --stop-on-failure "$1"
+}
+
+# Run the project's quality gate using the available PHP and Laravel tooling.
+# Detection lives in home/.claude/hooks/quality-gate.sh; there is no separate
+# gate configuration to maintain per project.
+quality() {
+    local dispatcher="$HOME/.claude/hooks/quality-gate.sh"
+
+    case "${1:-fast}" in
+        file)      "$dispatcher" file "${2:-}" ;;
+        fast|full) "$dispatcher" "${1:-fast}" ;;
+        status)    _quality_status ;;
+        -h|--help)
+            cat <<'HELP'
+Usage:
+  quality [fast|full]     run the gate for this project (default: fast)
+  quality file <path>     run the fast single-file gate
+  quality status          show the last recorded run
+HELP
+            ;;
+        *)
+            echo "Unknown quality mode: $1" >&2
+            return 64
+            ;;
+    esac
+}
+
+_quality_status() {
+    local git_root root record
+    source "$HOME/.claude/hooks/support/project-root.sh"
+
+    resolve_project_root "$PWD" git_root root || {
+        echo "No Composer project (composer.json) found for $PWD." >&2
+        return 3
+    }
+    record="${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality/runs$root.json"
+
+    if [[ ! -f "$record" ]]; then
+        echo "No recorded gate run for $root."
+        return 0
+    fi
+
+    jq . "$record" || return
+    if [[ -e "${record%.json}.dirty" ]]; then
+        echo "Code changed since that run. Re-run 'quality fast'."
+    fi
+}
+
+# === Laravel ===
+
+# Open Laravel Tinker, or execute a single expression and dump the result
+tinker() {
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "Usage: tinker [expression]"
+        echo "  expression  PHP expression to evaluate via dd() (opens interactive tinker if omitted)"
+        return 0
+    fi
+
+    if [ -z "$1" ]; then
+        php artisan tinker
+    else
+        php artisan tinker --execute="dd($1);"
+    fi
+}
+
+# Run the Laravel scheduler repeatedly, waiting 60 seconds after each run
+scheduler() {
+    while :; do
+        php artisan schedule:run
+        echo "Sleeping 60 seconds..."
+        sleep 60
+    done
+}
+
+# Show direct, indirect, or all Composer dependency changes since a given ref
+cchangelog() {
+    local mode="direct"
+    local branch
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -d|--direct)   mode="direct";   shift ;;
+            -i|--indirect) mode="indirect"; shift ;;
+            -a|--all)      mode="all";      shift ;;
+            -h|--help)
+                echo "Usage: cchangelog [-d|-i|-a] [branch]"
+                echo "  -d  Show only direct (explicitly required) packages (default)"
+                echo "  -i  Show only indirect (transitive) packages"
+                echo "  -a  Show all packages"
+                echo "  branch  Branch or ref to compare against (default: default branch)"
+                return 0 ;;
+            -*)
+                echo "Unknown option: $1" >&2
+                echo "Run 'cchangelog --help' for usage." >&2
+                return 1 ;;
+            *) branch="$1"; shift ;;
+        esac
+    done
+
+    branch="${branch:-$(git default-branch)}"
+
+    if ! git rev-parse --verify "${branch}" &>/dev/null; then
+        echo "cchangelog: unknown branch or ref '${branch}'" >&2
+        echo "Run 'cchangelog --help' for usage." >&2
+        return 1
+    fi
+
+    case "$mode" in
+        direct)
+            composer diff "${branch}:composer.lock" --with-links --with-platform --direct
+            ;;
+        indirect)
+            local all_diff direct_diff indirect_output package
+            local -a indirect_packages filter_options
+
+            all_diff=$(composer diff "${branch}:composer.lock" --with-platform --format=json --no-ansi) || return
+            direct_diff=$(composer diff "${branch}:composer.lock" --with-platform --direct --format=json --no-ansi) || return
+            indirect_output=$(jq -nr --argjson all "$all_diff" --argjson direct "$direct_diff" '
+                (($direct.packages // {}) + ($direct["packages-dev"] // {})) as $direct_packages
+                | (($all.packages // {}) + ($all["packages-dev"] // {}))
+                | keys[]
+                | select($direct_packages[.] == null)
+            ') || return
+
+            if [[ -z "$indirect_output" ]]; then
+                echo "No indirect dependency changes."
+                return 0
+            fi
+
+            indirect_packages=("${(@f)indirect_output}")
+            for package in "${indirect_packages[@]}"; do
+                filter_options+=(--filter "$package")
+            done
+
+            composer diff "${branch}:composer.lock" --with-links --with-platform "${filter_options[@]}"
+            ;;
+        all)
+            composer diff "${branch}:composer.lock" --with-links --with-platform
+            ;;
+    esac
+}
+
+# === Database ===
+
+# Import one or more SQL dump files into a database with progress display
+importdump() {
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "Usage: importdump <database> <file...>"
+        echo "  database  Target database name"
+        echo "  file      One or more SQL dump files to import (shown with progress)"
+        return 0
+    fi
+
+    local db="${1:?database name required}"
+    shift
+    [[ $# -eq 0 ]] && { echo "No SQL files provided." 1>&2; return 1; }
+
+    for dump in "$@"; do
+        echo "Importing: $dump"
+        pv "$dump" | _mysql_cmd --force --binary-mode "$db"
+    done
+}
+
+_env_val() { grep "^$1=" .env 2>/dev/null | tail -n1 | cut -d= -f2- | tr -d '\r'; }
+
+_mysql_cmd() {
+    local host; host=$(_env_val DB_HOST)
+    local user; user=$(_env_val DB_USERNAME)
+    local pass; pass=$(_env_val DB_PASSWORD)
+    local cmd=(mysql -h"${host:-127.0.0.1}" -u"${user:-root}" "$@")
+    [[ -n "$pass" ]] && cmd+=(-p"$pass")
+    "${cmd[@]}"
+}
+
+# Manage local MySQL databases: refresh, create, drop, or list
+db() {
+    case "$1" in
+        -h|--help)
+            echo "Usage: db <refresh|create|drop|list> [database_name]"
+            echo "  refresh  Drop and recreate a database"
+            echo "  create   Create a new database"
+            echo "  drop     Drop a database"
+            echo "  list     List all databases"
+            return 0
+            ;;
+    esac
+
+    case "$1" in
+        refresh|create|drop)
+            if [ -z "$2" ]; then
+                echo "db: '$1' requires a database name" >&2
+                echo "Run 'db --help' for usage." >&2
+                return 1
+            fi
+            ;;
+    esac
+
+    case "$1" in
+        refresh)
+            mysql -uroot -h 127.0.0.1 -e "drop database \`$2\`; create database \`$2\`"
+            ;;
+        create)
+            mysql -uroot -h 127.0.0.1 -e "create database \`$2\`"
+            ;;
+        drop)
+            mysql -uroot -h 127.0.0.1 -e "drop database \`$2\`"
+            ;;
+        list)
+            mysql -uroot -h 127.0.0.1 -e "show databases" | sed 's/[|[:space:]]//g'
+            ;;
+        *)
+            echo "db: unknown command '$1'" >&2
+            echo "Run 'db --help' for usage." >&2
+            return 1
+            ;;
+    esac
+}
+
+# Drop and recreate each given database, then run skeema or Laravel migrations
+_migrate_databases() {
+    local databases=("$@")
+    for db in "${databases[@]}"; do
+        _mysql_cmd -e "DROP DATABASE IF EXISTS \`$db\`; CREATE DATABASE \`$db\`;"
+        if [ -d "database/skeema" ]; then
+            DB_DATABASE=$db php artisan skeema:push --allow-unsafe --force --skip-lint --env=local
+        else
+            DB_DATABASE=$db php artisan migrate
+        fi
+    done
+}
+
+# Resolve all databases (main + test + parallel shards) from .env and phpunit.xml
+_all_databases() {
+    local main_db; main_db=$(_env_val DB_DATABASE)
+    local test_db; test_db=$(grep -o 'name="DB_DATABASE" value="[^"]*' phpunit.xml phpunit.xml.dist 2>/dev/null | sed 's/.*value="//' | tail -n1)
+
+    local databases=("$main_db")
+    if [ -n "$test_db" ]; then
+        databases+=("$test_db")
+        for ((i=1; i<=$(nproc); i++)); do
+            databases+=("${test_db}_test_$i")
+        done
+    fi
+
+    echo "${databases[@]}"
+}
+
+# Drop all project databases: main, test, and all parallel test shards
+dropdbs() {
+    [ ! -f .env ] && { echo "No .env file found."; return 1; }
+
+    local -a dbs
+    dbs=($(_all_databases))
+
+    local db_name
+    for db_name in "${dbs[@]}"; do
+        [[ -z "$db_name" ]] && continue
+        if _mysql_cmd -e "DROP DATABASE IF EXISTS \`$db_name\`;" 2>/dev/null; then
+            echo "Dropped: $db_name"
+        fi
+    done
+}
+
+# Fresh migrate the main database
+mf()   { _migrate_databases "$(_env_val DB_DATABASE)"; }
+# Fresh migrate the main database and seed
+mfs()  { mf && php artisan db:seed; }
+# Fresh migrate all databases (main + all test databases)
+mfa()  { _migrate_databases $(_all_databases); }
+# Fresh migrate all databases, then seed the main database
+mfsa() { mfa && php artisan db:seed; }
+
+# Open the current project's database in a GUI client using credentials from .env
+opendb() {
+    [ ! -f .env ] && { echo "No .env file found."; return 1; }
+
+    local DB_CONNECTION=$(_env_val DB_CONNECTION)
+    local DB_HOST=$(_env_val DB_HOST)
+    local DB_PORT=$(_env_val DB_PORT)
+    local DB_DATABASE=$(_env_val DB_DATABASE)
+    local DB_USERNAME=$(_env_val DB_USERNAME)
+    local DB_PASSWORD=$(_env_val DB_PASSWORD)
+
+    for var in DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME; do
+        [[ -z "${(P)var}" ]] && { echo "$var not found in .env file."; return 1; }
+    done
+
+    open "${DB_CONNECTION}://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
+}
+
+# === macOS ===
+
+# Manage Secure Data Sparse Bundle: sd <load|unload|delete|status>
+sd() {
+    local bundle="$HOME/SecureData.sparsebundle"
+    local volume="SecureData"
+    local mountpoint="/Volumes/$volume"
+
+    _sd_mounted() { mount | grep -q "on $mountpoint "; }
+
+    case "$1" in
+        -h|--help)
+            echo "Usage: sd <load|unload|delete|status>"
+            echo "  load    Mount the secure data volume"
+            echo "  unload  Unmount the secure data volume"
+            echo "  delete  Permanently delete the secure data volume"
+            echo "  status  Show whether the volume is mounted"
+            return 0
+            ;;
+        load)
+            if [ ! -d "$bundle" ]; then
+                hdiutil create -size 20g -type SPARSEBUNDLE -fs APFS \
+                    -volname "$volume" -encryption AES-256 -stdinpass "$bundle"
+            fi
+            _sd_mounted && echo "$volume is already mounted." || hdiutil attach "$bundle"
+            ;;
+        unload)
+            _sd_mounted && hdiutil detach "$mountpoint" || echo "$volume is not mounted."
+            ;;
+        delete)
+            read -q "?Delete $volume permanently? [y/N] " || { echo; return 1; }
+            echo
+            _sd_mounted && hdiutil detach "$mountpoint"
+            [ -d "$bundle" ] && rm -rf "$bundle" || echo "$volume does not exist."
+            ;;
+        status)
+            _sd_mounted \
+                && echo "$volume is mounted at $mountpoint." \
+                || echo "$volume is not mounted."
+            ;;
+        *)
+            echo "sd: unknown command '$1'" >&2
+            echo "Run 'sd --help' for usage." >&2
+            return 1
+            ;;
+    esac
+
+    unfunction _sd_mounted 2>/dev/null
+}

@@ -1,0 +1,142 @@
+#!/usr/bin/env zsh
+
+# === Navigation ===
+
+alias temp="cd ~/Temp"
+alias downloads="cd ~/Downloads"
+alias documents="cd ~/Documents"
+alias screenshots="cd ~/Screenshots"
+alias desktop="cd ~/Desktop"
+alias library="cd ~/Library"
+alias securedata="cd /Volumes/SecureData"
+alias dotfiles="cd ~/.dotfiles"
+
+# === Git ===
+
+alias log="git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
+alias branches="gbranches"
+alias wip="commit wip"
+alias push="gpush"
+alias pull="gpull"
+alias nah="gnah"
+alias merge="gmerge"
+alias review="greview"
+alias prune="gprune"
+alias switch="gswitch"
+alias diff="git diff"
+alias sync="gsync"
+alias undo="git reset --soft HEAD~1"
+alias status="git status -sb"
+alias fig="gsearch"
+alias browse="gh browse"
+alias check="gbcheck"
+alias viewpr="gh pr view --web"
+alias checkoutpr="gh pr checkout"
+alias issues="gh issue list"
+alias viewissue="gh issue view --web"
+alias github='open -a "/Applications/GitHub Desktop.app" "`pwd`"'
+
+# === PHP / Laravel ===
+
+alias php="herd php"
+alias a="php artisan"
+alias pint='./vendor/bin/pint --parallel'
+alias view="herd open"
+
+# === Composer ===
+
+alias composer="herd composer"
+alias c="composer"
+alias ci="composer install"
+alias cr="composer require"
+alias cu='composer update && composer bump'
+alias cud="composer update \$(composer show -s | sed -n '/requires (dev)$/,/^$/p' | grep -v 'requires (dev)' | cut -d ' ' -f1) && composer bump --dev-only"
+alias cup="composer update \$(composer show -s | sed -n '/requires$/,/^$/p' | grep -v 'requires$' | cut -d ' ' -f1) && composer bump --no-dev-only"
+alias cf="rm -rf vendor && composer install"
+alias cfresh="cf"
+alias cc="cchangelog"
+alias cda="composer dumpautoload"
+alias co="composer outdated --direct"
+
+# === JavaScript ===
+
+alias nf="rm -rf node_modules && npm ci"
+alias nfresh="nf"
+
+# === Database ===
+
+alias mysqladm='mysql -u root -h 127.0.0.1'
+alias flushredis="redis-cli FLUSHALL"
+
+# === Tools ===
+
+if command -v bat &>/dev/null; then
+    alias cat='bat --style=plain'
+fi
+
+if command -v eza &>/dev/null; then
+    alias ls="eza -Ahlo --icons --color --group-directories-first"
+fi
+
+alias du="ncdu --color dark -rr -x --exclude .git --exclude node_modules --exclude vendor"
+
+if command -v prettyping &>/dev/null; then
+    alias ping='prettyping --nolegend'
+fi
+
+if command -v btm &>/dev/null; then
+    alias htop="btm"
+    alias top="btm"
+fi
+
+alias grep='grep --color=auto'
+alias python='python3'
+alias pip=pip3
+
+if command -v gtime &>/dev/null; then
+    alias time='gtime -f %e'
+fi
+
+if command -v tldr &>/dev/null; then
+    alias help='tldr'
+fi
+
+alias shrug="echo '¯\_(ツ)_/¯' | pbcopy"
+alias wttr=weather
+alias path='echo -e ${PATH//:/\\n}'
+alias cleanup="find . -name '.DS_Store' -type f -delete"
+alias rmorig="find . -name \*.orig -exec rm {} \;"
+
+# === Credentials ===
+
+alias copykey="cat ~/.ssh/id_ed25519.pub | pbcopy && echo 'Copied to clipboard.'"
+alias sshconfig="nano ~/.ssh/config"
+alias token="pwgen --secure 40 1 | pbcopy && echo 'Copied to clipboard.'"
+alias password="pwgen --secure --symbols 32 1 | pbcopy && echo 'Copied to clipboard.'"
+alias uuid="uuidgen | tr '[:upper:]' '[:lower:]' | tr -d '\n' | pbcopy && echo 'Copied to clipboard.'"
+
+# === Dotfiles / Projects ===
+
+alias extra='code ~/.extra'
+alias tinkerbench='code ~/Code/tinkerbench'
+alias reconfigure='~/.dotfiles/bin/reconfigure.sh'
+alias update='~/.dotfiles/bin/update.sh'
+alias reload="omz reload"
+
+# === Network ===
+
+alias ip="curl ifconfig.me/ip ; echo"
+alias localip="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
+alias speedtest="speedtest-cli"
+alias flushdns="sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder"
+
+# === macOS ===
+
+alias chrome='/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome'
+alias show="defaults write com.apple.finder AppleShowAllFiles -bool true && killall Finder"
+alias hide="defaults write com.apple.finder AppleShowAllFiles -bool false && killall Finder"
+alias hidedesktop="defaults write com.apple.finder CreateDesktop -bool false && killall Finder"
+alias showdesktop="defaults write com.apple.finder CreateDesktop -bool true && killall Finder"
+alias afk='osascript -e "tell application \"System Events\" to key code 12 using {control down, command down}"'
+alias emptytrash="sudo rm -rfv /Volumes/*/.Trashes; sudo rm -rfv ~/.Trash; sudo rm -rfv /private/var/log/asl/*.asl"
+alias sudo='sudo '

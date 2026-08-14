@@ -1,0 +1,195 @@
+{
+  "env": {
+    "CLAUDE_CODE_NO_FLICKER": "1",
+    "PHP_MEMORY_LIMIT": "512M"
+  },
+  "permissions": {
+    "allow": [
+      "Skill(spatie-laravel-php:*)",
+      "Skill(context7-auto-research:*)",
+      "Skill(agent-browser:*)",
+      "WebSearch",
+      "WebFetch",
+      "Bash(gh:*)",
+      "Bash(git:*)",
+      "Bash(curl:*)",
+      "Bash(composer:*)",
+      "Bash(herd:*)",
+      "Bash(php:*)",
+      "Bash(php artisan:*)",
+      "Bash(vendor/bin/phpunit:*)",
+      "Bash(vendor/bin/pest:*)",
+      "Bash(vendor/bin/pint:*)",
+      "Bash(vendor/bin/phpstan:*)",
+      "Bash(quality *)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(yarn:*)",
+      "Bash(pnpm:*)",
+      "Bash(docker:*)",
+      "Bash(docker-compose:*)",
+      "Bash(make:*)",
+      "Bash(rg:*)",
+      "Bash(brew:*)",
+      "Bash(sed:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(echo:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(touch:*)",
+      "Bash(chmod:*)",
+      "Bash(pwd:*)",
+      "Bash(which:*)",
+      "Bash(whoami:*)",
+      "Bash(date:*)",
+      "Bash(wc:*)",
+      "Bash(sort:*)",
+      "Bash(uniq:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(diff:*)",
+      "Bash(awk:*)",
+      "Bash(cut:*)",
+      "Bash(tr:*)",
+      "Bash(open:*)",
+      "mcp__laravel-boost__*",
+      "mcp__chrome-devtools__*",
+      "Read(//private/tmp/**)",
+      "Read(//tmp/**)"
+    ],
+    "deny": [
+      "Bash(sudo:*)",
+      "Bash(rm -rf:*)",
+      "Bash(security find-generic-password:*)",
+      "Read(**/.env.production*)",
+      "Read(**/.env.staging*)",
+      "Read(**/.env.qa*)",
+      "Read(**/.env.backup.production*)",
+      "Read(**/.env.backup.staging*)",
+      "Read(**/.env.backup.qa*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)",
+      "Read(**/*.jks)",
+      "Read(**/id_rsa)",
+      "Read(**/id_ed25519)",
+      "Read(**/secrets/**)",
+      "Read(**/credentials/**)",
+      "Read(**/.aws/**)",
+      "Read(**/.ssh/**)",
+      "Read(**/.gnupg/**)",
+      "Read(**/auth.json)",
+      "Edit(**/.env*)",
+      "Edit(**/*.pem)",
+      "Edit(**/*.key)",
+      "Edit(**/*.p12)",
+      "Edit(**/*.pfx)",
+      "Edit(**/*.jks)",
+      "Edit(**/id_rsa)",
+      "Edit(**/id_ed25519)",
+      "Edit(**/secrets/**)",
+      "Edit(**/credentials/**)",
+      "Edit(**/.aws/**)",
+      "Edit(**/.ssh/**)",
+      "Edit(**/.gnupg/**)",
+      "Edit(**/auth.json)"
+    ],
+    "ask": [
+      "Bash(gh pr create)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr review)",
+      "Bash(gh pr review:*)",
+      "Bash(gh pr comment)",
+      "Bash(gh pr comment:*)",
+      "Bash(gh pr merge)",
+      "Bash(gh pr merge:*)",
+      "Bash(rm *)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)"
+    ],
+    "defaultMode": "auto"
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/hooks/post-php-edit.sh\"",
+            "timeout": 60
+          },
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/hooks/post-composer-edit.sh\"",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/hooks/require-evidence.sh\"",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh"
+  },
+  "enabledPlugins": {
+    "laravel@laravel": true,
+    "agent-browser@agent-browser": true,
+    "agent-skills@addy-agent-skills": true,
+    "claude-md-management@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "addy-agent-skills": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/addyosmani/agent-skills.git"
+      }
+    },
+    "laravel": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/laravel/claude-code.git"
+      }
+    },
+    "agent-browser": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/vercel-labs/agent-browser.git"
+      }
+    },
+    "claude-plugins-official": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/anthropics/claude-plugins-official.git"
+      }
+    }
+  },
+  "spinnerVerbs": {
+    "mode": "replace",
+    "verbs": [
+      "Thinking"
+    ]
+  },
+  "syntaxHighlightingDisabled": false,
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
+  "theme": "dark",
+  "agentPushNotifEnabled": false,
+  "skipAutoPermissionPrompt": true
+}
