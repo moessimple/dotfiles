@@ -6,6 +6,23 @@ dependencies or provide Pint, PHPStan, Rector, Pest, PHPUnit, or ParaTest themse
 
 See the [root README](../../../README.md) for installation and the wider dotfiles setup.
 
+## Why This Exists
+
+A coding agent can be instructed to run quality checks, but an instruction is not evidence that they ran or passed.
+Claude Code [hooks](https://code.claude.com/docs/en/hooks) provide deterministic lifecycle checkpoints instead of
+depending on the model to remember them.
+
+This gate uses two feedback loops: inexpensive file checks after supported edits, then a project check before Claude
+stops for Composer projects marked by those edits. Both loops run the project's installed tools and configuration,
+which remain the source of truth.
+
+A passing gate is evidence that the configured checks succeeded, not proof that the change is correct. Local hooks
+complement review and CI; authoritative merge protection should use server-side
+[required status checks](https://docs.github.com/repositories/configuring-branches-and-merges/managing-protected-branches/about-protected-branches#require-status-checks-before-merging).
+
+Command hooks execute project code with the local user's permissions. Use them only in trusted repositories; see the
+official [security considerations](https://code.claude.com/docs/en/hooks#security-considerations).
+
 ## Requirements and Activation
 
 The dotfiles installer symlinks this directory to `~/.claude/hooks` and
