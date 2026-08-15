@@ -13,19 +13,19 @@ by symlinking files into `$HOME` and by shell scripts that install/configure the
 Run the Bats test suite from the repository root:
 
 ```zsh
-bats -r tests/
+bin/test.sh
 ```
 
 Run a single test file:
 
 ```zsh
-bats tests/claude/hooks/quality-gate.bats
+bin/test.sh tests/claude/hooks/quality-gate.bats
 ```
 
 Filter to tests matching a name:
 
 ```zsh
-bats -r tests/ -f "some test name"
+bin/test.sh -r tests/ -f "some test name"
 ```
 
 CI (`.github/workflows/tests.yml`) runs the same `bats -r tests/` on Ubuntu with `bats`, `php-cli`, and `zsh`

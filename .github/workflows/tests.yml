@@ -21,4 +21,4 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y bats php-cli zsh
 
       - name: Tests
-        run: bats -r tests/
+        run: bin/test.sh

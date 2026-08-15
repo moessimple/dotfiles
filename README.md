@@ -190,7 +190,7 @@ Changes intended for every machine belong in this repository and can be synchron
 Run the repository's Bats tests from the root:
 
 ```zsh
-bats -r tests/
+bin/test.sh
 ```
 
 The suite covers the Claude Code quality hooks and selected shell functions.
