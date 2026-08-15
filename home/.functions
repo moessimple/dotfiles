@@ -125,11 +125,11 @@ fork() {
     gh repo fork "$1" --clone
 }
 
-# Stage all changes and commit; auto-generates a message via Claude or asks for one
+# Stage all changes and commit; auto-generates a message via Claude, then Codex, or asks for one
 commit() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         echo "Usage: commit [message]"
-        echo "  message  Commit message (generated via Claude or prompted for if omitted)"
+        echo "  message  Commit message (generated via Claude/Codex or prompted for if omitted)"
         return 0
     fi
 
@@ -169,12 +169,29 @@ commit() {
             commitMessage=""
         fi
 
+        if [[ -z "${commitMessage//[[:space:]]/}" ]]; then
+            local codex_result=""
+
+            if command -v codex &>/dev/null \
+                && codex_result=$(echo "$diff_input" | codex exec --json --ephemeral --sandbox read-only "$prompt" 2>/dev/null); then
+                commitMessage=$(echo "$codex_result" | jq -ser '
+                    if any(.[]; .type == "turn.completed") and all(.[]; .type != "turn.failed" and .type != "error") then
+                        [.[] | select(.type == "item.completed" and .item.type == "agent_message") | .item.text]
+                        | last
+                        | select(type == "string" and test("\\S"))
+                    else
+                        empty
+                    end
+                ') || commitMessage=""
+            fi
+        fi
+
         trap - INT
         { kill $spinner_pid; wait $spinner_pid; } 2>/dev/null
         printf "\r\033[K"
 
         if [[ -z "${commitMessage//[[:space:]]/}" ]]; then
-            read -r "commitMessage?Claude was unavailable. Commit message: "
+            read -r "commitMessage?Claude and Codex were unavailable. Commit message: "
 
             if [[ -z "${commitMessage//[[:space:]]/}" ]]; then
                 echo "Commit cancelled: no message provided."

@@ -41,6 +41,9 @@ the file tracked in this repository. `support/setup/symlink-dotfiles.sh` is the 
 paths are linked and whether a given path is linked as a file (`ln -sf`) or as a directory (`ln -sfn`, used for
 `.claude/agents`, `.claude/commands`, `.claude/hooks`, `.claude/rules`, `.claude/skills`).
 
+`~/.codex/AGENTS.md` intentionally links to `~/.claude/CLAUDE.md`, so Claude Code and the lightweight Codex fallback
+share one global instruction file instead of maintaining two copies.
+
 **Entry points vs. setup logic.** `bin/install.sh`, `bin/reconfigure.sh`, and `bin/update.sh` are the only scripts a
 user runs directly; each sources scripts under `support/setup/` in a specific order (documented by comments at each
 `source` call in the entry-point scripts) rather than duplicating logic. `install.sh` does a full fresh setup

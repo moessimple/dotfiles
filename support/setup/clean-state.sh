@@ -5,6 +5,7 @@ mkdir -p ~/Temp
 mkdir -p ~/Code
 mkdir -p ~/.config/ghostty
 mkdir -p ~/.claude
+mkdir -p ~/.codex
 
 # ln -sf replaces an existing file or symlink on its own; a real (non-symlink) directory is the
 # one case it can't replace, so these five are cleared first if they pre-date this repo.

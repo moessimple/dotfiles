@@ -1,7 +1,8 @@
 new_dotfiles_fixture() {
     dotfiles_dir="$(cd "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
     functions_file="$dotfiles_dir/home/.functions"
-    fixture="$(mktemp -d)"
+    fixture="$BATS_TEST_TMPDIR/dotfiles-fixture"
+    mkdir -p "$fixture"
 }
 
 teardown_dotfiles_fixture() {

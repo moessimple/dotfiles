@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance for Claude when working with code.
+This file provides shared guidance for Claude Code and Codex when working with code.
 
 ## General
 
@@ -23,7 +23,7 @@ When working with Laravel/PHP projects, always use `spatie-laravel-php` skill.
 
 For questions about GitHub, use the gh tool.
 
-Never mention Claude Code in PR descriptions, PR comments, or issue comments.
+Never mention Claude Code or Codex in PR descriptions, PR comments, or issue comments.
 
 Don't reference planning artifacts (SPEC.md, docs/ideas/, tasks/plan.md, tasks/todo.md, or similar) in PR
 descriptions if they get deleted before merge, they'd become dead links. If their rationale matters long-term,

@@ -114,8 +114,8 @@ These are the commands I use most often. The full list lives in [`home/.aliases`
 
 ### Git and GitHub
 
-- `commit [message]` stages and commits the repository. Without a message, Claude generates one or the command asks
-  for one.
+- `commit [message]` stages and commits the repository. Without a message, Claude generates one, falling back to
+  Codex and then an interactive prompt.
 - `wip` commits everything with the message `wip`.
 - `sync` synchronizes long-lived branches from an `upstream` remote and force-pushes them to `origin`.
 - `nah` aborts an in-progress Git operation, discards local changes, and removes untracked files.
@@ -168,6 +168,10 @@ bin/reconfigure.sh
 
 Claude Code settings, agents, commands, hooks, rules, and skills live under `home/.claude/` and are linked into
 `~/.claude/` during installation.
+
+Claude Code is the primary coding agent in this setup. This setup uses Codex only as a lightweight fallback and does
+not treat it as a replacement for Claude Code or its full workflow. Codex reuses the same global instructions through
+`~/.codex/AGENTS.md`.
 
 Third-party skills are managed in
 [`support/setup/claude/claude-skills.sh`](support/setup/claude/claude-skills.sh), while plugins and user-level MCP
