@@ -34,8 +34,9 @@ Never write a comment that:
 - narrates statements, calls, conditions, or return values
 - describes code that is not there: hypothetical mistakes, rejected alternatives, future plans (a plain
   `TODO:`/`FIXME:` marker for real, current work is not this, it stays allowed)
-- records the task, ticket, PR, review, or debugging session, or narrates how the implementation came about
-  (a one-line example of a real failure mode a Constraint prevents is not this, it stays allowed)
+- records implementation history such as tasks, tickets, PRs, reviews, debugging sessions, or rejected approaches.
+  A reference to a ticket, PR, specification, or other durable source is allowed when the comment itself states
+  the current Contract or Constraint and the reference only provides additional context.
 - explains the change to me or to a reviewer instead of to whoever reads the file next year
 - repeats a name, a type, a test, or the repository documentation unless a short local statement is necessary
   to understand a non-obvious Contract or Constraint at that exact location
