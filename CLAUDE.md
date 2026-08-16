@@ -86,15 +86,15 @@ Full behavior, the file/fast/full check matrix, and per-project opt-outs (`CLAUD
 are documented in `home/.claude/hooks/README.md`; read it before changing hook behavior instead of re-deriving it
 from the scripts.
 
-**Git helpers (`support/git/`).** Each `*.sh` file defines one function (`gbranches`, `gpush`, `gpull`, `gnah`,
-`gmerge`, `greview`, `gprune`, `gswitch`, `gsync`, `gsearch`, `gbcheck`) and is sourced individually by `.zshrc`;
-`home/.aliases` maps short aliases (`push`, `pull`, `nah`, `sync`, ...) onto them. `pickaxe-diff.sh` is an exception:
-it is a diff driver invoked by `gsearch`, not sourced at shell startup, and `.zshrc` explicitly skips it in its
-sourcing loop.
+**Git helpers (`support/git/`).** Each `*.sh` file defines one function (`branches`, `push`, `pull`, `nah`, `merge`,
+`review`, `prune`, `switch`, `sync`, `search`, `check`) and is sourced individually by `.zshrc`. `pickaxe-diff.sh`
+is an exception: it is a diff driver invoked by `search`, not sourced at shell startup, and `.zshrc` explicitly
+skips it in its sourcing loop.
 
 **Tests mirror source layout.** `tests/claude/hooks/*.bats` covers the quality gate hooks; `tests/functions/*.bats`
-covers selected functions from `home/.functions`. `tests/support/test_helper.bash` provides shared fixtures
-(`new_dotfiles_fixture`, `new_git_function_fixture`) for building throwaway Git repos/projects under `mktemp -d`.
+covers selected functions from `home/.functions`; `tests/git/*.bats` covers the helpers from `support/git/`.
+`tests/support/test_helper.bash` provides shared fixtures (`new_dotfiles_fixture`, `new_git_function_fixture`) for
+building throwaway Git repos/projects under `mktemp -d`.
 
 ## Conventions specific to this repo
 

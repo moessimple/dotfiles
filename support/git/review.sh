@@ -1,9 +1,9 @@
 #!/usr/bin/env zsh
 
 # Review changed files in the current branch against a base branch via fzf
-function greview() {
+function review() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-        echo "Usage: greview [base]"
+        echo "Usage: review [base]"
         echo "  base  Branch to compare against (default: default branch)"
         return 0
     fi

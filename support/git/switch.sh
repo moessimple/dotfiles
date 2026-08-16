@@ -3,9 +3,9 @@
 # TODO: Match GitHub Desktop's branch-switch workflow by asking whether to bring
 # local changes, leave them on the current branch, or cancel.
 # Switch to a branch (creating it if needed), stashing and restoring uncommitted changes
-function gswitch() {
+function switch() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-        echo "Usage: gswitch <branch>"
+        echo "Usage: switch <branch>"
         echo "  branch  Branch to switch to (created automatically if it does not exist)"
         echo "  Stashes uncommitted changes before switching and restores them afterwards."
         return 0

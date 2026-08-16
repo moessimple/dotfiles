@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 # Pull the current branch from origin while preserving uncommitted changes
-function gpull() {
+function pull() {
     local current_branch
     current_branch=$(git symbolic-ref --quiet --short HEAD) || {
         echo "Cannot pull while HEAD is detached." >&2

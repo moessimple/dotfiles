@@ -1,9 +1,9 @@
 #!/usr/bin/env zsh
 
 # Browse and diff branches against a base branch interactively via fzf
-function gbcheck() {
+function check() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-        echo "Usage: gbcheck [base]"
+        echo "Usage: check [base]"
         echo "  base  Branch to compare against (default: default branch)"
         return 0
     fi

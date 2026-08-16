@@ -1,11 +1,11 @@
 #!/usr/bin/env zsh
 
 # Sync local long-lived branches from upstream and push them to origin
-function gsync() {
+function sync() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-        echo "Usage: gsync"
+        echo "Usage: sync"
         echo "  Fetches from upstream, resets develop/main/master/release to match upstream,"
-        echo "  force-pushes them to origin, syncs tags, and runs gprune."
+        echo "  force-pushes them to origin, syncs tags, and runs prune."
         echo "  Requires an 'upstream' remote to be configured."
         return 0
     fi
@@ -83,5 +83,5 @@ function gsync() {
     [ "$exit_code" -ne 0 ] && return "$exit_code"
     [ "$pop_exit" -ne 0 ] && return "$pop_exit"
 
-    gprune
+    prune
 }

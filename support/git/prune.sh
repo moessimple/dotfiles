@@ -1,9 +1,9 @@
 #!/usr/bin/env zsh
 
 # Delete local and remote branches that have been merged or whose remote is gone
-function gprune() {
+function prune() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-        echo "Usage: gprune"
+        echo "Usage: prune"
         echo "  Prunes stale remote-tracking branches, deletes local branches merged into"
         echo "  the default branch, removes their remote counterparts, and deletes squashed branches."
         echo "  Protected branches (main, master, develop, release) are never deleted."

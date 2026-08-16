@@ -10,10 +10,10 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "gmerge leaves local changes stashed when the merge fails" {
+@test "merge leaves local changes stashed when the merge fails" {
     make_repository_dirty
 
-    run zsh -c 'source "$1"; cd "$2"; gmerge missing-branch' \
+    run zsh -c 'source "$1"; cd "$2"; merge missing-branch' \
         zsh "$dotfiles_dir/support/git/merge.sh" "$repository"
 
     [ "$status" -ne 0 ]
@@ -23,14 +23,14 @@ teardown() {
     [[ "$output" == *'changes remain in the stash'* ]]
 }
 
-@test "gmerge brings changes from the selected branch into the current branch" {
+@test "merge brings changes from the selected branch into the current branch" {
     git -C "$repository" switch -q main
     printf 'from main\n' > "$repository/from-main.txt"
     git -C "$repository" add from-main.txt
     git -C "$repository" commit -qm "change on main"
     git -C "$repository" switch -q feature
 
-    run zsh -c 'source "$1"; cd "$2"; gmerge main' \
+    run zsh -c 'source "$1"; cd "$2"; merge main' \
         zsh "$dotfiles_dir/support/git/merge.sh" "$repository"
 
     [ "$status" -eq 0 ]

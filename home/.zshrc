@@ -33,7 +33,7 @@ for _dotfile in ~/.dotfiles/home/.{exports,paths,aliases,functions}; do
 done
 unset _dotfile
 
-# Load git functions (pickaxe-diff.sh is a diff driver invoked by gsearch, not sourced)
+# Load git functions (pickaxe-diff.sh is a diff driver invoked by search, not sourced)
 for _git_fn in ~/.dotfiles/support/git/*.sh; do
     [[ "$_git_fn" == */pickaxe-diff.sh ]] && continue
     source "$_git_fn"

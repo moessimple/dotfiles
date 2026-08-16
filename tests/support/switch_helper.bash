@@ -1,9 +1,9 @@
-call_gswitch() {
-    zsh -c 'source "$1"; cd "$2"; shift 2; gswitch "$@"' \
+call_switch() {
+    zsh -c 'source "$1"; cd "$2"; shift 2; switch "$@"' \
         zsh "$dotfiles_dir/support/git/switch.sh" "$repository" "$@"
 }
 
-call_gswitch_with_stash_that_does_nothing() {
+call_switch_with_stash_that_does_nothing() {
     zsh -c '
         function git() {
             if [[ "$1" == "stash" && "$2" == "push" ]]; then
@@ -14,11 +14,11 @@ call_gswitch_with_stash_that_does_nothing() {
         }
         source "$1"
         cd "$2"
-        gswitch "$3"
+        switch "$3"
     ' zsh "$dotfiles_dir/support/git/switch.sh" "$repository" "$1"
 }
 
-call_gswitch_with_failing_stash() {
+call_switch_with_failing_stash() {
     zsh -c '
         function git() {
             if [[ "$1" == "stash" && "$2" == "push" ]]; then
@@ -29,7 +29,7 @@ call_gswitch_with_failing_stash() {
         }
         source "$1"
         cd "$2"
-        gswitch "$3"
+        switch "$3"
     ' zsh "$dotfiles_dir/support/git/switch.sh" "$repository" "$1"
 }
 

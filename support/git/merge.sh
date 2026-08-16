@@ -1,9 +1,9 @@
 #!/usr/bin/env zsh
 
 # Merge a branch into the current branch, stashing and restoring uncommitted changes
-function gmerge() {
+function merge() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-        echo "Usage: gmerge <branch> [git merge options]"
+        echo "Usage: merge <branch> [git merge options]"
         echo "  branch  Branch to merge into the current branch"
         echo "  Restores stashed changes after a successful merge; leaves them stashed on failure."
         return 0

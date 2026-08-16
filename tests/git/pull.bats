@@ -10,11 +10,11 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "gpull leaves local changes stashed when the pull fails" {
+@test "pull leaves local changes stashed when the pull fails" {
     make_repository_dirty
     git -C "$repository" remote add origin "$fixture/missing-origin.git"
 
-    run zsh -c 'source "$1"; cd "$2"; gpull' \
+    run zsh -c 'source "$1"; cd "$2"; pull' \
         zsh "$dotfiles_dir/support/git/pull.sh" "$repository"
 
     [ "$status" -ne 0 ]
@@ -24,7 +24,7 @@ teardown() {
     [[ "$output" == *'changes remain in the stash'* ]]
 }
 
-@test "gpull brings remote changes into the current branch" {
+@test "pull brings remote changes into the current branch" {
     origin="$fixture/origin.git"
     git init -q --bare "$origin"
     git -C "$repository" remote add origin "$origin"
@@ -36,7 +36,7 @@ teardown() {
     git -C "$repository" push -q origin feature
     git -C "$repository" reset -q --hard "$previous_commit"
 
-    run zsh -c 'source "$1"; cd "$2"; gpull' \
+    run zsh -c 'source "$1"; cd "$2"; pull' \
         zsh "$dotfiles_dir/support/git/pull.sh" "$repository"
 
     [ "$status" -eq 0 ]

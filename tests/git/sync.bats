@@ -10,7 +10,7 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "gsync restores the starting branch and local changes after a push fails" {
+@test "sync restores the starting branch and local changes after a push fails" {
     upstream="$fixture/upstream.git"
     git init -q --bare "$upstream"
     git -C "$repository" remote add upstream "$upstream"
@@ -19,7 +19,7 @@ teardown() {
     git -C "$repository" remote add origin "$fixture/missing-origin.git"
     make_repository_dirty
 
-    run zsh -c 'source "$1"; gprune() { return 0; }; cd "$2"; gsync' \
+    run zsh -c 'source "$1"; prune() { return 0; }; cd "$2"; sync' \
         zsh "$dotfiles_dir/support/git/sync.sh" "$repository"
 
     [ "$status" -ne 0 ]
@@ -29,21 +29,21 @@ teardown() {
     [ -z "$(git -C "$repository" stash list)" ]
 }
 
-@test "gsync updates origin main to match upstream" {
+@test "sync updates origin main to match upstream" {
     new_sync_remotes
 
-    run zsh -c 'source "$1"; gprune() { return 0; }; cd "$2"; gsync' \
+    run zsh -c 'source "$1"; prune() { return 0; }; cd "$2"; sync' \
         zsh "$dotfiles_dir/support/git/sync.sh" "$repository"
 
     [ "$status" -eq 0 ]
     [ "$(git --git-dir="$origin" rev-parse refs/heads/main)" = "$(git --git-dir="$upstream" rev-parse refs/heads/main)" ]
 }
 
-@test "gsync restores the starting branch and local changes after a successful sync" {
+@test "sync restores the starting branch and local changes after a successful sync" {
     new_sync_remotes
     make_repository_dirty
 
-    run zsh -c 'source "$1"; gprune() { return 0; }; cd "$2"; gsync' \
+    run zsh -c 'source "$1"; prune() { return 0; }; cd "$2"; sync' \
         zsh "$dotfiles_dir/support/git/sync.sh" "$repository"
 
     [ "$status" -eq 0 ]
@@ -53,12 +53,12 @@ teardown() {
     [ -z "$(git -C "$repository" stash list)" ]
 }
 
-@test "gsync prunes branches after a successful sync" {
+@test "sync prunes branches after a successful sync" {
     new_sync_remotes
     prune_log="$fixture/prune.log"
 
-    run env GSYNC_PRUNE_LOG="$prune_log" zsh -c \
-        'source "$1"; gprune() { print pruned > "$GSYNC_PRUNE_LOG"; }; cd "$2"; gsync' \
+    run env SYNC_PRUNE_LOG="$prune_log" zsh -c \
+        'source "$1"; prune() { print pruned > "$SYNC_PRUNE_LOG"; }; cd "$2"; sync' \
         zsh "$dotfiles_dir/support/git/sync.sh" "$repository"
 
     [ "$status" -eq 0 ]

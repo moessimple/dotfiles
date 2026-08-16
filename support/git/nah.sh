@@ -2,9 +2,9 @@
 
 # Abort an in-progress rebase, merge, cherry-pick, revert, or bisect, then
 # reset to HEAD and remove untracked files
-function gnah() {
+function nah() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-        echo "Usage: gnah"
+        echo "Usage: nah"
         echo "  Aborts any in-progress rebase, merge, cherry-pick, revert, or bisect,"
         echo "  then hard resets to HEAD and removes untracked files."
         return 0
