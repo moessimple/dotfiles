@@ -74,6 +74,13 @@ technical boundary.
 15. Run the smallest relevant test set first for fast feedback, then run the project's required quality gate before
     considering the change complete. Report only checks that actually ran.
 
+16. Keep test logic simpler than the production logic it verifies. Avoid conditionals, loops, complex calculations,
+    and dynamically derived expected values when explicit examples or clearly named datasets can express the
+    behavior more directly. Do not reproduce the production algorithm in the test to calculate the expected result.
+
+17. Tests must be deterministic, order-independent, and safe to run repeatedly or in parallel where the project
+    supports it. Keep mutable state test-local and clean up temporary or process-wide state even when the test throws.
+
 Before keeping a test, answer all three questions:
 
 1. Would it still pass after a behavior preserving refactor?

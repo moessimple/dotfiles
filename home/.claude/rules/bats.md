@@ -31,6 +31,8 @@ Bats tests are shell programs. A check is an assertion only when its failure nec
    raise that version and declare it with `bats_require_minimum_version`.
 
 8. Keep Bats test bodies readable as behavior specifications, including for readers who are not fluent in shell
-   scripting. Move reusable shell mechanics for fixtures, test doubles, and assertions into support helpers with
-   names that state their purpose. Keep scenario specific values, actions, and expected outcomes visible in the
-   test so helpers do not hide the behavior being protected.
+   scripting. A reader should be able to understand the scenario, action, and expected outcome from the test body
+   without mentally interpreting shell expressions or opening support helpers. Move reusable shell mechanics for
+   fixtures, test doubles, and assertions into support helpers with names that state their purpose. Keep scenario
+   specific values, actions, and expected outcomes visible in the test so helpers do not hide the behavior being
+   protected.
