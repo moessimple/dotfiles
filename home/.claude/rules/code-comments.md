@@ -6,17 +6,28 @@ paths:
 
 ## Code comments
 
-Write no comment unless it earns its place. Surrounding comment density is never the target, and a comment never
-compensates for an unclear name or complicated code, fix those first. Weigh the bar by reuse scope: a library, a
-shared utility, code many different callers or readers will depend on over time, earns a comment more readily
-than code used in exactly one place. Only two kinds earn their place:
+Write no comment unless it earns its place. Surrounding comment density is never the target. A comment never
+compensates for an unclear name or unnecessarily complicated code. When improving the code is within the scope
+of the current task, prefer making the code clearer instead of explaining it with a comment. Broader reuse raises
+the importance of preserving a non-obvious contract, but never lowers the bar for comments that merely restate
+clear code.
+
+Comments or documentation required or interpreted by the language, framework, static analysis, linting,
+code generation, or other tooling are outside the explanatory-comment rules below. Preserve or add them only
+when the project requires them. Do not add suppression directives merely to make tooling pass; prefer fixing the
+underlying issue when that is within the scope of the current task, and keep necessary suppressions as narrow as
+possible.
+
+For human-facing explanatory comments, only two kinds earn their place:
 
 - **Contract**, at a declaration: what a non-obvious function, class, or module is for and how to use it
-  correctly. Skip it where name and signature already say it.
-- **Constraint**, inside an implementation: a business rule, invariant, external limitation, ordering, locking,
-  concurrency or idempotency requirement, or deliberate trade-off that applies to the code as it now stands,
-  cannot be carried by naming, types, or structure, and whose absence would let the next maintainer make a
-  plausible wrong change.
+  correctly. Skip it where name and signature already say it, unless declaration documentation is required by
+  the language, project, public API, or documentation tooling.
+
+- **Constraint**, inside an implementation: a business rule, invariant, external limitation, compatibility or
+  algorithmic requirement, ordering, locking, concurrency or idempotency requirement, or deliberate trade-off
+  that applies to the code as it now stands, is not clear enough from naming, types, or structure, and whose
+  absence would let the next maintainer make a plausible wrong change.
 
 Never write a comment that:
 
@@ -26,19 +37,21 @@ Never write a comment that:
 - records the task, ticket, PR, review, or debugging session, or narrates how the implementation came about
   (a one-line example of a real failure mode a Constraint prevents is not this, it stays allowed)
 - explains the change to me or to a reviewer instead of to whoever reads the file next year
-- repeats a name, a type, a test, or the repository documentation (an exception: a one- to three-line
-  restatement placed exactly where code branches on that documented behavior is not this, it stays allowed,
-  since it saves a context switch a reader would otherwise have to make)
-- sits on code the current change did not otherwise touch
+- repeats a name, a type, a test, or the repository documentation unless a short local statement is necessary
+  to understand a non-obvious Contract or Constraint at that exact location
+- adds drive-by commentary to code unrelated to the current task or change
 
-**Write it so a human can actually follow it.** Lead with the plain, concrete account of what the code does or
-what condition it handles, the way you would say it out loud, then add the technical why next to it, never
-instead of it. A reader should not need to already know the mechanism to parse the sentence. One thought per
-sentence. No hedge verb (handles, manages, processes) standing in for a real description of what happens.
+**Write comments for the missing knowledge, not for the visible mechanics.** State the concrete, non-obvious
+contract or constraint first, in plain language a maintainer can understand without mentally executing the code.
+Then state the reason, consequence, or failure mode when that information is necessary to understand why the
+contract or constraint matters.
 
-Never how the code was arrived at, only the constraint and its consequence. Before finishing, reread every
-comment you added and delete the ones that are neither a contract nor a constraint.
+Be specific and direct. Prefer concrete nouns, conditions, and consequences over vague descriptions. Keep one
+thought per sentence and keep the comment no longer than the knowledge it needs to preserve. Do not use vague
+verbs such as `handles`, `manages`, or `processes` as substitutes for saying what actually matters.
 
-One exception to all of the above: a file that originates from a third-party template or generator rather than
-being authored by you (a scaffolded config, a framework-generated file) keeps its own original comments exactly
-as they came, even where they would fail every bar above. Trimming another tool's template is not your call.
+Never explain how the code was arrived at, only the contract or constraint and its consequence. Before finishing,
+reread every explanatory comment you added and delete the ones that are neither a contract nor a constraint.
+
+Do not clean up or rewrite comments that originate from a third-party template or generator unless the current
+task, project convention, or regeneration itself requires it.
