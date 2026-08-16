@@ -47,3 +47,28 @@ assert_failure() {
 assert_output_contains() {
     [[ "$output" == *"$1"* ]] || false
 }
+
+assert_current_branch() {
+    local git_command="${REAL_GIT:-git}"
+    [ "$("$git_command" -C "$repository" branch --show-current)" = "$1" ]
+}
+
+assert_head_is_detached() {
+    local git_command="${REAL_GIT:-git}"
+    [ -z "$("$git_command" -C "$repository" branch --show-current)" ]
+}
+
+assert_worktree_is_clean() {
+    local git_command="${REAL_GIT:-git}"
+    [ -z "$("$git_command" -C "$repository" status --porcelain)" ]
+}
+
+assert_worktree_is_dirty() {
+    local git_command="${REAL_GIT:-git}"
+    [ -n "$("$git_command" -C "$repository" status --porcelain)" ]
+}
+
+assert_stash_is_empty() {
+    local git_command="${REAL_GIT:-git}"
+    [ -z "$("$git_command" -C "$repository" stash list)" ]
+}

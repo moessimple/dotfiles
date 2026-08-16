@@ -22,18 +22,6 @@ EOF
     chmod +x "$bin_dir/git" "$bin_dir/brew"
 }
 
-assert_current_branch() {
-    [ "$("$REAL_GIT" -C "$repository" branch --show-current)" = "$1" ]
-}
-
-assert_head_is_detached() {
-    [ -z "$("$REAL_GIT" -C "$repository" branch --show-current)" ]
-}
-
-assert_worktree_is_dirty() {
-    [ -n "$("$REAL_GIT" -C "$repository" status --porcelain)" ]
-}
-
 assert_update_side_effect_was_not_reached() {
     [ ! -e "$UPDATE_SIDE_EFFECT_REACHED" ]
 }
