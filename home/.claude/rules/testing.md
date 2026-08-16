@@ -85,6 +85,7 @@ technical boundary.
     source of nondeterminism instead.
 
 Before keeping a test, answer all three questions:
+
 1. Would it still pass after a behavior preserving refactor?
 2. Could the application be broken for its user or caller while this test remains green because a relevant
    integration was mocked or bypassed?
