@@ -55,6 +55,31 @@ new_project() {
     printf '# Fixture\n' > "$project/README.md"
 }
 
+given_project_with_tools() {
+    local tool
+    new_project
+    for tool in "$@"; do
+        install_tool "$project" "$tool"
+    done
+}
+
+given_composer_project_without_quality_tools() {
+    new_project
+}
+
+given_dirty_project_after_php_edit_with_tools() {
+    given_project_with_tools "$@"
+    marker="$config_home/claude-quality/runs$project.dirty"
+    post_event post-php-edit.sh "$project/src/Example.php"
+    [ -e "$marker" ]
+    : > "$log"
+}
+
+given_project_with_artisan_test_runner() {
+    new_project
+    install_artisan_test_runner
+}
+
 commit_project() {
     configure_test_repository "$git_root"
     git -C "$git_root" add --all
@@ -78,6 +103,28 @@ run_gate() {
         CLAUDE_QUALITY_SKIP_RECTOR="${CLAUDE_QUALITY_SKIP_RECTOR:-}" \
         QUALITY_TEST_LOG="$log" \
         QUALITY_FAIL_TOOL="${QUALITY_FAIL_TOOL:-}" \
+        "$gate" "$@"
+}
+
+run_gate_for_project() {
+    local selected_project="$1"
+    shift
+
+    PATH="$fake_bin:$PATH" \
+        XDG_CONFIG_HOME="$config_home" \
+        CLAUDE_PROJECT_DIR="$selected_project" \
+        QUALITY_TEST_LOG="$log" \
+        "$gate" "$@"
+}
+
+run_gate_for_project_without_composer() {
+    local selected_project="$1"
+    shift
+
+    PATH="$(path_without_composer)" \
+        XDG_CONFIG_HOME="$config_home" \
+        CLAUDE_PROJECT_DIR="$selected_project" \
+        QUALITY_TEST_LOG="$log" \
         "$gate" "$@"
 }
 
@@ -137,6 +184,31 @@ path_without_composer() {
     printf '%s' "$dir"
 }
 
+install_artisan_test_runner() {
+    cat > "$project/artisan" <<'ARTISAN'
+<?php
+$tool = 'artisan';
+file_put_contents(getenv('QUALITY_TEST_LOG'), "$tool\n", FILE_APPEND);
+file_put_contents(getenv('QUALITY_TEST_LOG') . '.args', $tool . ' ' . implode(' ', array_slice($argv, 1)) . "\n", FILE_APPEND);
+exit($tool === getenv('QUALITY_FAIL_TOOL') ? 1 : 0);
+ARTISAN
+}
+
+write_quality_record() {
+    local record="$1" root="$2" mode="$3" exit_code="$4"
+    mkdir -p "$(dirname -- "$record")"
+    jq -n --arg root "$root" --arg mode "$mode" --argjson exit "$exit_code" \
+        '{root: $root, mode: $mode, exit: $exit}' > "$record"
+}
+
+configure_pint_to_exclude() {
+    printf '{"exclude": ["%s"]}\n' "$1" > "$project/pint.json"
+}
+
+configure_pint_to_deny() {
+    printf '{"notPath": ["%s"]}\n' "$1" > "$project/pint.json"
+}
+
 ran() {
     grep -Fxq "$1" "$log"
 }
@@ -147,4 +219,56 @@ ran_count() {
 
 ran_with_argument() {
     grep -E "^$1( |$)" "$log.args" 2>/dev/null | grep -Fq -- "$2"
+}
+
+assert_tool_ran() {
+    ran "$1"
+}
+
+assert_tool_did_not_run() {
+    ! ran "$1" || false
+}
+
+assert_tool_ran_with_argument() {
+    ran_with_argument "$1" "$2"
+}
+
+assert_tool_did_not_run_with_argument() {
+    ! ran_with_argument "$1" "$2" || false
+}
+
+assert_tool_run_count() {
+    [ "$(ran_count "$1")" -eq "$2" ]
+}
+
+check_post_edit_hook_is_configured() {
+    local hook="$1"
+    jq -e --arg command "\"\$HOME/.claude/hooks/$hook\"" \
+        'any(.hooks.PostToolUse[]; .matcher == "Write|Edit"
+            and any(.hooks[]; .command == $command))' "$settings" >/dev/null
+}
+
+check_stop_hook_is_configured() {
+    local timeout="$1"
+    jq -e --arg command '"$HOME/.claude/hooks/require-evidence.sh"' --argjson timeout "$timeout" \
+        'any(.hooks.Stop[]; any(.hooks[];
+            .command == $command and .timeout == $timeout))' "$settings" >/dev/null
+}
+
+assert_record_value() {
+    local record="$1" key="$2" expected="$3"
+    [ "$(jq -r ".$key" "$record")" = "$expected" ]
+}
+
+assert_record_exit_is_success() {
+    [ "$(jq -r .exit "$1")" -eq 0 ]
+}
+
+assert_record_exit_is_failure() {
+    [ "$(jq -r .exit "$1")" -ne 0 ]
+}
+
+assert_output_json_value() {
+    local key="$1" expected="$2"
+    [ "$(printf '%s' "$output" | jq -r ".$key")" = "$expected" ]
 }

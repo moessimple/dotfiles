@@ -1,9 +1,10 @@
 #!/usr/bin/env bats
 
 load ../support/test_helper
+load ../support/merge_helper
 
 setup() {
-    new_git_function_fixture
+    new_dotfiles_fixture
 }
 
 teardown() {
@@ -11,28 +12,34 @@ teardown() {
 }
 
 @test "merge leaves local changes stashed when the merge fails" {
-    make_repository_dirty
+    # Arrange
+    given_repository_on_feature_branch
+    given_tracked_and_untracked_changes
 
-    run zsh -c 'source "$1"; cd "$2"; merge missing-branch' \
-        zsh "$dotfiles_dir/support/git/merge.sh" "$repository"
+    # Act
+    run call_merge missing-branch
 
-    [ "$status" -ne 0 ]
-    [ "$(git -C "$repository" branch --show-current)" = "feature" ]
-    [ -z "$(git -C "$repository" status --porcelain)" ]
-    [ "$(git -C "$repository" stash list | wc -l | tr -d ' ')" -eq 1 ]
-    [[ "$output" == *'changes remain in the stash'* ]]
+    # Assert
+    assert_failure
+    assert_current_branch feature
+    assert_worktree_is_clean
+    assert_stash_count 1
+    assert_output_contains "changes remain in the stash"
 }
 
 @test "merge brings changes from the selected branch into the current branch" {
+    # Arrange
+    given_repository_on_feature_branch
     git -C "$repository" switch -q main
     printf 'from main\n' > "$repository/from-main.txt"
     git -C "$repository" add from-main.txt
     git -C "$repository" commit -qm "change on main"
     git -C "$repository" switch -q feature
 
-    run zsh -c 'source "$1"; cd "$2"; merge main' \
-        zsh "$dotfiles_dir/support/git/merge.sh" "$repository"
+    # Act
+    run call_merge main
 
-    [ "$status" -eq 0 ]
-    [ "$(cat "$repository/from-main.txt")" = "from main" ]
+    # Assert
+    assert_success
+    assert_file_content "$repository/from-main.txt" "from main"
 }

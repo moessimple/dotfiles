@@ -1,3 +1,8 @@
+given_switch_repository_on_feature_branch() {
+    given_repository_on_feature_branch
+    git -C "$repository" config checkout.defaultRemote no-such-remote
+}
+
 call_switch() {
     zsh -c 'source "$1"; cd "$2"; shift 2; switch "$@"' \
         zsh "$dotfiles_dir/support/git/switch.sh" "$repository" "$@"
@@ -65,16 +70,8 @@ assert_file_has_merge_conflict() {
     git -C "$repository" diff --name-only --diff-filter=U | grep -qxF "$1"
 }
 
-assert_stash_contains() {
-    git -C "$repository" stash show --include-untracked --patch stash@{0} | grep -Fq -- "$1"
-}
-
-assert_stash_count() {
-    [ "$(git -C "$repository" stash list | wc -l | tr -d ' ')" -eq "$1" ]
-}
-
 assert_branch_does_not_exist() {
-    ! git -C "$repository" show-ref --verify --quiet "refs/heads/$1"
+    ! git -C "$repository" show-ref --verify --quiet "refs/heads/$1" || false
 }
 
 assert_branch_tracks() {

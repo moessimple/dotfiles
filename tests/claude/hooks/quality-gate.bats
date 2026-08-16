@@ -4,10 +4,6 @@ load ../../support/quality_gate
 
 setup() {
     new_quality_fixture
-    new_project
-    for tool in composer pint phpstan rector pest phpunit; do
-        install_tool "$project" "$tool"
-    done
 }
 
 teardown() {
@@ -15,28 +11,40 @@ teardown() {
 }
 
 @test "a full check covers formatting, analysis, dependencies, and tests" {
+    # Arrange
+    given_project_with_tools composer pint phpstan rector pest phpunit
+
+    # Act
     run run_gate full
 
-    [ "$status" -eq 0 ]
-    ran pint
-    ran phpstan
-    ran rector
-    ran composer
-    ran pest
+    # Assert
+    assert_success
+    assert_tool_ran pint
+    assert_tool_ran phpstan
+    assert_tool_ran rector
+    assert_tool_ran composer
+    assert_tool_ran pest
 }
 
 @test "a fast check covers changed code, analysis, the manifest, and tests" {
+    # Arrange
+    given_project_with_tools composer pint phpstan rector pest phpunit
+
+    # Act
     run run_gate fast
 
-    [ "$status" -eq 0 ]
-    ran pint
-    ran phpstan
-    ran rector
-    ran composer
-    ran pest
+    # Assert
+    assert_success
+    assert_tool_ran pint
+    assert_tool_ran phpstan
+    assert_tool_ran rector
+    assert_tool_ran composer
+    assert_tool_ran pest
 }
 
 @test "a fast check limits code checks to changed PHP files" {
+    # Arrange
+    given_project_with_tools composer pint phpstan rector pest phpunit
     printf '<?php\n' > "$project/src/Unchanged.php"
     commit_project
     printf '<?php\n// changed\n' > "$project/src/Example.php"
@@ -44,129 +52,191 @@ teardown() {
     printf '<?php\n' > "$project/src/Untracked.php"
     git -C "$git_root" add "$project/src/Staged.php"
 
+    # Act
     run run_gate fast
 
-    [ "$status" -eq 0 ]
-    ran_with_argument pint --dirty
-    ran_with_argument rector src/Example.php
-    ran_with_argument rector src/Staged.php
-    ran_with_argument rector src/Untracked.php
-    ! ran_with_argument rector src/Unchanged.php
+    # Assert
+    assert_success
+    assert_tool_ran_with_argument pint --dirty
+    assert_tool_ran_with_argument rector src/Example.php
+    assert_tool_ran_with_argument rector src/Staged.php
+    assert_tool_ran_with_argument rector src/Untracked.php
+    assert_tool_did_not_run_with_argument rector src/Unchanged.php
 }
 
 @test "a fast check can skip tests without skipping code checks" {
+    # Arrange
+    given_project_with_tools composer pint phpstan rector pest phpunit
+
+    # Act
     CLAUDE_QUALITY_SKIP_TESTS=1 run run_gate fast
 
-    [ "$status" -eq 0 ]
-    ran pint
-    ran rector
-    ! ran pest
+    # Assert
+    assert_success
+    assert_tool_ran pint
+    assert_tool_ran rector
+    assert_tool_did_not_run pest
 }
 
 @test "a fast check can skip Rector without skipping the other checks" {
+    # Arrange
+    given_project_with_tools composer pint phpstan rector pest phpunit
+
+    # Act
     CLAUDE_QUALITY_SKIP_RECTOR=1 run run_gate fast
 
-    [ "$status" -eq 0 ]
-    ran pint
-    ! ran rector
-    ran pest
+    # Assert
+    assert_success
+    assert_tool_ran pint
+    assert_tool_did_not_run rector
+    assert_tool_ran pest
 }
 
 @test "checking one PHP file runs only the checks for that file" {
+    # Arrange
+    given_project_with_tools pint phpstan rector
+
+    # Act
     run run_gate file "$project/src/Example.php"
 
-    [ "$status" -eq 0 ]
-    ran pint
-    ran rector
-    ran_with_argument pint "$project/src/Example.php"
-    ran_with_argument rector "$project/src/Example.php"
-    ! ran phpstan
+    # Assert
+    assert_success
+    assert_tool_ran pint
+    assert_tool_ran rector
+    assert_tool_ran_with_argument pint "$project/src/Example.php"
+    assert_tool_ran_with_argument rector "$project/src/Example.php"
+    assert_tool_did_not_run phpstan
 }
 
 @test "checking one PHP file can skip Rector" {
+    # Arrange
+    given_project_with_tools pint rector
+
+    # Act
     CLAUDE_QUALITY_SKIP_RECTOR=1 run run_gate file "$project/src/Example.php"
 
-    [ "$status" -eq 0 ]
-    ran pint
-    ! ran rector
+    # Assert
+    assert_success
+    assert_tool_ran pint
+    assert_tool_did_not_run rector
 }
 
 @test "checking a PHP file under a hidden directory does nothing" {
+    # Arrange
+    given_project_with_tools pint rector
     mkdir -p "$project/.ai/guidelines"
     printf '<?php\n' > "$project/.ai/guidelines/example.blade.php"
 
+    # Act
     run run_gate file "$project/.ai/guidelines/example.blade.php"
 
-    [ "$status" -eq 0 ]
-    ! ran pint
-    ! ran rector
+    # Assert
+    assert_success
+    assert_tool_did_not_run pint
+    assert_tool_did_not_run rector
 }
 
 @test "checking a hidden PHP file does nothing" {
+    # Arrange
+    given_project_with_tools pint rector
     printf '<?php\n' > "$project/.php-cs-fixer.php"
 
+    # Act
     run run_gate file "$project/.php-cs-fixer.php"
 
-    [ "$status" -eq 0 ]
-    ! ran pint
-    ! ran rector
+    # Assert
+    assert_success
+    assert_tool_did_not_run pint
+    assert_tool_did_not_run rector
 }
 
 @test "quality uses the fast check by default" {
+    # Arrange
+    given_project_with_tools composer pint phpstan rector pest phpunit
+
+    # Act
     run run_quality
 
-    [ "$status" -eq 0 ]
-    ran phpstan
-    ran rector
-    ran pest
+    # Assert
+    assert_success
+    assert_tool_ran phpstan
+    assert_tool_ran rector
+    assert_tool_ran pest
 }
 
 @test "quality full includes the test suite" {
+    # Arrange
+    given_project_with_tools composer pint phpstan rector pest phpunit
+
+    # Act
     run run_quality full
 
-    [ "$status" -eq 0 ]
-    ran pest
+    # Assert
+    assert_success
+    assert_tool_ran pest
 }
 
 @test "quality help explains that fast is the default" {
-    run run_quality --help
+    # Arrange
+    help_option=--help
 
-    [[ "$output" == *'default: fast'* ]]
+    # Act
+    run run_quality "$help_option"
+
+    # Assert
+    assert_success
+    assert_output_contains "default: fast"
 }
 
 @test "quality status shows the latest result for the repository project" {
+    # Arrange
+    given_composer_project_without_quality_tools
     record="$config_home/claude-quality/runs$project.json"
-    mkdir -p "$(dirname -- "$record")"
-    jq -n --arg root "$project" '{root: $root, mode: "fast", exit: 0}' > "$record"
+    write_quality_record "$record" "$project" fast 0
 
+    # Act
     run run_quality_status
 
-    [ "$status" -eq 0 ]
-    [ "$(printf '%s' "$output" | jq -r .root)" = "$project" ]
-    [ "$(printf '%s' "$output" | jq -r .mode)" = "fast" ]
+    # Assert
+    assert_success
+    assert_output_json_value root "$project"
+    assert_output_json_value mode fast
 }
 
 @test "a fast check records what was checked and whether it passed" {
+    # Arrange
+    given_project_with_tools composer pint phpstan rector pest phpunit
+
+    # Act
     run run_gate fast
 
-    [ "$status" -eq 0 ]
+    # Assert
+    assert_success
     record="$config_home/claude-quality/runs$project.json"
-    [ -f "$record" ]
-    [ "$(jq -r .root "$record")" = "$project" ]
-    [ "$(jq -r .mode "$record")" = "fast" ]
-    [ "$(jq -r .sha "$record")" = "none" ]
-    [ "$(jq -r .tree "$record")" = "dirty" ]
-    [ "$(jq -r .exit "$record")" -eq 0 ]
+    assert_file_exists "$record"
+    assert_record_value "$record" root "$project"
+    assert_record_value "$record" mode fast
+    assert_record_value "$record" sha none
+    assert_record_value "$record" tree dirty
+    assert_record_exit_is_success "$record"
 }
 
 @test "a failed check records the failure" {
-    QUALITY_FAIL_TOOL=phpstan run run_gate fast
+    # Arrange
+    given_project_with_tools composer pint phpstan rector pest phpunit
+    failing_tool=phpstan
 
+    # Act
+    QUALITY_FAIL_TOOL="$failing_tool" run run_gate fast
+
+    # Assert
+    assert_failure
     record="$config_home/claude-quality/runs$project.json"
-    [ "$(jq -r .exit "$record")" -ne 0 ]
+    assert_record_exit_is_failure "$record"
 }
 
 @test "a project without quality tools reports nothing to check and clears its marker" {
+    # Arrange
     empty_project="$fixture/empty-project"
     mkdir -p "$empty_project/vendor/bin"
     git init -q "$empty_project"
@@ -176,181 +246,237 @@ teardown() {
     mkdir -p "$(dirname -- "$marker")"
     touch "$marker"
 
-    run env PATH="$(path_without_composer)" XDG_CONFIG_HOME="$config_home" CLAUDE_PROJECT_DIR="$empty_project" "$gate" fast
+    # Act
+    run run_gate_for_project_without_composer "$empty_project" fast
 
-    [ "$status" -eq 3 ]
-    [[ "$output" == *'QUALITY_NO_TOOLING'* ]]
-    [ ! -e "$marker" ]
+    # Assert
+    assert_status 3
+    assert_output_contains "QUALITY_NO_TOOLING"
+    assert_path_does_not_exist "$marker"
 }
 
 @test "a fast check runs Laravel tests when only Artisan is available" {
-    rm "$fake_bin/composer"
-    rm "$project/vendor/bin/"*
-    cat > "$project/artisan" <<'ARTISAN'
-<?php
-$tool = 'artisan';
-file_put_contents(getenv('QUALITY_TEST_LOG'), "$tool\n", FILE_APPEND);
-exit($tool === getenv('QUALITY_FAIL_TOOL') ? 1 : 0);
-ARTISAN
+    # Arrange
+    given_project_with_artisan_test_runner
 
+    # Act
     PATH="$(path_without_composer)" run run_gate fast
 
-    [ "$status" -eq 0 ]
-    ran artisan
+    # Assert
+    assert_success
+    assert_tool_ran artisan
 }
 
 @test "a directory without a Composer project reports nothing to check" {
+    # Arrange
     empty_dir="$fixture/no-project"
     mkdir -p "$empty_dir"
     git init -q "$empty_dir"
 
-    run env PATH="$fake_bin:$PATH" XDG_CONFIG_HOME="$config_home" CLAUDE_PROJECT_DIR="$empty_dir" "$gate" fast
+    # Act
+    run run_gate_for_project "$empty_dir" fast
 
-    [ "$status" -eq 3 ]
-    [[ "$output" == *'QUALITY_NO_PROJECT'* ]]
+    # Assert
+    assert_status 3
+    assert_output_contains "QUALITY_NO_PROJECT"
 }
 
 @test "a repository without a root composer.json reports nothing to check" {
+    # Arrange
     manifest_repo="$fixture/non-root-manifest"
     mkdir -p "$manifest_repo/app"
     git init -q "$manifest_repo"
     printf '{}\n' > "$manifest_repo/app/composer.json"
 
-    run env PATH="$fake_bin:$PATH" XDG_CONFIG_HOME="$config_home" CLAUDE_PROJECT_DIR="$manifest_repo/app" "$gate" fast
+    # Act
+    run run_gate_for_project "$manifest_repo/app" fast
 
-    [ "$status" -eq 3 ]
-    [[ "$output" == *'QUALITY_NO_PROJECT'* ]]
-    [ ! -s "$log" ]
+    # Assert
+    assert_status 3
+    assert_output_contains "QUALITY_NO_PROJECT"
+    assert_file_is_empty "$log"
 }
 
 @test "file mode validates only the repository composer.json" {
+    # Arrange
+    given_project_with_tools composer
     mkdir -p "$project/packages/example"
     printf '{}\n' > "$project/packages/example/composer.json"
 
+    # Act
     run run_gate file "$project/packages/example/composer.json"
 
-    [ "$status" -eq 0 ]
-    ! ran composer
+    # Assert
+    assert_success
+    assert_tool_did_not_run composer
 }
 
 @test "an unknown check mode shows usage" {
+    # Arrange
+    given_project_with_tools composer pint phpstan rector pest phpunit
+
+    # Act
     run run_gate bogus
 
-    [ "$status" -eq 64 ]
-    [[ "$output" == *'Usage:'* ]]
+    # Assert
+    assert_status 64
+    assert_output_contains "Usage:"
 }
 
 @test "checking one file requires a path" {
+    # Arrange
+    given_project_with_tools pint rector
+
+    # Act
     run run_gate file
 
-    [ "$status" -eq 64 ]
+    # Assert
+    assert_status 64
 }
 
 @test "checking a missing file explains the problem" {
+    # Arrange
+    given_project_with_tools pint rector
+
+    # Act
     run run_gate file "$project/src/DoesNotExist.php"
 
-    [ "$status" -eq 64 ]
-    [[ "$output" == *'Not a regular file'* ]]
+    # Assert
+    assert_status 64
+    assert_output_contains "Not a regular file"
 }
 
 @test "a path excluded from Pint can still be checked by Rector" {
-    printf '{"exclude": ["src/Legacy"]}\n' > "$project/pint.json"
+    # Arrange
+    given_project_with_tools pint rector
+    configure_pint_to_exclude src/Legacy
     mkdir -p "$project/src/Legacy"
     printf '<?php\n' > "$project/src/Legacy/Old.php"
 
+    # Act
     run run_gate file "$project/src/Legacy/Old.php"
 
-    [ "$status" -eq 0 ]
-    ! ran pint
-    ran rector
+    # Assert
+    assert_success
+    assert_tool_did_not_run pint
+    assert_tool_ran rector
 }
 
 @test "Pint still checks files outside its excluded paths" {
-    printf '{"exclude": ["src/Legacy"]}\n' > "$project/pint.json"
+    # Arrange
+    given_project_with_tools pint
+    configure_pint_to_exclude src/Legacy
 
+    # Act
     run run_gate file "$project/src/Example.php"
 
-    [ "$status" -eq 0 ]
-    ran pint
+    # Assert
+    assert_success
+    assert_tool_ran pint
 }
 
 @test "a path denied by Pint can still be checked by Rector" {
-    printf '{"notPath": ["tmp"]}\n' > "$project/pint.json"
+    # Arrange
+    given_project_with_tools pint rector
+    configure_pint_to_deny tmp
     mkdir -p "$project/tmp"
     printf '<?php\n' > "$project/tmp/Scratch.php"
 
+    # Act
     run run_gate file "$project/tmp/Scratch.php"
 
-    [ "$status" -eq 0 ]
-    ! ran pint
-    ran rector
+    # Assert
+    assert_success
+    assert_tool_did_not_run pint
+    assert_tool_ran rector
 }
 
 @test "a full check validates and audits dependencies" {
+    # Arrange
+    given_project_with_tools composer
+
+    # Act
     run run_gate full
 
-    [ "$status" -eq 0 ]
-    ran_with_argument composer validate
-    ran_with_argument composer audit
+    # Assert
+    assert_success
+    assert_tool_ran_with_argument composer validate
+    assert_tool_ran_with_argument composer audit
 }
 
 @test "a fast check validates dependencies without auditing them" {
+    # Arrange
+    given_project_with_tools composer
+
+    # Act
     run run_gate fast
 
-    [ "$status" -eq 0 ]
-    ran_with_argument composer validate
-    ! ran_with_argument composer audit
+    # Assert
+    assert_success
+    assert_tool_ran_with_argument composer validate
+    assert_tool_did_not_run_with_argument composer audit
 }
 
 @test "a project with Pest and PHPUnit uses Pest" {
+    # Arrange
+    given_project_with_tools composer pest phpunit
+
+    # Act
     run run_gate fast
 
-    [ "$status" -eq 0 ]
-    ran pest
-    ! ran phpunit
+    # Assert
+    assert_success
+    assert_tool_ran pest
+    assert_tool_did_not_run phpunit
 }
 
 @test "a Pest suite runs in parallel when ParaTest is available" {
-    install_tool "$project" paratest
+    # Arrange
+    given_project_with_tools composer pest phpunit paratest
 
+    # Act
     run run_gate fast
 
-    [ "$status" -eq 0 ]
-    ran_with_argument pest --parallel
+    # Assert
+    assert_success
+    assert_tool_ran_with_argument pest --parallel
 }
 
 @test "a Pest suite runs normally without ParaTest" {
+    # Arrange
+    given_project_with_tools composer pest phpunit
+
+    # Act
     run run_gate fast
 
-    [ "$status" -eq 0 ]
-    ! ran_with_argument pest --parallel
+    # Assert
+    assert_success
+    assert_tool_did_not_run_with_argument pest --parallel
 }
 
 @test "a PHPUnit project uses ParaTest when it is available" {
-    rm "$project/vendor/bin/pest"
-    install_tool "$project" paratest
+    # Arrange
+    given_project_with_tools composer phpunit paratest
 
+    # Act
     run run_gate fast
 
-    [ "$status" -eq 0 ]
-    ran paratest
-    ! ran phpunit
+    # Assert
+    assert_success
+    assert_tool_ran paratest
+    assert_tool_did_not_run phpunit
 }
 
 @test "an Artisan test suite runs in parallel when ParaTest is available" {
-    rm "$project/vendor/bin/pest" "$project/vendor/bin/phpunit"
-    install_tool "$project" paratest
-    cat > "$project/artisan" <<'ARTISAN'
-<?php
-$tool = 'artisan';
-file_put_contents(getenv('QUALITY_TEST_LOG'), "$tool\n", FILE_APPEND);
-file_put_contents(getenv('QUALITY_TEST_LOG') . '.args', $tool . ' ' . implode(' ', array_slice($argv, 1)) . "\n", FILE_APPEND);
-exit($tool === getenv('QUALITY_FAIL_TOOL') ? 1 : 0);
-ARTISAN
+    # Arrange
+    given_project_with_tools composer paratest
+    install_artisan_test_runner
 
+    # Act
     run run_gate fast
 
-    [ "$status" -eq 0 ]
-    ran artisan
-    ran_with_argument artisan --parallel
+    # Assert
+    assert_success
+    assert_tool_ran artisan
+    assert_tool_ran_with_argument artisan --parallel
 }

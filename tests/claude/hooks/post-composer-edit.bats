@@ -4,9 +4,6 @@ load ../../support/quality_gate
 
 setup() {
     new_quality_fixture
-    new_project
-    install_tool "$project" composer
-    marker="$config_home/claude-quality/runs$project.dirty"
 }
 
 teardown() {
@@ -14,34 +11,55 @@ teardown() {
 }
 
 @test "the Composer edit hook is connected to Write and Edit events" {
-    jq -e 'any(.hooks.PostToolUse[]; .matcher == "Write|Edit"
-        and any(.hooks[]; .command == "\"$HOME/.claude/hooks/post-composer-edit.sh\""))' \
-        "$settings"
+    # Arrange
+    hook=post-composer-edit.sh
+
+    # Act
+    run check_post_edit_hook_is_configured "$hook"
+
+    # Assert
+    assert_success
 }
 
 @test "editing composer.json validates it" {
+    # Arrange
+    given_project_with_tools composer
+
+    # Act
     run post_event post-composer-edit.sh "$project/composer.json"
 
-    [ "$status" -eq 0 ]
-    ran composer
-    ran_with_argument composer validate
+    # Assert
+    assert_success
+    assert_tool_ran composer
+    assert_tool_ran_with_argument composer validate
 }
 
 @test "editing composer.json marks the project for a final check" {
+    # Arrange
+    given_project_with_tools composer
+    marker="$config_home/claude-quality/runs$project.dirty"
+
+    # Act
     run post_event post-composer-edit.sh "$project/composer.json"
 
-    [ "$status" -eq 0 ]
-    [ -e "$marker" ]
+    # Assert
+    assert_success
+    assert_path_exists "$marker"
 }
 
 @test "editing a composer.json outside the repository root does nothing" {
+    # Arrange
+    given_project_with_tools composer
+    marker="$config_home/claude-quality/runs$project.dirty"
     other_manifest="$project/packages/example/composer.json"
     mkdir -p "$(dirname -- "$other_manifest")"
     printf '{}\n' > "$other_manifest"
 
+    # Act
     run post_event post-composer-edit.sh "$other_manifest"
 
-    [ "$status" -eq 0 ]
-    [ ! -s "$log" ]
-    [ ! -e "$marker" ]
+    # Assert
+    assert_success
+    assert_file_is_empty "$log"
+    assert_path_does_not_exist "$marker"
 }

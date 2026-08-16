@@ -1,9 +1,10 @@
 #!/usr/bin/env bats
 
 load ../support/test_helper
+load ../support/pull_helper
 
 setup() {
-    new_git_function_fixture
+    new_dotfiles_fixture
 }
 
 teardown() {
@@ -11,34 +12,31 @@ teardown() {
 }
 
 @test "pull leaves local changes stashed when the pull fails" {
-    make_repository_dirty
+    # Arrange
+    given_repository_on_feature_branch
+    given_tracked_and_untracked_changes
     git -C "$repository" remote add origin "$fixture/missing-origin.git"
 
-    run zsh -c 'source "$1"; cd "$2"; pull' \
-        zsh "$dotfiles_dir/support/git/pull.sh" "$repository"
+    # Act
+    run call_pull
 
-    [ "$status" -ne 0 ]
-    [ "$(git -C "$repository" branch --show-current)" = "feature" ]
-    [ -z "$(git -C "$repository" status --porcelain)" ]
-    [ "$(git -C "$repository" stash list | wc -l | tr -d ' ')" -eq 1 ]
-    [[ "$output" == *'changes remain in the stash'* ]]
+    # Assert
+    assert_failure
+    assert_current_branch feature
+    assert_worktree_is_clean
+    assert_stash_count 1
+    assert_output_contains "changes remain in the stash"
 }
 
 @test "pull brings remote changes into the current branch" {
-    origin="$fixture/origin.git"
-    git init -q --bare "$origin"
-    git -C "$repository" remote add origin "$origin"
-    git -C "$repository" push -qu origin feature
-    previous_commit="$(git -C "$repository" rev-parse HEAD)"
-    printf 'from origin\n' > "$repository/from-origin.txt"
-    git -C "$repository" add from-origin.txt
-    git -C "$repository" commit -qm "change on origin"
-    git -C "$repository" push -q origin feature
-    git -C "$repository" reset -q --hard "$previous_commit"
+    # Arrange
+    given_repository_on_feature_branch
+    given_origin_commit_missing_from_local_branch from-origin.txt "from origin"
 
-    run zsh -c 'source "$1"; cd "$2"; pull' \
-        zsh "$dotfiles_dir/support/git/pull.sh" "$repository"
+    # Act
+    run call_pull
 
-    [ "$status" -eq 0 ]
-    [ "$(cat "$repository/from-origin.txt")" = "from origin" ]
+    # Assert
+    assert_success
+    assert_file_content "$repository/from-origin.txt" "from origin"
 }

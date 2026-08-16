@@ -19,12 +19,15 @@ teardown() {
 }
 
 @test "a feature branch is rejected before the repository or packages are updated" {
-    create_test_repository
+    # Arrange
+    given_clean_repository_on_main
     git -C "$repository" switch -qc feature
     write_update_side_effects_that_must_not_run
 
+    # Act
     run call_update
 
+    # Assert
     assert_failure
     assert_output_contains "is on 'feature'. Check out main"
     assert_current_branch feature
@@ -32,12 +35,15 @@ teardown() {
 }
 
 @test "detached HEAD is rejected before the repository or packages are updated" {
-    create_test_repository
+    # Arrange
+    given_clean_repository_on_main
     git -C "$repository" switch -q --detach HEAD
     write_update_side_effects_that_must_not_run
 
+    # Act
     run call_update
 
+    # Assert
     assert_failure
     assert_output_contains "is in detached HEAD state. Check out main"
     assert_head_is_detached
@@ -45,12 +51,15 @@ teardown() {
 }
 
 @test "a dirty main worktree is still rejected before the repository or packages are updated" {
-    create_test_repository
+    # Arrange
+    given_clean_repository_on_main
     printf 'changed\n' > "$repository/tracked.txt"
     write_update_side_effects_that_must_not_run
 
+    # Act
     run call_update
 
+    # Assert
     assert_failure
     assert_output_contains "has uncommitted changes"
     assert_current_branch main

@@ -1,9 +1,10 @@
 #!/usr/bin/env bats
 
 load ../support/test_helper
+load ../support/sync_helper
 
 setup() {
-    new_git_function_fixture
+    new_dotfiles_fixture
 }
 
 teardown() {
@@ -11,67 +12,62 @@ teardown() {
 }
 
 @test "sync restores the starting branch and local changes after a push fails" {
-    upstream="$fixture/upstream.git"
-    git init -q --bare "$upstream"
-    git -C "$repository" remote add upstream "$upstream"
-    git -C "$repository" push -q upstream main
-    git -C "$repository" fetch -q upstream
-    git -C "$repository" remote add origin "$fixture/missing-origin.git"
-    make_repository_dirty
+    # Arrange
+    given_repository_on_feature_branch
+    given_upstream_main_and_unreachable_origin
+    given_tracked_and_untracked_changes
 
-    run zsh -c 'source "$1"; prune() { return 0; }; cd "$2"; sync' \
-        zsh "$dotfiles_dir/support/git/sync.sh" "$repository"
+    # Act
+    run call_sync
 
-    [ "$status" -ne 0 ]
-    [ "$(git -C "$repository" branch --show-current)" = "feature" ]
-    [ "$(cat "$repository/tracked.txt")" = "changed" ]
-    [ -f "$repository/untracked.txt" ]
-    [ -z "$(git -C "$repository" stash list)" ]
+    # Assert
+    assert_failure
+    assert_current_branch feature
+    assert_file_content "$repository/tracked.txt" "changed"
+    assert_file_exists "$repository/untracked.txt"
+    assert_stash_is_empty
 }
 
 @test "sync updates origin main to match upstream" {
-    new_sync_remotes
+    # Arrange
+    given_repository_on_feature_branch
+    given_upstream_main_and_empty_origin
 
-    run zsh -c 'source "$1"; prune() { return 0; }; cd "$2"; sync' \
-        zsh "$dotfiles_dir/support/git/sync.sh" "$repository"
+    # Act
+    run call_sync
 
-    [ "$status" -eq 0 ]
-    [ "$(git --git-dir="$origin" rev-parse refs/heads/main)" = "$(git --git-dir="$upstream" rev-parse refs/heads/main)" ]
+    # Assert
+    assert_success
+    assert_origin_main_matches_upstream
 }
 
 @test "sync restores the starting branch and local changes after a successful sync" {
-    new_sync_remotes
-    make_repository_dirty
+    # Arrange
+    given_repository_on_feature_branch
+    given_upstream_main_and_empty_origin
+    given_tracked_and_untracked_changes
 
-    run zsh -c 'source "$1"; prune() { return 0; }; cd "$2"; sync' \
-        zsh "$dotfiles_dir/support/git/sync.sh" "$repository"
+    # Act
+    run call_sync
 
-    [ "$status" -eq 0 ]
-    [ "$(git -C "$repository" branch --show-current)" = "feature" ]
-    [ "$(cat "$repository/tracked.txt")" = "changed" ]
-    [ -f "$repository/untracked.txt" ]
-    [ -z "$(git -C "$repository" stash list)" ]
+    # Assert
+    assert_success
+    assert_current_branch feature
+    assert_file_content "$repository/tracked.txt" "changed"
+    assert_file_exists "$repository/untracked.txt"
+    assert_stash_is_empty
 }
 
 @test "sync prunes branches after a successful sync" {
-    new_sync_remotes
+    # Arrange
+    given_repository_on_feature_branch
+    given_upstream_main_and_empty_origin
     prune_log="$fixture/prune.log"
 
-    run env SYNC_PRUNE_LOG="$prune_log" zsh -c \
-        'source "$1"; prune() { print pruned > "$SYNC_PRUNE_LOG"; }; cd "$2"; sync' \
-        zsh "$dotfiles_dir/support/git/sync.sh" "$repository"
+    # Act
+    run call_sync_with_observable_prune
 
-    [ "$status" -eq 0 ]
-    [ -f "$prune_log" ]
-}
-
-new_sync_remotes() {
-    upstream="$fixture/upstream.git"
-    origin="$fixture/origin.git"
-    git init -q --bare "$upstream"
-    git init -q --bare "$origin"
-    git -C "$repository" remote add upstream "$upstream"
-    git -C "$repository" remote add origin "$origin"
-    git -C "$repository" push -q upstream main
-    git -C "$repository" fetch -q upstream
+    # Assert
+    assert_success
+    assert_file_exists "$prune_log"
 }

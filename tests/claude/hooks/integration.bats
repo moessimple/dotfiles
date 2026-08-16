@@ -4,11 +4,6 @@ load ../../support/quality_gate
 
 setup() {
     new_quality_fixture
-    new_project
-    for tool in composer pint phpstan rector pest phpunit; do
-        install_tool "$project" "$tool"
-    done
-    marker="$config_home/claude-quality/runs$project.dirty"
 }
 
 teardown() {
@@ -16,17 +11,16 @@ teardown() {
 }
 
 @test "a PHP edit is checked again before the response can finish" {
-    [ ! -e "$marker" ]
+    # Arrange
+    given_dirty_project_after_php_edit_with_tools composer pint phpstan rector pest phpunit
 
-    post_event post-php-edit.sh "$project/src/Example.php"
-    [ -e "$marker" ]
-
-    : > "$log"
+    # Act
     run stop_event false
 
-    [ "$status" -eq 0 ]
-    ran phpstan
-    ran composer
-    ran pest
-    [ ! -e "$marker" ]
+    # Assert
+    assert_success
+    assert_tool_ran phpstan
+    assert_tool_ran composer
+    assert_tool_ran pest
+    assert_path_does_not_exist "$marker"
 }

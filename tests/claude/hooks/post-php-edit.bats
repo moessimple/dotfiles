@@ -4,10 +4,6 @@ load ../../support/quality_gate
 
 setup() {
     new_quality_fixture
-    new_project
-    install_tool "$project" pint
-    install_tool "$project" rector
-    marker="$config_home/claude-quality/runs$project.dirty"
 }
 
 teardown() {
@@ -15,38 +11,66 @@ teardown() {
 }
 
 @test "the PHP edit hook is connected to Write and Edit events" {
-    jq -e 'any(.hooks.PostToolUse[]; .matcher == "Write|Edit"
-        and any(.hooks[]; .command == "\"$HOME/.claude/hooks/post-php-edit.sh\""))' \
-        "$settings"
+    # Arrange
+    hook=post-php-edit.sh
+
+    # Act
+    run check_post_edit_hook_is_configured "$hook"
+
+    # Assert
+    assert_success
 }
 
 @test "editing a non-PHP file does not check or mark the project" {
+    # Arrange
+    given_project_with_tools pint rector
+    marker="$config_home/claude-quality/runs$project.dirty"
+
+    # Act
     run post_event post-php-edit.sh "$project/README.md"
 
-    [ "$status" -eq 0 ]
-    [ ! -s "$log" ]
-    [ ! -e "$marker" ]
+    # Assert
+    assert_success
+    assert_file_is_empty "$log"
+    assert_path_does_not_exist "$marker"
 }
 
 @test "editing a PHP file runs its immediate code checks" {
+    # Arrange
+    given_project_with_tools pint rector
+
+    # Act
     run post_event post-php-edit.sh "$project/src/Example.php"
 
-    [ "$status" -eq 0 ]
-    ran pint
-    ran rector
+    # Assert
+    assert_success
+    assert_tool_ran pint
+    assert_tool_ran rector
 }
 
 @test "editing a PHP file marks the project for a final check" {
+    # Arrange
+    given_project_with_tools pint rector
+    marker="$config_home/claude-quality/runs$project.dirty"
+
+    # Act
     run post_event post-php-edit.sh "$project/src/Example.php"
 
-    [ "$status" -eq 0 ]
-    [ -e "$marker" ]
+    # Assert
+    assert_success
+    assert_path_exists "$marker"
 }
 
 @test "disabling automatic checks leaves an edited PHP file alone" {
+    # Arrange
+    given_project_with_tools pint rector
+    marker="$config_home/claude-quality/runs$project.dirty"
+
+    # Act
     CLAUDE_QUALITY_DISABLE=1 run post_event post-php-edit.sh "$project/src/Example.php"
 
-    [ "$status" -eq 0 ]
-    [ ! -s "$log" ]
-    [ ! -e "$marker" ]
+    # Assert
+    assert_success
+    assert_file_is_empty "$log"
+    assert_path_does_not_exist "$marker"
 }

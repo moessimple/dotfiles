@@ -1,4 +1,4 @@
-create_commit_repository() {
+given_repository_with_modified_tracked_file() {
     create_test_repository
     printf 'changed\n' > "$repository/tracked.txt"
 }
