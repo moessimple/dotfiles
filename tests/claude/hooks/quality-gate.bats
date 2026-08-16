@@ -134,7 +134,7 @@ teardown() {
     [[ "$output" == *'default: fast'* ]]
 }
 
-@test "quality status shows the latest result for a nested project" {
+@test "quality status shows the latest result for the repository project" {
     record="$config_home/claude-quality/runs$project.json"
     mkdir -p "$(dirname -- "$record")"
     jq -n --arg root "$project" '{root: $root, mode: "fast", exit: 0}' > "$record"
@@ -167,8 +167,9 @@ teardown() {
 }
 
 @test "a project without quality tools reports nothing to check and clears its marker" {
-    empty_project="$git_root/empty"
+    empty_project="$fixture/empty-project"
     mkdir -p "$empty_project/vendor/bin"
+    git init -q "$empty_project"
     printf '{}\n' > "$empty_project/composer.json"
 
     marker="$config_home/claude-quality/runs$empty_project.dirty"
@@ -207,6 +208,29 @@ ARTISAN
 
     [ "$status" -eq 3 ]
     [[ "$output" == *'QUALITY_NO_PROJECT'* ]]
+}
+
+@test "a repository without a root composer.json reports nothing to check" {
+    manifest_repo="$fixture/non-root-manifest"
+    mkdir -p "$manifest_repo/app"
+    git init -q "$manifest_repo"
+    printf '{}\n' > "$manifest_repo/app/composer.json"
+
+    run env PATH="$fake_bin:$PATH" XDG_CONFIG_HOME="$config_home" CLAUDE_PROJECT_DIR="$manifest_repo/app" "$gate" fast
+
+    [ "$status" -eq 3 ]
+    [[ "$output" == *'QUALITY_NO_PROJECT'* ]]
+    [ ! -s "$log" ]
+}
+
+@test "file mode validates only the repository composer.json" {
+    mkdir -p "$project/packages/example"
+    printf '{}\n' > "$project/packages/example/composer.json"
+
+    run run_gate file "$project/packages/example/composer.json"
+
+    [ "$status" -eq 0 ]
+    ! ran composer
 }
 
 @test "an unknown check mode shows usage" {

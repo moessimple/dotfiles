@@ -65,17 +65,16 @@ cannot handle is a real (non-symlink) directory, so `clean-state.sh` only clears
 are left untouched.
 
 **Claude Code quality gate (`home/.claude/hooks/`).** A multi-file system that runs Pint/PHPStan/Rector/Pest/PHPUnit
-against whatever Laravel/PHP project Claude Code is currently editing, using each project's own installed tools
+against the Laravel/PHP repository Claude Code is currently editing, using the repository's own installed tools
 (never installing dependencies itself). The pieces, in call order:
 
-- `support/project-root.sh` resolves the nearest `composer.json` at or above a path without crossing above the Git
-  toplevel, so a monorepo with a nested Composer project is handled correctly. Both other hooks source this file
-  rather than re-implementing project resolution.
+- `support/project-root.sh` accepts a Git repository as a project only when `composer.json` exists at its toplevel.
+  Both other hooks source this file rather than re-implementing project resolution.
 - `post-php-edit.sh` / `post-composer-edit.sh` are `PostToolUse` hooks that run a `file`-mode check after every
   `Write`/`Edit` and leave a "dirty" marker for the project under
   `${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality/runs`.
-- `require-evidence.sh` is the `Stop` hook: before Claude finishes a response, it re-runs `quality fast` for every
-  dirty project in the current repo and blocks (exit 2) on failure instead of trusting a claimed fix.
+- `require-evidence.sh` is the `Stop` hook: before Claude finishes a response, it re-runs `quality fast` for the
+  current repository when dirty and blocks (exit 2) on failure instead of trusting a claimed fix.
 - `quality-gate.sh` is the actual dispatcher (`file`/`fast`/`full` modes), detecting installed tools per project and
   recording each run's result.
 - The `quality` shell function (`home/.functions`) is the manual entry point (`quality`, `quality full`,

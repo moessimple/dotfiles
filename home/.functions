@@ -351,11 +351,11 @@ HELP
 }
 
 _quality_status() {
-    local git_root root record
+    local root record
     source "$HOME/.claude/hooks/support/project-root.sh"
 
-    resolve_project_root "$PWD" git_root root || {
-        echo "No Composer project (composer.json) found for $PWD." >&2
+    resolve_project_root "$PWD" root || {
+        echo "No composer.json found at the Git repository root for $PWD." >&2
         return 3
     }
     record="${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality/runs$root.json"

@@ -33,3 +33,15 @@ teardown() {
     [ "$status" -eq 0 ]
     [ -e "$marker" ]
 }
+
+@test "editing a composer.json outside the repository root does nothing" {
+    other_manifest="$project/packages/example/composer.json"
+    mkdir -p "$(dirname -- "$other_manifest")"
+    printf '{}\n' > "$other_manifest"
+
+    run post_event post-composer-edit.sh "$other_manifest"
+
+    [ "$status" -eq 0 ]
+    [ ! -s "$log" ]
+    [ ! -e "$marker" ]
+}

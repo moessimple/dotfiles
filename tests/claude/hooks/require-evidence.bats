@@ -95,31 +95,6 @@ teardown() {
     [ ! -e "$marker" ]
 }
 
-@test "a final check clears passing projects and keeps failed projects dirty" {
-    new_failing_second_project
-
-    : > "$log"
-    run stop_event false
-
-    [ "$status" -eq 2 ]
-    [ ! -e "$marker" ]
-    [ -e "$second_marker" ]
-}
-
-@test "the next final check retries only projects that are still dirty" {
-    new_failing_second_project
-
-    run stop_event false
-
-    ln -sf "$fake_bin/tool" "$second_project/vendor/bin/phpstan"
-    : > "$log"
-    run stop_event false
-
-    [ "$status" -eq 0 ]
-    [ "$(ran_count phpstan)" -eq 1 ]
-    [ ! -e "$second_marker" ]
-}
-
 @test "a dirty project without tooling does not block the response" {
     rm -f "$project/composer.json"
 
@@ -156,7 +131,7 @@ teardown() {
 
 @test "a final check ignores dirty projects from another repository" {
     other_repo="$fixture/other-repo"
-    other_project="$other_repo/proj"
+    other_project="$other_repo"
     mkdir -p "$other_project/src" "$other_project/vendor/bin"
     git init -q "$other_repo"
     printf '{}\n' > "$other_project/composer.json"
@@ -174,21 +149,4 @@ teardown() {
     [ ! -e "$marker" ]
     [ -e "$other_marker" ]
     [ "$(ran_count pint)" -eq 1 ]
-}
-
-new_failing_second_project() {
-    second_project="$git_root/second"
-    second_marker="$config_home/claude-quality/runs$second_project.dirty"
-    mkdir -p "$second_project/src" "$second_project/vendor/bin"
-    printf '{}\n' > "$second_project/composer.json"
-    printf '<?php\n' > "$second_project/src/Example.php"
-    install_tool "$second_project" pint
-    install_tool "$second_project" rector
-    cat > "$second_project/vendor/bin/phpstan" <<'TOOL'
-#!/usr/bin/env bash
-printf 'phpstan\n' >> "$QUALITY_TEST_LOG"
-exit 1
-TOOL
-    chmod +x "$second_project/vendor/bin/phpstan"
-    post_event post-php-edit.sh "$second_project/src/Example.php"
 }

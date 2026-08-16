@@ -46,7 +46,7 @@ teardown_quality_fixture() {
 
 new_project() {
     git_root="$fixture/repo"
-    project="$git_root/nested"
+    project="$git_root"
 
     mkdir -p "$project/src" "$project/vendor/bin"
     git init -q "$git_root"

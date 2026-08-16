@@ -13,11 +13,19 @@ run_post_edit_gate() {
     local file="$1"
     local dispatcher="$HOME/.claude/hooks/quality-gate.sh"
     local config_home="${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality"
+    local canonical root
+
+    canonical="$(
+        cd "$(dirname -- "$file")" >/dev/null 2>&1 &&
+        printf '%s/%s' "$(pwd -P)" "$(basename -- "$file")"
+    )" || exit 0
 
     # quality-gate.sh independently resolves the project from $file. This
-    # lookup is only for the marker path and still handles Composer projects
-    # nested below the session's starting directory.
-    resolve_project_root "$(dirname -- "$file")" git_root root || exit 0
+    # lookup is only for the marker path.
+    resolve_project_root "$(dirname -- "$canonical")" root || exit 0
+
+    # Only the repository-level manifest belongs to this project.
+    [[ "$(basename -- "$canonical")" == "composer.json" && "$canonical" != "$root/composer.json" ]] && exit 0
 
     local output status
     output="$("$dispatcher" file "$file" 2>&1)"
