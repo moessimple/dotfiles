@@ -26,6 +26,18 @@ echo ""
 # substitute: it can advance the branch, fail to reapply the stash and still
 # exit 0 while conflicted settings remain active.
 step "Pulling latest changes"
+if ! git -C ~/.dotfiles rev-parse --git-dir &>/dev/null; then
+    error "~/.dotfiles is not a Git repository."
+fi
+
+if ! current_branch=$(git -C ~/.dotfiles symbolic-ref --quiet --short HEAD); then
+    error "~/.dotfiles is in detached HEAD state. Check out main, then run update again."
+fi
+
+if [ "$current_branch" != "main" ]; then
+    error "~/.dotfiles is on '$current_branch'. Check out main, then run update again."
+fi
+
 if [ -n "$(git -C ~/.dotfiles status --porcelain)" ]; then
     echo ""
     git -C ~/.dotfiles status --short

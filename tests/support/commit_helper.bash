@@ -1,9 +1,5 @@
 create_commit_repository() {
-    git init -q -b main "$repository"
-    configure_test_repository "$repository"
-    printf 'original\n' > "$repository/tracked.txt"
-    git -C "$repository" add tracked.txt
-    git -C "$repository" commit -qm initial
+    create_test_repository
     printf 'changed\n' > "$repository/tracked.txt"
 }
 
@@ -80,14 +76,6 @@ EOF
     chmod +x "$repository/.git/hooks/pre-commit"
 }
 
-assert_success() {
-    [ "$status" -eq 0 ]
-}
-
-assert_failure() {
-    [ "$status" -ne 0 ]
-}
-
 assert_commit_message() {
     [ "$(git -C "$repository" log -1 --format=%s)" = "$1" ]
 }
@@ -114,10 +102,6 @@ assert_changes_are_staged() {
 
 assert_no_changes_are_staged() {
     git -C "$repository" diff --cached --quiet
-}
-
-assert_output_contains() {
-    [[ "$output" == *"$1"* ]] || false
 }
 
 assert_provider_received() {

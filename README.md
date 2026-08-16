@@ -152,8 +152,6 @@ Update the repository and managed packages with:
 bin/update.sh
 ```
 
-Commit or stash changes in `~/.dotfiles` first; the update stops when the repository has a dirty worktree.
-
 The update treats the repository's package and Claude Code declarations as the desired state. It removes undeclared
 Homebrew entries, global Composer and npm packages, Claude Code skills and plugins, and user-level MCP servers without
 asking. Project dependencies and project-level Claude Code integrations are not affected.
