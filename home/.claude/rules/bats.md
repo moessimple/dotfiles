@@ -36,3 +36,5 @@ Bats tests are shell programs. A check is an assertion only when its failure nec
    fixtures, test doubles, and assertions into support helpers with names that state their purpose. Keep scenario
    specific values, actions, and expected outcomes visible in the test so helpers do not hide the behavior being
    protected.
+
+9. Do not use fixed sleeps to synchronize tests. Wait for an observable condition with a bounded timeout instead.

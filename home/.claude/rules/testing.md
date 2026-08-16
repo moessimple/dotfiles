@@ -57,9 +57,10 @@ technical boundary.
     input, unavailable dependencies, conflicting writes, authorization, and concurrency when they can change an
     observable outcome. Do not add cases merely to execute branches or increase coverage.
 
-11. Reproduce regressions through the narrowest public boundary that still exposes the real defect. When changing
-    unclear existing behavior, characterize it first, then decide explicitly whether the implementation or the
-    expected contract must change.
+11. Reproduce regressions through the narrowest public boundary that still exposes the real defect. Before applying
+    the fix, verify that the regression test fails for the expected reason. After applying the fix, verify that the
+    same test passes. When changing unclear existing behavior, characterize it first, then decide explicitly whether
+    the implementation or the expected contract must change.
 
 12. A behavior preserving refactor should normally not require test changes. If it does, first check whether the
     test depends on an implementation detail.
@@ -80,9 +81,10 @@ technical boundary.
 
 17. Tests must be deterministic, order-independent, and safe to run repeatedly or in parallel where the project
     supports it. Keep mutable state test-local and clean up temporary or process-wide state even when the test throws.
+    Treat a flaky test as a defect. Do not rerun a failing test until it happens to pass; identify and remove the
+    source of nondeterminism instead.
 
 Before keeping a test, answer all three questions:
-
 1. Would it still pass after a behavior preserving refactor?
 2. Could the application be broken for its user or caller while this test remains green because a relevant
    integration was mocked or bypassed?
