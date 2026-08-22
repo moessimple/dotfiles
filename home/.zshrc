@@ -78,7 +78,13 @@ export PATH="$HOME/Library/Application Support/Herd/bin/:$PATH"
 
 export PATH=~/.local/bin:$PATH
 
-# Herd injected PHP version configurations.
-export HERD_PHP_83_INI_SCAN_DIR="$HOME/Library/Application Support/Herd/config/php/83/"
-export HERD_PHP_84_INI_SCAN_DIR="$HOME/Library/Application Support/Herd/config/php/84/"
-export HERD_PHP_85_INI_SCAN_DIR="$HOME/Library/Application Support/Herd/config/php/85/"
+
+# Herd injected PHP 8.4 configuration.
+export HERD_PHP_84_INI_SCAN_DIR="/Users/maurice/Library/Application Support/Herd/config/php/84"
+
+
+# Herd injected PHP 8.5 configuration.
+export HERD_PHP_85_INI_SCAN_DIR="/Users/maurice/Library/Application Support/Herd/config/php/85"
+
+# Herd injected PHP 8.6 configuration.
+export HERD_PHP_86_INI_SCAN_DIR="/Users/maurice/Library/Application Support/Herd/config/php/86"
