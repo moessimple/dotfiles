@@ -9,6 +9,59 @@ teardown_dotfiles_fixture() {
     rm -rf -- "$fixture"
 }
 
+# Sources home/.functions in a fresh zsh process and calls the named function
+# with the remaining arguments. Shared by every tests/functions/*_helper.bash
+# so each one only defines a thin call_<name> wrapper around this.
+call_dotfiles_function() {
+    zsh -c 'source "$1"; local name="$2"; shift 2; "$name" "$@"' \
+        zsh "$functions_file" "$@"
+}
+
+# Same as call_dotfiles_function, but changes into the given directory first,
+# for functions that read relative paths like .env or vendor/bin/*.
+call_dotfiles_function_in() {
+    local directory="$1"
+    shift
+    zsh -c 'cd "$1" && source "$2"; local name="$3"; shift 3; "$name" "$@"' \
+        zsh "$directory" "$functions_file" "$@"
+}
+
+# Puts a directory of fake executables ahead of PATH so functions under test
+# invoke test doubles instead of the real external tools.
+given_fake_bin_on_path() {
+    fake_bin="$fixture/bin"
+    mkdir -p "$fake_bin"
+    export PATH="$fake_bin:$PATH"
+}
+
+# Writes a fake executable that records its arguments (one call per line, in
+# "$fake_bin/<name>.calls") and then runs the given body, if any.
+write_fake_binary() {
+    local name="$1" body="${2:-}"
+    cat > "$fake_bin/$name" <<SCRIPT
+#!/usr/bin/env bash
+printf '%s\n' "\$*" >> "$fake_bin/$name.calls"
+$body
+SCRIPT
+    chmod +x "$fake_bin/$name"
+}
+
+assert_binary_called_with() {
+    grep -qxF -- "$2" "$fake_bin/$1.calls"
+}
+
+assert_binary_called_with_substring() {
+    grep -qF -- "$2" "$fake_bin/$1.calls"
+}
+
+assert_binary_call_count() {
+    [ "$(wc -l < "$fake_bin/$1.calls" | tr -d ' ')" -eq "$2" ]
+}
+
+assert_binary_not_called() {
+    [ ! -f "$fake_bin/$1.calls" ]
+}
+
 configure_test_repository() {
     local repository="$1"
     git -C "$repository" config user.name "Dotfiles Tests"
