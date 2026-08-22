@@ -1,0 +1,8 @@
+{
+  "name": "laravel-lsp",
+  "description": "Laravel's first-party language server (laravel/lsp) for Blade: routes, config keys, views, translations",
+  "version": "1.0.0",
+  "author": {
+    "name": "Maurice Hadamczyk"
+  }
+}

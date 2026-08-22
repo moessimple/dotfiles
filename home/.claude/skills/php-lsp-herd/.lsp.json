@@ -1,0 +1,9 @@
+{
+  "intelephense": {
+    "command": "${CLAUDE_PLUGIN_ROOT}/bin/intelephense-herd",
+    "args": ["--stdio"],
+    "extensionToLanguage": {
+      ".php": "php"
+    }
+  }
+}

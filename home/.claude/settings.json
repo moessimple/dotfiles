@@ -152,7 +152,11 @@
     "laravel@laravel": true,
     "agent-browser@agent-browser": true,
     "agent-skills@addy-agent-skills": true,
-    "claude-md-management@claude-plugins-official": true
+    "claude-md-management@claude-plugins-official": true,
+    "php-lsp@claude-plugins-official": false,
+    "typescript-lsp@claude-plugins-official": true,
+    "php-lsp-herd@skills-dir": true,
+    "laravel-lsp@skills-dir": true
   },
   "extraKnownMarketplaces": {
     "addy-agent-skills": {

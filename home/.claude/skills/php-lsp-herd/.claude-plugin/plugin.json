@@ -1,0 +1,8 @@
+{
+  "name": "php-lsp-herd",
+  "description": "PHP language server (Intelephense) wired to Herd's isolated PHP version instead of the global CLI default",
+  "version": "1.0.0",
+  "author": {
+    "name": "Maurice Hadamczyk"
+  }
+}

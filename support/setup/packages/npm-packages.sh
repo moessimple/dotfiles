@@ -3,7 +3,9 @@
 # Global npm packages
 NPM_PACKAGES=(
     agent-browser
-    repomix
+    intelephense
+    typescript-language-server
+    typescript
 )
 # npm, npx and corepack are managed as part of the Node toolchain rather than by
 # this file, so npm_packages_cleanup keeps them even though they aren't declared

@@ -4,6 +4,7 @@
 COMPOSER_PACKAGES=(
     laravel/pint
     laravel/envoy
+    laravel/lsp
     spatie/phpunit-watcher
     ion-bazan/composer-diff
     cpx/cpx
