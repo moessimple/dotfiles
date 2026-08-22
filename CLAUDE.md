@@ -28,8 +28,8 @@ Filter to tests matching a name:
 bin/test.sh -r tests/ -f "some test name"
 ```
 
-CI (`.github/workflows/tests.yml`) runs the same `bats -r tests/` on Ubuntu with `bats`, `php-cli`, and `zsh`
-installed; no macOS-only behavior is exercised there.
+CI (`.github/workflows/tests.yml`) runs `bin/test.sh` on `macos-latest`, matching the interpreter and userland
+(`/bin/bash` 3.2, BSD tools) the target machine actually has, with `bats-core` and `php` installed via Homebrew.
 
 There is no separate lint/build command; shell code is not linted automatically in this repo.
 
