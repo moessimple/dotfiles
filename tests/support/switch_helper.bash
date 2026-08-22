@@ -61,21 +61,8 @@ stage_then_edit_tracked_file() {
     printf 'unstaged change\n' >> "$repository/tracked.txt"
 }
 
-assert_local_changes_are_present() {
-    [ "$(cat "$repository/tracked.txt")" = "changed" ]
-    [ -f "$repository/untracked.txt" ]
-}
-
 assert_file_has_merge_conflict() {
     git -C "$repository" diff --name-only --diff-filter=U | grep -qxF "$1"
-}
-
-assert_branch_does_not_exist() {
-    ! git -C "$repository" show-ref --verify --quiet "refs/heads/$1" || false
-}
-
-assert_branch_tracks() {
-    [ "$(git -C "$repository" rev-parse --abbrev-ref '@{upstream}')" = "$1" ]
 }
 
 assert_staged_file_contains() {

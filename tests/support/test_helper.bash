@@ -13,6 +13,8 @@ configure_test_repository() {
     local repository="$1"
     git -C "$repository" config user.name "Dotfiles Tests"
     git -C "$repository" config user.email "dotfiles-tests@example.com"
+    git -C "$repository" config alias.current-branch '!git rev-parse --abbrev-ref HEAD'
+    git -C "$repository" config alias.default-branch "!git remote show origin | awk '/HEAD branch/ {print \$NF}'"
 }
 
 create_test_repository() {
@@ -25,6 +27,7 @@ create_test_repository() {
 }
 
 given_clean_repository_on_main() {
+    repository="${repository:-$fixture/repository}"
     create_test_repository
 }
 
@@ -37,6 +40,28 @@ given_repository_on_feature_branch() {
 given_tracked_and_untracked_changes() {
     printf 'changed\n' > "$repository/tracked.txt"
     printf 'untracked\n' > "$repository/untracked.txt"
+}
+
+assert_local_changes_are_present() {
+    [ "$(cat "$repository/tracked.txt")" = "changed" ]
+    [ -f "$repository/untracked.txt" ]
+}
+
+given_bare_origin_remote() {
+    origin="$fixture/origin.git"
+    git init -q --bare "$origin"
+    git -C "$repository" remote add origin "$origin"
+}
+
+given_unreachable_origin_remote() {
+    git -C "$repository" remote add origin "$fixture/missing-origin.git"
+}
+
+given_committed_file_change() {
+    local path="$1"
+    printf 'change on %s\n' "$path" > "$repository/$path"
+    git -C "$repository" add "$path"
+    git -C "$repository" commit -qm "change $path"
 }
 
 assert_success() {
@@ -53,6 +78,10 @@ assert_status() {
 
 assert_output_contains() {
     [[ "$output" == *"$1"* ]] || false
+}
+
+assert_output_does_not_contain() {
+    [[ "$output" != *"$1"* ]] || false
 }
 
 assert_output_equals() {
@@ -82,6 +111,22 @@ assert_file_content() {
 assert_current_branch() {
     local git_command="${REAL_GIT:-git}"
     [ "$("$git_command" -C "$repository" branch --show-current)" = "$1" ]
+}
+
+assert_branch_exists() {
+    git -C "$repository" show-ref --verify --quiet "refs/heads/$1"
+}
+
+assert_branch_does_not_exist() {
+    ! git -C "$repository" show-ref --verify --quiet "refs/heads/$1" || false
+}
+
+assert_branch_tracks() {
+    [ "$(git -C "$repository" rev-parse --abbrev-ref '@{upstream}')" = "$1" ]
+}
+
+assert_remote_branch_does_not_exist() {
+    ! git --git-dir="$origin" show-ref --verify --quiet "refs/heads/$1" || false
 }
 
 assert_head_is_detached() {

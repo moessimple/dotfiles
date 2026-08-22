@@ -1,6 +1,6 @@
 call_sync() {
-    zsh -c 'source "$1"; prune() { return 0; }; cd "$2"; sync' \
-        zsh "$dotfiles_dir/support/git/sync.sh" "$repository"
+    zsh -c 'source "$1"; prune() { return 0; }; cd "$2"; sync "${@:3}"' \
+        zsh "$dotfiles_dir/support/git/sync.sh" "$repository" "$@"
 }
 
 call_sync_with_observable_prune() {

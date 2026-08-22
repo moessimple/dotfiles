@@ -11,6 +11,30 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
+@test "help describes sync without syncing anything" {
+    # Arrange
+    given_repository_on_feature_branch
+
+    # Act
+    run call_sync --help
+
+    # Assert
+    assert_success
+    assert_output_contains "Usage: sync"
+}
+
+@test "sync without an upstream remote configured fails" {
+    # Arrange
+    given_repository_on_feature_branch
+
+    # Act
+    run call_sync
+
+    # Assert
+    assert_failure
+    assert_output_contains "No upstream remote configured"
+}
+
 @test "sync restores the starting branch and local changes after a push fails" {
     # Arrange
     given_repository_on_feature_branch
