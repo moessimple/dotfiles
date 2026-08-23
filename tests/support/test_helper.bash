@@ -1,6 +1,7 @@
 new_dotfiles_fixture() {
     dotfiles_dir="$(cd "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
     functions_file="$dotfiles_dir/home/.functions"
+    aliases_file="$dotfiles_dir/home/.aliases"
     fixture="$BATS_TEST_TMPDIR/dotfiles-fixture"
     mkdir -p "$fixture"
 }
@@ -24,6 +25,16 @@ call_dotfiles_function_in() {
     shift
     zsh -c 'cd "$1" && source "$2"; local name="$3"; shift 3; "$name" "$@"' \
         zsh "$directory" "$functions_file" "$@"
+}
+
+# Sources home/.aliases in a fresh zsh process and invokes the named alias.
+# Shared by every tests/aliases/*_helper.bash so each one only defines a thin
+# call_<name> wrapper around this. Unlike a function name, an alias name only
+# expands as a literal command word, not through a variable, so the alias is
+# invoked via eval rather than by calling "$name" directly.
+call_dotfiles_alias() {
+    zsh -c 'source "$1"; eval "$2"' \
+        zsh "$aliases_file" "$1"
 }
 
 # Puts a directory of fake executables ahead of PATH so functions under test
