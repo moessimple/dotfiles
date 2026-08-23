@@ -31,7 +31,7 @@ color_func=$(git config --get-color color.diff.func '')
 color_meta=$(git config --get-color color.diff.meta 'normal bold')
 color_new=$(git config --get-color color.diff.new green)
 color_old=$(git config --get-color color.diff.old red)
-color_none=$(tput sgr 0)
+color_none=$(tput sgr 0 2>/dev/null || :)
 
 only_match_flag=""
 if { grepdiff -h 2>&1 || : ; } | \grep -q -e '--only-match'; then
