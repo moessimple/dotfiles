@@ -62,7 +62,66 @@ teardown() {
 
     # Assert
     assert_success
-    assert_origin_main_matches_upstream
+    assert_origin_branch_matches_upstream main
+}
+
+@test "sync creates a local branch from upstream when it does not exist locally yet" {
+    # Arrange
+    given_repository_on_feature_branch
+    given_upstream_develop_only_and_empty_origin
+
+    # Act
+    run call_sync
+
+    # Assert
+    assert_success
+    assert_branch_exists develop
+    assert_origin_branch_matches_upstream develop
+    assert_current_branch feature
+}
+
+@test "sync updates every long-lived branch that exists on upstream, not just the first" {
+    # Arrange
+    given_repository_on_feature_branch
+    given_upstream_main_and_develop_and_empty_origin
+
+    # Act
+    run call_sync
+
+    # Assert
+    assert_success
+    assert_origin_branch_matches_upstream main
+    assert_origin_branch_matches_upstream develop
+}
+
+@test "sync restores a detached starting point to the same commit after a successful sync" {
+    # Arrange
+    given_repository_on_feature_branch
+    given_upstream_main_and_empty_origin
+    detached_commit=$(git -C "$repository" rev-parse HEAD)
+    git -C "$repository" switch -q --detach
+
+    # Act
+    run call_sync
+
+    # Assert
+    assert_success
+    assert_head_is_detached
+    [ "$(git -C "$repository" rev-parse HEAD)" = "$detached_commit" ]
+}
+
+@test "sync reports failure but still restores the starting branch when pushing tags fails" {
+    # Arrange
+    given_repository_on_feature_branch
+    given_upstream_main_and_empty_origin
+
+    # Act
+    run call_sync_with_failing_tag_push
+
+    # Assert
+    assert_failure
+    assert_output_contains "simulated tag push failure"
+    assert_current_branch feature
 }
 
 @test "sync restores the starting branch and local changes after a successful sync" {

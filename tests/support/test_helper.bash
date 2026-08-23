@@ -211,3 +211,15 @@ assert_stash_contains() {
     local git_command="${REAL_GIT:-git}"
     "$git_command" -C "$repository" stash show --include-untracked --patch stash@{0} | grep -Fq -- "$1"
 }
+
+strip_ansi_colors() {
+    sed -E $'s/\x1b\\[[0-9;]*m//g' <<< "$1"
+}
+
+assert_colorless_output_contains() {
+    [[ "$(strip_ansi_colors "$output")" == *"$1"* ]] || false
+}
+
+assert_colorless_output_does_not_contain() {
+    [[ "$(strip_ansi_colors "$output")" != *"$1"* ]] || false
+}

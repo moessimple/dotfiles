@@ -59,7 +59,7 @@ fi
 
 diff_output=$(git diff --no-color --no-ext-diff -p --src-prefix=a/ --dst-prefix=b/ "$old_file" "$new_file" || :)
 
-filtered_diff=$( echo "$diff_output" | \
+filtered_diff=$( { echo "$diff_output" | \
                 { grepdiff "$safe_regex" --output-matching=hunk ${only_match_flag} || true; } | \
                 \grep -v -e '^--- a/' -e '^+++ b/' | \
                 \grep -v -e '^--- /dev/null' -e '^+++ /dev/null' | \
@@ -68,7 +68,7 @@ filtered_diff=$( echo "$diff_output" | \
                 GREP_COLOR=7 GREP_COLORS="ms=7" \grep --color=always -E "$safe_regex|$" | \
                 sed -e $'s/\x1b\[m\x1b\[K/\x1b\[27m/g' -e $'s/\x1b\[K//g' | \
                 sed -e "s/^\(+.*\)/${color_new}\1${color_none}/" | \
-                sed -e "s/^\(-.*\)/${color_old}\1${color_none}/" )
+                sed -e "s/^\(-.*\)/${color_old}\1${color_none}/" ; } || true )
 
 a_path="a/$path"
 b_path="b/$path"

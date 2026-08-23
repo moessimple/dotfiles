@@ -11,7 +11,7 @@ function search() {
         return 0
     fi
 
-    test -z "$1" && echo "search term required" 1>&2 && return
+    test -z "$1" && echo "search term required" 1>&2 && return 1
 
     export GREPDIFF_REGEX="$1"
 
