@@ -29,6 +29,7 @@ set -u
 php_bin="$(command -v herd >/dev/null 2>&1 && herd which-php 2>/dev/null)"
 if [[ -x "$php_bin" ]]; then
     php_shim_dir="$(mktemp -d)"
+    trap 'rm -rf "$php_shim_dir"' EXIT
     ln -s "$php_bin" "$php_shim_dir/php"
     PATH="$php_shim_dir:$PATH"
 fi

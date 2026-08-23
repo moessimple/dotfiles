@@ -194,6 +194,40 @@ path_without_composer() {
     printf '%s' "$dir"
 }
 
+given_herd_resolving_to_system_php() {
+    local system_php
+    system_php="$(command -v php)"
+
+    cat > "$fake_bin/herd" <<HERD
+#!/usr/bin/env bash
+if [[ "\$1" == "which-php" ]]; then
+    echo "$system_php"
+    exit 0
+fi
+exit 1
+HERD
+    chmod +x "$fake_bin/herd"
+}
+
+# Redirects `mktemp -d` into a fixture-owned directory so a test can assert on
+# what the gate leaves behind there. macOS's own mktemp ignores $TMPDIR for an
+# implicit template, so pointing it at the real system temp dir isn't
+# observable from a hermetic test.
+given_mktemp_creating_directories_under_fixture() {
+    mktemp_tracking_dir="$fixture/mktemp-tracking"
+    mkdir -p "$mktemp_tracking_dir"
+
+    cat > "$fake_bin/mktemp" <<MKTEMP
+#!/usr/bin/env bash
+if [[ "\$1" == "-d" ]]; then
+    /usr/bin/mktemp -d "$mktemp_tracking_dir/tmp.XXXXXXXX"
+    exit 0
+fi
+exec /usr/bin/mktemp "\$@"
+MKTEMP
+    chmod +x "$fake_bin/mktemp"
+}
+
 install_artisan_test_runner() {
     cat > "$project/artisan" <<'ARTISAN'
 <?php

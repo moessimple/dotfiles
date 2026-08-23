@@ -480,3 +480,17 @@ teardown() {
     assert_tool_ran artisan
     assert_tool_ran_with_argument artisan --parallel
 }
+
+@test "the Herd PHP shim directory is removed after the gate runs" {
+    # Arrange
+    given_project_with_tools composer pint
+    given_herd_resolving_to_system_php
+    given_mktemp_creating_directories_under_fixture
+
+    # Act
+    run run_gate fast
+
+    # Assert
+    assert_success
+    [ -z "$(ls -A "$mktemp_tracking_dir")" ]
+}
