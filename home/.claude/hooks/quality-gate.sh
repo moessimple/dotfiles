@@ -25,7 +25,7 @@ set -u
 # the wrong interpreter. Resolved once via Herd's own `which-php` and
 # exposed as a plain symlink ahead of PATH, so every invocation below stays
 # unchanged and still resolves the right interpreter through it. No-op when
-# Herd is not installed (CI runs this suite on Ubuntu, without Herd).
+# Herd is not installed, as on the CI runner.
 php_bin="$(command -v herd >/dev/null 2>&1 && herd which-php 2>/dev/null)"
 if [[ -x "$php_bin" ]]; then
     php_shim_dir="$(mktemp -d)"

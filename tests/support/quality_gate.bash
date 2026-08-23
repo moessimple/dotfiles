@@ -27,6 +27,16 @@ exit 0
 TOOL
     chmod +x "$fake_bin/tool"
 
+    # The real `herd which-php` call in quality-gate.sh takes ~400ms per
+    # invocation. This fixture never depends on the Herd-specific interpreter
+    # it resolves, and CI has no herd on PATH either, so shadowing it here to
+    # fail fast is behavior-equivalent, not a shortcut around real coverage.
+    cat > "$fake_bin/herd" <<'TOOL'
+#!/usr/bin/env bash
+exit 1
+TOOL
+    chmod +x "$fake_bin/herd"
+
     cat > "$fake_bin/php-tool" <<'TOOL'
 <?php
 
