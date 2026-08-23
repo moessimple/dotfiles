@@ -1,9 +1,9 @@
 #!/usr/bin/env zsh
 
 # Browse and diff branches against a base branch interactively via fzf
-function check() {
+function compare() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-        echo "Usage: check [base]"
+        echo "Usage: compare [base]"
         echo "  base  Branch to compare against (default: default branch)"
         return 0
     fi
@@ -22,7 +22,7 @@ function check() {
             --preview "git diff --color=always ${base}...{}" \
             --preview-window=right:65%:wrap \
             --height=90% \
-            --header="review vs ${base} — Enter: full diff"
+            --header="compare vs ${base} — Enter: full diff"
     )
 
     [ -n "$branch" ] && git diff "${base}...${branch}"

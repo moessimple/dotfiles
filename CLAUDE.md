@@ -86,7 +86,7 @@ are documented in `home/.claude/hooks/README.md`; read it before changing hook b
 from the scripts.
 
 **Git helpers (`support/git/`).** Each `*.sh` file defines one function (`branches`, `push`, `pull`, `nah`, `merge`,
-`review`, `prune`, `switch`, `sync`, `search`, `check`) and is sourced individually by `.zshrc`. `pickaxe-diff.sh`
+`review`, `prune`, `switch`, `sync`, `search`, `compare`) and is sourced individually by `.zshrc`. `pickaxe-diff.sh`
 is an exception: it is a diff driver invoked by `search`, not sourced at shell startup, and `.zshrc` explicitly
 skips it in its sourcing loop.
 

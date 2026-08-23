@@ -2,7 +2,6 @@
 
 load ../support/test_helper
 load ../support/review_helper
-load ../support/check_helper
 load ../support/fzf_helper
 
 setup() {

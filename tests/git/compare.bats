@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 load ../support/test_helper
-load ../support/check_helper
+load ../support/compare_helper
 load ../support/fzf_helper
 
 setup() {
@@ -12,16 +12,16 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "help describes check without diffing anything" {
+@test "help describes compare without diffing anything" {
     # Arrange
     given_clean_repository_on_main
 
     # Act
-    run call_check --help
+    run call_compare --help
 
     # Assert
     assert_success
-    assert_output_contains "Usage: check [base]"
+    assert_output_contains "Usage: compare [base]"
 }
 
 @test "the base defaults to the remote's HEAD branch" {
@@ -33,7 +33,7 @@ teardown() {
     given_fzf_selects "feature"
 
     # Act
-    run call_check
+    run call_compare
 
     # Assert
     assert_success
@@ -46,7 +46,7 @@ teardown() {
     given_fzf_selects "feature"
 
     # Act
-    run call_check
+    run call_compare
 
     # Assert
     assert_success
@@ -60,7 +60,7 @@ teardown() {
     given_fzf_selects "feature"
 
     # Act
-    run call_check main
+    run call_compare main
 
     # Assert
     assert_fzf_offered_candidate "feature"
@@ -73,7 +73,7 @@ teardown() {
     given_fzf_selects_nothing
 
     # Act
-    run call_check main
+    run call_compare main
 
     # Assert
     assert_failure

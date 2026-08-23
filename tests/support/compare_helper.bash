@@ -1,6 +1,6 @@
-call_check() {
-    zsh -c 'source "$1"; cd "$2"; check "${@:3}"' \
-        zsh "$dotfiles_dir/support/git/check.sh" "$repository" "$@"
+call_compare() {
+    zsh -c 'source "$1"; cd "$2"; compare "${@:3}"' \
+        zsh "$dotfiles_dir/support/git/compare.sh" "$repository" "$@"
 }
 
 given_repository_with_origin_head_set_to() {
