@@ -8,6 +8,35 @@ call_switch() {
         zsh "$dotfiles_dir/support/git/switch.sh" "$repository" "$@"
 }
 
+# The bring/leave/cancel choice uses a plain `read -r`, which reads from stdin like any
+# other input and can be piped.
+call_switch_with_input() {
+    local input="$1"
+    shift
+    call_switch "$@" <<< "$input"
+}
+
+# The overwrite-stash confirmation uses zsh's `read -q`, which reads the keypress directly
+# from the controlling terminal rather than stdin (see the note in sd_helper.bash for the
+# same issue). Shadowing `read` only for `-q` calls keeps the choice prompt reading normally
+# from the piped stdin below, while making the confirmation answer deterministic.
+call_switch_choosing_leave_and_confirming_overwrite_with() {
+    local confirm_answer="$1" branch="$2"
+    zsh -c '
+        confirm_answer="$1"
+        source "$2"
+        cd "$3"
+        read() {
+            if [[ "$1" == "-q" ]]; then
+                [[ "$confirm_answer" == y ]]
+            else
+                builtin read "$@"
+            fi
+        }
+        switch "$4" <<< "1"
+    ' zsh "$confirm_answer" "$dotfiles_dir/support/git/switch.sh" "$repository" "$branch"
+}
+
 call_switch_with_stash_that_does_nothing() {
     zsh -c '
         function git() {
@@ -19,7 +48,7 @@ call_switch_with_stash_that_does_nothing() {
         }
         source "$1"
         cd "$2"
-        switch "$3"
+        switch "$3" <<< "2"
     ' zsh "$dotfiles_dir/support/git/switch.sh" "$repository" "$1"
 }
 
@@ -34,7 +63,7 @@ call_switch_with_failing_stash() {
         }
         source "$1"
         cd "$2"
-        switch "$3"
+        switch "$3" <<< "2"
     ' zsh "$dotfiles_dir/support/git/switch.sh" "$repository" "$1"
 }
 
@@ -71,4 +100,8 @@ assert_staged_file_contains() {
 
 assert_worktree_file_contains() {
     [ "$(cat "$repository/$1")" = "$2" ]
+}
+
+assert_stash_marked_for() {
+    git -C "$repository" stash list | grep -qF "!!dotfiles-switch<$1>"
 }
