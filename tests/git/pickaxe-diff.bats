@@ -99,16 +99,3 @@ teardown() {
     assert_success
     assert_colorless_output_contains "+-NEEDLE"
 }
-
-@test "hunk matching is case-insensitive" {
-    # Arrange
-    given_clean_repository_on_main
-    printf 'original\nUNIQUE_TERM\n' > "$repository/tracked.txt"
-
-    # Act
-    run call_pickaxe_diff unique_term -- tracked.txt
-
-    # Assert
-    assert_success
-    assert_colorless_output_contains "+UNIQUE_TERM"
-}

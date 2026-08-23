@@ -113,14 +113,14 @@ teardown() {
 @test "sync reports failure but still restores the starting branch when pushing tags fails" {
     # Arrange
     given_repository_on_feature_branch
-    given_upstream_main_and_empty_origin
+    given_upstream_main_and_origin_rejecting_tags
+    git -C "$repository" tag v1.0.0
 
     # Act
-    run call_sync_with_failing_tag_push
+    run call_sync
 
     # Assert
     assert_failure
-    assert_output_contains "simulated tag push failure"
     assert_current_branch feature
 }
 
