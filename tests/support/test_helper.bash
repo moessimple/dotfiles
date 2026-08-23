@@ -73,6 +73,10 @@ assert_binary_not_called() {
     [ ! -f "$fake_bin/$1.calls" ]
 }
 
+assert_binary_not_called_with_substring() {
+    ! grep -qF -- "$2" "$fake_bin/$1.calls" 2>/dev/null || false
+}
+
 configure_test_repository() {
     local repository="$1"
     git -C "$repository" config user.name "Dotfiles Tests"
