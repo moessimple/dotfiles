@@ -513,26 +513,16 @@ db() {
             echo "  list     List all databases"
             return 0
             ;;
-    esac
-
-    case "$1" in
-        refresh|create|drop)
-            if [ -z "$2" ]; then
-                echo "db: '$1' requires a database name" >&2
-                echo "Run 'db --help' for usage." >&2
-                return 1
-            fi
-            ;;
-    esac
-
-    case "$1" in
         refresh)
+            [ -n "$2" ] || { echo "db: '$1' requires a database name" >&2; echo "Run 'db --help' for usage." >&2; return 1; }
             _mysql_cmd -e "drop database \`$2\`; create database \`$2\`"
             ;;
         create)
+            [ -n "$2" ] || { echo "db: '$1' requires a database name" >&2; echo "Run 'db --help' for usage." >&2; return 1; }
             _mysql_cmd -e "create database \`$2\`"
             ;;
         drop)
+            [ -n "$2" ] || { echo "db: '$1' requires a database name" >&2; echo "Run 'db --help' for usage." >&2; return 1; }
             _mysql_cmd -e "drop database \`$2\`"
             ;;
         list)
