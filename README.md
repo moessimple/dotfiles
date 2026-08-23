@@ -191,7 +191,8 @@ Run the repository's Bats tests from the root:
 bin/test.sh
 ```
 
-The suite covers the Claude Code quality hooks and selected shell functions.
+The suite covers the Claude Code quality hooks, selected shell functions and aliases, the Git helpers, and the
+update/setup package declarations.
 
 ## Further Documentation
 

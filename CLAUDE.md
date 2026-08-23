@@ -91,9 +91,13 @@ is an exception: it is a diff driver invoked by `search`, not sourced at shell s
 skips it in its sourcing loop.
 
 **Tests mirror source layout.** `tests/claude/hooks/*.bats` covers the quality gate hooks; `tests/functions/*.bats`
-covers selected functions from `home/.functions`; `tests/git/*.bats` covers the helpers from `support/git/`.
-`tests/support/test_helper.bash` provides shared fixtures (`new_dotfiles_fixture`, `new_git_function_fixture`) for
-building throwaway Git repos/projects under `mktemp -d`.
+covers selected functions from `home/.functions`; `tests/aliases/*.bats` covers selected aliases from
+`home/.aliases`; `tests/git/*.bats` covers the helpers from `support/git/`; `tests/setup/claude/*.bats` and
+`tests/setup/packages/*.bats` cover the setup/cleanup declarations in `support/setup/claude/` and
+`support/setup/packages/`; `tests/bin/update.bats` exercises a full `bin/update.sh` run across all package cleanups.
+`tests/support/test_helper.bash` provides shared fixtures (`new_dotfiles_fixture`, `call_dotfiles_function`,
+`call_dotfiles_function_in`, `call_dotfiles_alias`) for building throwaway Git repos/projects under `mktemp -d`; most
+suites also load their own `tests/support/<name>_helper.bash` for suite-specific fixtures.
 
 ## Conventions specific to this repo
 
