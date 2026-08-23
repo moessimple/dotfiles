@@ -5,6 +5,8 @@ load ../support/database_helper
 
 setup() {
     new_dotfiles_fixture
+    working_directory="$fixture/project"
+    mkdir -p "$working_directory"
     given_fake_bin_on_path
 }
 
@@ -35,7 +37,7 @@ teardown() {
     assert_binary_not_called mysql
 }
 
-@test "db refresh drops and recreates the given database" {
+@test "db refresh drops and recreates the given database using default local credentials" {
     # Arrange
     write_fake_binary mysql
 
@@ -44,7 +46,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with mysql '-uroot -h 127.0.0.1 -e drop database `mydb`; create database `mydb`'
+    assert_binary_called_with mysql '-h127.0.0.1 -uroot -e drop database `mydb`; create database `mydb`'
 }
 
 @test "db create creates a new database" {
@@ -56,7 +58,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with mysql '-uroot -h 127.0.0.1 -e create database `mydb`'
+    assert_binary_called_with mysql '-h127.0.0.1 -uroot -e create database `mydb`'
 }
 
 @test "db drop drops the given database" {
@@ -68,7 +70,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with mysql '-uroot -h 127.0.0.1 -e drop database `mydb`'
+    assert_binary_called_with mysql '-h127.0.0.1 -uroot -e drop database `mydb`'
 }
 
 @test "db list shows every database, stripped of table formatting" {
@@ -80,8 +82,21 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with mysql "-uroot -h 127.0.0.1 -e show databases"
+    assert_binary_called_with mysql "-h127.0.0.1 -uroot -e show databases"
     assert_output_equals $'Database\nmydb'
+}
+
+@test "db uses host, user, and password from .env when present" {
+    # Arrange
+    given_env_file DB_HOST=dbhost DB_USERNAME=dbuser DB_PASSWORD=dbpass
+    write_fake_binary mysql
+
+    # Act
+    run call_db create mydb
+
+    # Assert
+    assert_success
+    assert_binary_called_with mysql '-hdbhost -udbuser -e create database `mydb` -pdbpass'
 }
 
 @test "an unknown db command is rejected" {

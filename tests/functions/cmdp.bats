@@ -29,6 +29,7 @@ teardown() {
 
     # Assert
     assert_failure
+    assert_output_contains "cmdp: n must be a positive integer"
     assert_binary_not_called rush
 }
 

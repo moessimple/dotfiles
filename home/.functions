@@ -85,8 +85,13 @@ cmdp() {
         return 0
     fi
 
+    if [[ $# -eq 0 ]]; then
+        echo "cmdp: n must be a positive integer" >&2
+        return 1
+    fi
+
     local n="$1"
-    shift || return 1
+    shift
 
     if [[ -z "$n" || "$n" != <-> || "$n" -lt 1 ]]; then
         echo "cmdp: n must be a positive integer" >&2
@@ -522,16 +527,16 @@ db() {
 
     case "$1" in
         refresh)
-            mysql -uroot -h 127.0.0.1 -e "drop database \`$2\`; create database \`$2\`"
+            _mysql_cmd -e "drop database \`$2\`; create database \`$2\`"
             ;;
         create)
-            mysql -uroot -h 127.0.0.1 -e "create database \`$2\`"
+            _mysql_cmd -e "create database \`$2\`"
             ;;
         drop)
-            mysql -uroot -h 127.0.0.1 -e "drop database \`$2\`"
+            _mysql_cmd -e "drop database \`$2\`"
             ;;
         list)
-            mysql -uroot -h 127.0.0.1 -e "show databases" | sed 's/[|[:space:]]//g'
+            _mysql_cmd -e "show databases" | sed 's/[|[:space:]]//g'
             ;;
         *)
             echo "db: unknown command '$1'" >&2
@@ -544,14 +549,16 @@ db() {
 # Drop and recreate each given database, then run skeema or Laravel migrations
 _migrate_databases() {
     local databases=("$@")
+    local failed=0
     for db in "${databases[@]}"; do
-        _mysql_cmd -e "DROP DATABASE IF EXISTS \`$db\`; CREATE DATABASE \`$db\`;"
+        _mysql_cmd -e "DROP DATABASE IF EXISTS \`$db\`; CREATE DATABASE \`$db\`;" || failed=1
         if [ -d "database/skeema" ]; then
-            DB_DATABASE=$db php artisan skeema:push --allow-unsafe --force --skip-lint --env=local
+            DB_DATABASE=$db php artisan skeema:push --allow-unsafe --force --skip-lint --env=local || failed=1
         else
-            DB_DATABASE=$db php artisan migrate
+            DB_DATABASE=$db php artisan migrate || failed=1
         fi
     done
+    return "$failed"
 }
 
 # Resolve all databases (main + test + parallel shards) from .env and phpunit.xml

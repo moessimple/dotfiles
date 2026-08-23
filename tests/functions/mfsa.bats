@@ -31,10 +31,10 @@ teardown() {
     assert_binary_called_with php "artisan db:seed"
 }
 
-@test "mfsa migrates every database even if one fails, but skips seeding when the last one fails" {
-    # Arrange: the loop never stops early, so mfa's exit status is only the
-    # last database's migration result; make that last one (testdb_test_1) fail.
-    write_fake_binary php "[ \"\$DB_DATABASE\" != testdb_test_1 ]"
+@test "mfsa still migrates every database when the first one fails, but skips seeding" {
+    # Arrange: the loop never stops early, so all three databases are still
+    # attempted even though the first one (maindb) fails.
+    write_fake_binary php "[ \"\$DB_DATABASE\" != maindb ]"
 
     # Act
     run call_mfsa

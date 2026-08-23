@@ -1,5 +1,5 @@
 call_importdump() { call_dotfiles_function_in "$working_directory" importdump "$@"; }
-call_db()         { call_dotfiles_function db "$@"; }
+call_db()         { call_dotfiles_function_in "$working_directory" db "$@"; }
 call_dropdbs()    { call_dotfiles_function_in "$working_directory" dropdbs "$@"; }
 call_mf()         { call_dotfiles_function_in "$working_directory" mf "$@"; }
 call_mfs()        { call_dotfiles_function_in "$working_directory" mfs "$@"; }

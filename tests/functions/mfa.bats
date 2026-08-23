@@ -31,3 +31,17 @@ teardown() {
     assert_binary_called_with mysql '-h127.0.0.1 -uroot -e DROP DATABASE IF EXISTS `testdb`; CREATE DATABASE `testdb`;'
     assert_binary_called_with mysql '-h127.0.0.1 -uroot -e DROP DATABASE IF EXISTS `testdb_test_1`; CREATE DATABASE `testdb_test_1`;'
 }
+
+@test "mfa still migrates every database when one fails, but reports overall failure" {
+    # Arrange: maindb fails first, but that must not mask itself behind a
+    # later successful migration (testdb, testdb_test_1).
+    write_fake_binary php "[ \"\$DB_DATABASE\" != maindb ]"
+
+    # Act
+    run call_mfa
+
+    # Assert
+    assert_failure
+    assert_binary_call_count mysql 3
+    assert_binary_call_count php 3
+}
