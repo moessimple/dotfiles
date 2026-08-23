@@ -115,19 +115,44 @@ teardown() {
     assert_output_contains "SecureData is not mounted."
 }
 
-@test "sd delete cancels without deleting anything when the confirmation cannot be read" {
-    # Arrange: read -q has no terminal to read from in a non-interactive test
-    # run, so it always fails here, the same way it would for any script that
-    # pipes input into sd non-interactively.
+@test "sd delete cancels without deleting anything when not confirmed with y" {
+    # Arrange
     given_secure_data_not_mounted
     given_bundle_exists
 
     # Act
-    run call_sd_delete_with_input "y"
+    run call_sd_delete_confirmed_with "n"
 
     # Assert
     assert_failure
     assert_path_exists "$fake_home/SecureData.sparsebundle"
+    assert_binary_not_called hdiutil
+}
+
+@test "sd delete detaches and deletes a mounted, existing bundle when confirmed" {
+    # Arrange
+    given_secure_data_mounted
+    given_bundle_exists
+
+    # Act
+    run call_sd_delete_confirmed_with "y"
+
+    # Assert
+    assert_success
+    assert_binary_called_with hdiutil "detach /Volumes/SecureData"
+    assert_path_does_not_exist "$fake_home/SecureData.sparsebundle"
+}
+
+@test "sd delete reports when the bundle does not exist" {
+    # Arrange
+    given_secure_data_not_mounted
+
+    # Act
+    run call_sd_delete_confirmed_with "y"
+
+    # Assert
+    assert_success
+    assert_output_contains "SecureData does not exist."
     assert_binary_not_called hdiutil
 }
 
