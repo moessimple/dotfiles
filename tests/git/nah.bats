@@ -95,7 +95,7 @@ teardown() {
     assert_worktree_is_clean
 }
 
-@test "nah does not end an in-progress bisect session (checks a directory real git never creates)" {
+@test "nah aborts an in-progress bisect session and discards it" {
     # Arrange
     given_clean_repository_on_main
     given_bisect_in_progress
@@ -105,7 +105,9 @@ teardown() {
 
     # Assert
     assert_success
-    assert_bisect_session_still_recorded
+    assert_no_bisect_in_progress
+    assert_current_branch main
+    assert_worktree_is_clean
 }
 
 @test "nah on an already clean repository succeeds" {

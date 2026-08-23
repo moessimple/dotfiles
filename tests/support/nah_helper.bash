@@ -70,6 +70,6 @@ assert_no_revert_in_progress() {
     [ ! -f "$(git -C "$repository" rev-parse --absolute-git-dir)/REVERT_HEAD" ]
 }
 
-assert_bisect_session_still_recorded() {
-    [ -f "$(git -C "$repository" rev-parse --absolute-git-dir)/BISECT_LOG" ]
+assert_no_bisect_in_progress() {
+    [ ! -f "$(git -C "$repository" rev-parse --absolute-git-dir)/BISECT_LOG" ]
 }

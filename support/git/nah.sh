@@ -22,7 +22,7 @@ function nah() {
         git cherry-pick --abort
     elif [ -f "${git_path}/REVERT_HEAD" ]; then
         git revert --abort
-    elif [ -d "${git_path}/bisect" ]; then
+    elif [ -f "${git_path}/BISECT_LOG" ]; then
         git bisect reset
     fi
 
