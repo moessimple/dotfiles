@@ -5,6 +5,18 @@ CLAUDE_PLUGINS=(
     "laravel@laravel"
     "agent-browser@agent-browser"
     "claude-md-management@claude-plugins-official"
+    "typescript-lsp@claude-plugins-official"
+)
+
+# LSP configs written directly in this repo, living in home/.claude/skills/ with their own
+# .claude-plugin/plugin.json, rather than installed via `claude plugin install`. Claude Code
+# auto-detects them from that directory (id suffix @skills-dir) and lists them as user-scope
+# plugins, so claude_plugins_cleanup needs to recognize them as intentional the same way
+# LOCAL_SKILLS in claude-skills.sh does for locally-written skills. `claude plugin uninstall`
+# always fails on them anyway, since skills-dir plugins have no marketplace backing.
+LOCAL_PLUGINS=(
+    "laravel-lsp@skills-dir"
+    "php-lsp-herd@skills-dir"
 )
 
 # User-scope MCP servers this file configures. Each has its own `claude mcp add` args below
@@ -46,7 +58,7 @@ claude_plugins_cleanup() {
     else
         while IFS= read -r name; do
             [ -n "$name" ] || continue
-            if ! printf '%s\n' "${CLAUDE_PLUGINS[@]}" | grep -qxF "$name"; then
+            if ! printf '%s\n' "${CLAUDE_PLUGINS[@]}" "${LOCAL_PLUGINS[@]}" | grep -qxF "$name"; then
                 found_undeclared=1
                 warn "Uninstalling undeclared plugin: $name (not in claude-plugins.sh)"
                 claude plugin uninstall "$name" || warn "Could not uninstall $name, remove it manually"

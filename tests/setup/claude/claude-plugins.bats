@@ -28,6 +28,35 @@ teardown() {
     assert_binary_not_called_with_substring claude "plugin uninstall agent-skills@addy-agent-skills"
 }
 
+@test "a plugin declared in LOCAL_PLUGINS is left alone even though it isn't in CLAUDE_PLUGINS" {
+    # Arrange
+    given_fake_claude \
+        '[{"id":"agent-skills@addy-agent-skills","scope":"user"},{"id":"laravel-lsp@skills-dir","scope":"user"}]' \
+        ""
+
+    # Act
+    run call_cleanup_function "$target" claude_plugins_cleanup
+
+    # Assert
+    assert_success
+    assert_output_contains "No undeclared Claude Code plugins or MCP servers found"
+    assert_binary_not_called_with_substring claude "plugin uninstall laravel-lsp@skills-dir"
+}
+
+@test "a skills-dir plugin not declared in LOCAL_PLUGINS is still uninstalled" {
+    # Arrange
+    given_fake_claude \
+        '[{"id":"agent-skills@addy-agent-skills","scope":"user"},{"id":"stray-lsp@skills-dir","scope":"user"}]' \
+        ""
+
+    # Act
+    run call_cleanup_function "$target" claude_plugins_cleanup
+
+    # Assert
+    assert_success
+    assert_binary_called_with_substring claude "plugin uninstall stray-lsp@skills-dir"
+}
+
 @test "a project-scoped plugin is left alone even when its id isn't declared" {
     # Arrange
     given_fake_claude '[{"id":"foo@bar","scope":"project"}]' ""
