@@ -69,10 +69,13 @@ against the Laravel/PHP repository Claude Code is currently editing, using the r
 (never installing dependencies itself). The pieces, in call order:
 
 - `support/project-root.sh` accepts a Git repository as a project only when `composer.json` exists at its toplevel.
-  Both other hooks source this file rather than re-implementing project resolution.
-- `post-php-edit.sh` / `post-composer-edit.sh` are `PostToolUse` hooks that run a `file`-mode check after every
-  `Write`/`Edit` and leave a "dirty" marker for the project under
-  `${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality/runs`.
+  `support/post-edit-gate.sh`, `quality-gate.sh`, and the `quality` function source it rather than re-implementing
+  project resolution; `require-evidence.sh` needs only the Git repository root and resolves that itself.
+- `support/post-edit-gate.sh` holds `run_post_edit_gate`, the shared body behind both `PostToolUse` hooks: it runs
+  the `file`-mode check, writes the project's "dirty" marker under
+  `${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality/runs`, and reports a failure without blocking the edit.
+- `post-php-edit.sh` / `post-composer-edit.sh` are the `PostToolUse` hooks that call `run_post_edit_gate` after every
+  `Write`/`Edit`, matching `*.php` and the repository-root `composer.json` respectively.
 - `require-evidence.sh` is the `Stop` hook: before Claude finishes a response, it re-runs `quality fast` for the
   current repository when dirty and blocks (exit 2) on failure instead of trusting a claimed fix.
 - `quality-gate.sh` is the actual dispatcher (`file`/`fast`/`full` modes), detecting installed tools per project and

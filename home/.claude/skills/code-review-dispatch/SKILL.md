@@ -6,7 +6,7 @@ user-invocable: false
 
 # Code Review Dispatch
 
-Review engine for `/review-pr` and other callers. The calling command owns what happens with the findings (apply fixes, or write a verdict). This skill owns which reviewers run and how findings come back.
+Review engine for `/review` and other callers. The calling command owns what happens with the findings (apply fixes, or write a verdict). This skill owns which reviewers run and how findings come back.
 
 The caller passes two things: the in-scope diff and file list, and whether the run is report-only.
 
@@ -26,7 +26,7 @@ Issue every applicable call below in a **single message** so they run in paralle
 Every reviewer runs report-only, whatever its own prompt says about applying changes. State that constraint inside each dispatch, not only here: a reviewer built to edit will edit if the only thing stopping it is a sentence it never received. The calling command decides what to do with the findings.
 
 1. **Always**: dispatch the `agent-skills:code-reviewer` agent (five axes: correctness, readability, architecture, security, performance) against the in-scope diff. It reports Critical, Important, and Suggestion with `file:line` already, so Step 3 keeps its severities rather than translating them. If the agent cannot be found, fall back to the `agent-skills:code-review-and-quality` skill, map its Required to Important and its Optional and Nit to Suggestion, and say in the caller's output that the fallback ran.
-2. **Full level and any in-scope file is PHP**: dispatch the `laravel:laravel-simplifier` agent to identify simplification opportunities. Its own prompt ends by telling it to refine code autonomously and proactively without being asked, so the dispatch has to override that in as many words: it reports each opportunity with `file:line` and changes no file. `/review-pr` checks the branch out purely so this reviewer can read it.
+2. **Full level and any in-scope file is PHP**: dispatch the `laravel:laravel-simplifier` agent to identify simplification opportunities. Its own prompt ends by telling it to refine code autonomously and proactively without being asked, so the dispatch has to override that in as many words: it reports each opportunity with `file:line` and changes no file. `/review` checks the branch out purely so this reviewer can read it.
 3. **Full level and any in-scope file is PHP**: dispatch a `general-purpose` agent invoking the `spatie-laravel-php` skill for Spatie PHP guideline compliance.
 4. **Full level and any in-scope file is PHP**: dispatch a `general-purpose` agent invoking the `laravel-best-practices` skill (routing, database performance, architecture). This skill ships with Laravel Boost. If it cannot be found, skip this reviewer and say so in the caller's output instead of failing.
 

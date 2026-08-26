@@ -136,8 +136,9 @@ These are the commands I use most often. The full list lives in [`home/.aliases`
 - `/debug` finds and fixes the root cause of a bug through a reproduce-first diagnosis loop.
 - `/pr` turns the current branch into a pull request, writing a why-and-outcome description (never from the diff or
   commit messages) and waiting for approval before creating it.
-- `/review-pr` reviews a GitHub PR across five code axes plus whether it delivers what was promised, and delivers
-  the verdict in the chat without posting to GitHub.
+- `/review` reviews code across five axes plus whether it delivers what was promised, auto-detecting a PR (given, or
+  open for the current branch) versus the local diff against the default branch, and delivers the verdict in the
+  chat without posting to GitHub.
 
 Two things keep changes disciplined without me having to think about it: [Addy Osmani's
 agent-skills](https://skills.addy.ie) workflow (spec, plan, build, test, review, ship) and a [quality
