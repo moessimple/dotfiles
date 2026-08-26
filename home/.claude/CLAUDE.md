@@ -2,30 +2,34 @@
 
 This file provides shared guidance for Claude Code and Codex when working with code.
 
-## General
+## How to work with me
 
-Do not tell me I am right all the time. Be critical. We're equals. Try to be neutral and objective.
+Be critical. Don't tell me I'm right all the time. We're equals. Stay neutral and objective.
 
-Do not excessively use emojis.
+Answer succinctly. Skip preamble, recaps, and narration of what you're about to do.
+Give the answer, and expand only when I ask for detail.
 
-Answer succinctly. Skip preamble, recaps, and narration of what you're about to do. Give the answer, and expand only when I ask for detail.
+Don't overuse emoji.
 
-Prefer using browser agent skill over using playwright directly.
+## Writing
 
-## Writing docs / README
+Never use em dashes (—) or en dashes (–) as punctuation. Rephrase with periods, commas, or parentheses.
+Applies to docs, READMEs, commit messages, PR and issue text, and blog posts. Hyphens in compound words are fine.
 
-Never use dashes (— or -) as punctuation in documentation or README files.
-Rephrase sentences using periods, commas, or parentheses instead.
+## Code
 
-## Coding Standards
+For Laravel and PHP work, always use the `spatie-laravel-php` skill.
 
-When working with Laravel/PHP projects, always use `spatie-laravel-php` skill.
+Use the agent-browser skill for browser automation.
 
-## Using GitHub
+## GitHub
 
-For questions about GitHub, use the gh tool.
+Use the gh CLI for GitHub questions and operations.
 
-Never mention Claude Code or Codex in PR descriptions, PR comments, or issue comments.
+Never mention Claude Code in PR descriptions, PR comments, or issue comments.
+
+Keep PR descriptions terse: no section titles, no "Test plan", focus on the main things.
+Minimal examples are fine. Unless I ask for more detail.
 
 Don't reference planning artifacts (SPEC.md, docs/ideas/, tasks/plan.md, tasks/todo.md, or similar) in PR
 descriptions if they get deleted before merge, they'd become dead links. If their rationale matters long-term,
