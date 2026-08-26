@@ -144,6 +144,7 @@
       }
     ]
   },
+  "disableRemoteControl": true,
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.sh"
@@ -195,6 +196,5 @@
   "effortLevel": "high",
   "theme": "dark",
   "agentPushNotifEnabled": false,
-  "skipAutoPermissionPrompt": true,
-  "disableRemoteControl": true
+  "skipAutoPermissionPrompt": true
 }
