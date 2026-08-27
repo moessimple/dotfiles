@@ -33,7 +33,7 @@ Run sequentially, each step depends on the previous:
 1. `gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name'` to get the default branch
 2. `git log {defaultBranch}...HEAD --oneline` for the commits on this branch. If empty, stop: there is nothing to open a PR for.
 3. `git diff {defaultBranch}...HEAD` for all changes
-4. Read `SPEC.md` (root, `docs/`, or `spec/`), `tasks/plan.md`, and `tasks/todo.md` if they exist
+4. Read `SPEC*.md` (root, `docs/`, `docs/specs/`, or `spec/`; includes per-module `SPEC-<name>.md`), `tasks/plan.md`, and `tasks/todo.md` if they exist
 5. Check the current conversation for a `/ship` report on these changes. If one exists, it feeds the Risks and Review focus sections. If it ended NO-GO, say so in one sentence and let the user decide, do not block.
 
 **Verify the artifacts match this branch before using them.** Spec and task files can be relics of earlier work. Cross-check them against the diff. Use an artifact only if it clearly describes this change. If it describes something else, ignore it, tell the user in one sentence that stale artifacts were ignored, and continue down the priority list below.

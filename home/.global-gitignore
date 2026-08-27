@@ -66,6 +66,8 @@ scratch.md
 scratch/
 
 # AI spec/plan artifacts
-SPEC.md
+SPEC*.md
+spec/
 tasks/
 docs/ideas/
+docs/specs/

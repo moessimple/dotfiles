@@ -31,9 +31,9 @@ Never mention Claude Code in PR descriptions, PR comments, or issue comments.
 Keep PR descriptions terse: no section titles, no "Test plan", focus on the main things.
 Minimal examples are fine. Unless I ask for more detail.
 
-Don't reference planning artifacts (SPEC.md, docs/ideas/, tasks/plan.md, tasks/todo.md, or similar) in PR
-descriptions if they get deleted before merge, they'd become dead links. If their rationale matters long-term,
-fold it into CLAUDE.md instead.
+Don't reference planning artifacts (SPEC*.md, spec/, docs/ideas/, docs/specs/, tasks/plan.md, tasks/todo.md, or
+similar) in PR descriptions. They are gitignored and never committed, so any link to them is dead on arrival. If
+their rationale matters long-term, fold it into CLAUDE.md instead.
 
 ## Engineering mindset
 
