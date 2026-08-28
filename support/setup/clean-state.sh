@@ -4,6 +4,7 @@ mkdir -p ~/Screenshots
 mkdir -p ~/Temp
 mkdir -p ~/Code
 mkdir -p ~/.config/ghostty
+mkdir -p ~/.config/git
 mkdir -p ~/.claude
 mkdir -p ~/.codex
 

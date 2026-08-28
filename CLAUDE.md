@@ -93,6 +93,11 @@ from the scripts.
 is an exception: it is a diff driver invoked by `search`, not sourced at shell startup, and `.zshrc` explicitly
 skips it in its sourcing loop.
 
+`review`, `compare`, `prune`, and the `cchangelog` function all resolve "the default branch" through the
+`git default-branch` alias, which runs `home/.config/git/default-branch`. That script tries the live remote HEAD
+(`upstream`, then `origin`), then the local remote-tracking cache, then a `main`/`master` probe. It is the single
+place that logic lives; callers never re-derive it. Its priority order is covered by `tests/git/default-branch.bats`.
+
 **Tests mirror source layout.** `tests/claude/hooks/*.bats` covers the quality gate hooks; `tests/functions/*.bats`
 covers selected functions from `home/.functions`; `tests/aliases/*.bats` covers selected aliases from
 `home/.aliases`; `tests/git/*.bats` covers the helpers from `support/git/`; `tests/setup/claude/*.bats` and

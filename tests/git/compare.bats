@@ -40,7 +40,7 @@ teardown() {
     assert_output_contains "change on feature-change.txt"
 }
 
-@test "the base falls back to main when the remote has no HEAD branch" {
+@test "the base falls back to main when the repository has no remote" {
     # Arrange
     given_repository_on_feature_branch
     given_fzf_selects "feature"

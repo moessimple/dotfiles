@@ -8,7 +8,7 @@
 [alias]
     branches = "!git branch -a"
     current-branch = "!git rev-parse --abbrev-ref HEAD"
-    default-branch = "!git remote show origin | awk '/HEAD branch/ {print $NF}'"
+    default-branch = "!sh ~/.config/git/default-branch"
 
 [core]
     # Use custom `.global-gitignore`.

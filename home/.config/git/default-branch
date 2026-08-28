@@ -1,0 +1,41 @@
+#!/bin/sh
+
+# Print the current repository's default branch name.
+#
+# Priority, most authoritative first:
+#   1. The live remote HEAD of `upstream`, then `origin` (`git ls-remote
+#      --symref`). This is the hosting platform's own "default branch" setting;
+#      a fork clone's `upstream` outranks its `origin`.
+#   2. The local remote-tracking cache `refs/remotes/<remote>/HEAD`, used when
+#      the remote is unreachable.
+#   3. A local `main`/`master` probe, for a repository with no remote.
+#
+# Exits non-zero and prints nothing when none of these resolve.
+
+set -u
+
+for remote in upstream origin; do
+    head=$(git ls-remote --symref "$remote" HEAD 2>/dev/null \
+        | sed -n 's|^ref: refs/heads/\(.*\)[[:space:]]HEAD$|\1|p')
+    if [ -n "$head" ]; then
+        printf '%s\n' "$head"
+        exit 0
+    fi
+done
+
+for remote in upstream origin; do
+    head=$(git symbolic-ref --quiet --short "refs/remotes/$remote/HEAD" 2>/dev/null)
+    if [ -n "$head" ]; then
+        printf '%s\n' "${head#"$remote"/}"
+        exit 0
+    fi
+done
+
+for branch in main master; do
+    if git show-ref --quiet --verify "refs/heads/$branch"; then
+        printf '%s\n' "$branch"
+        exit 0
+    fi
+done
+
+exit 1

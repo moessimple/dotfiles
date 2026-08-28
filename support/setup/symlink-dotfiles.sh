@@ -22,3 +22,4 @@ ln -sf ~/.dotfiles/home/.claude/statusline.sh ~/.claude/statusline.sh
 ln -sf ~/.claude/CLAUDE.md ~/.codex/AGENTS.md
 
 ln -sf ~/.dotfiles/home/.config/ghostty/config ~/.config/ghostty/config
+ln -sf ~/.dotfiles/home/.config/git/default-branch ~/.config/git/default-branch
