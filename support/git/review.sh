@@ -8,7 +8,9 @@ function review() {
         return 0
     fi
 
-    local base="${1:-$(git default-branch)}"
+    local base
+    base="${1:-$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||')}"
+    base="${base:-main}"
 
     git diff --name-only "${base}...HEAD" \
         | fzf \

@@ -40,6 +40,20 @@ teardown() {
     assert_fzf_offered_candidate "changed-on-feature.txt"
 }
 
+@test "the base falls back to main when the repository has no remote" {
+    # Arrange
+    given_repository_on_feature_branch
+    given_committed_file_change changed-on-feature.txt
+    given_fzf_selects "changed-on-feature.txt"
+
+    # Act
+    run call_review
+
+    # Assert
+    assert_success
+    assert_fzf_offered_candidate "changed-on-feature.txt"
+}
+
 @test "an explicit base overrides the default branch" {
     # Arrange
     given_repository_on_feature_branch
