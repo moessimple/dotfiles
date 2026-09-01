@@ -73,6 +73,10 @@ step "Updating global npm packages"
 npm update -g --force
 success "npm packages updated"
 npm_packages_cleanup
+# npm never evicts its own cache on its own; every `npm`/`npx` run only adds to it. `verify`
+# garbage-collects unreferenced content and prunes it back toward `cache-max`, the npm
+# counterpart to `brew cleanup` above.
+npm cache verify
 
 # Install any Claude Code skills newly added to the list, then update all
 source ~/.dotfiles/support/setup/claude/claude-skills.sh
