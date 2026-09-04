@@ -57,7 +57,10 @@ brew bundle --file=~/.dotfiles/support/config/Brewfile
 # All five cleanups in this script remove undeclared things unattended, the declaration files
 # are the only source of truth for what may be installed.
 brew bundle cleanup --force --file=~/.dotfiles/support/config/Brewfile || true
-brew cleanup
+# --prune=all: this runs weekly right after update/upgrade/bundle, so every declared
+# package was just re-downloaded as needed and the entire download cache is stale.
+# The default 120-day window lets casks like Docker.dmg accumulate GBs between prunes.
+brew cleanup --prune=all
 success "Homebrew packages updated"
 
 # Install any global Composer packages newly added to the list, then update all
