@@ -92,6 +92,21 @@ teardown() {
     assert_tool_ran pest
 }
 
+@test "a fast check on a nested project scopes changed files relative to that project, not the Git root" {
+    # Arrange
+    given_nested_project_with_tools composer pint rector
+    commit_project
+    printf '<?php\n// changed\n' > "$project/src/Example.php"
+
+    # Act
+    run run_gate_for_project "$project" fast
+
+    # Assert
+    assert_success
+    assert_tool_ran_with_argument rector src/Example.php
+    assert_tool_did_not_run_with_argument rector packages/example/src/Example.php
+}
+
 @test "checking one PHP file runs only the checks for that file" {
     # Arrange
     given_project_with_tools pint phpstan rector
@@ -281,34 +296,56 @@ teardown() {
     assert_output_contains "QUALITY_NO_PROJECT"
 }
 
-@test "a repository without a root composer.json reports nothing to check" {
+@test "a Composer project nested below a tool-less Git root is found" {
     # Arrange
-    manifest_repo="$fixture/non-root-manifest"
-    mkdir -p "$manifest_repo/app"
-    git init -q "$manifest_repo"
-    printf '{}\n' > "$manifest_repo/app/composer.json"
+    given_nested_project_with_tools composer pint
 
     # Act
-    run run_gate_for_project "$manifest_repo/app" fast
-
-    # Assert
-    assert_status 3
-    assert_output_contains "QUALITY_NO_PROJECT"
-    assert_file_is_empty "$log"
-}
-
-@test "file mode validates only the repository composer.json" {
-    # Arrange
-    given_project_with_tools composer
-    mkdir -p "$project/packages/example"
-    printf '{}\n' > "$project/packages/example/composer.json"
-
-    # Act
-    run run_gate file "$project/packages/example/composer.json"
+    run run_gate_for_project "$project" fast
 
     # Assert
     assert_success
-    assert_tool_did_not_run composer
+    assert_tool_ran pint
+}
+
+@test "file mode walks up from a file's own directory to find its nested project" {
+    # Arrange
+    given_nested_project_with_tools pint rector
+
+    # Act
+    run run_gate file "$project/src/Example.php"
+
+    # Assert
+    assert_success
+    assert_tool_ran pint
+    assert_tool_ran rector
+}
+
+@test "file mode validates a composer.json nested below the Git root" {
+    # Arrange
+    given_nested_project_with_tools composer
+
+    # Act
+    run run_gate file "$project/composer.json"
+
+    # Assert
+    assert_success
+    assert_tool_ran composer
+}
+
+@test "running quality file from inside a sibling project still gates the file's own project" {
+    # Arrange
+    given_nested_project_with_tools pint
+    other_project="$git_root/other"
+    mkdir -p "$other_project"
+    printf '{}\n' > "$other_project/composer.json"
+
+    # Act
+    run run_gate_for_project "$other_project" file "$project/src/Example.php"
+
+    # Assert
+    assert_success
+    assert_tool_ran pint
 }
 
 @test "an unknown check mode shows usage" {

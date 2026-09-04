@@ -14,7 +14,8 @@
 # crossed by `composer install`. The global Composer binary handles validation
 # in every applicable mode and auditing in full mode.
 #
-# support/project-root.sh requires composer.json at the Git toplevel.
+# support/project-root.sh resolves the nearest Composer project, including one
+# nested below the Git toplevel.
 
 set -u
 
@@ -76,7 +77,8 @@ pint_covers_path() {
 # its own, can be scoped to the same bounded set of files in fast mode.
 # --relative forces paths relative to the caller's cwd (already $root by the
 # time this runs), matching what a relative `vendor/bin/rector process <path>`
-# call expects.
+# call expects; git's default without it is relative to the repo toplevel,
+# which would be wrong for a project nested below the git root.
 dirty_php_files() {
     { git diff --name-only --relative --diff-filter=ACMR HEAD -- . 2>/dev/null
       git ls-files --others --exclude-standard -- . 2>/dev/null
@@ -153,27 +155,31 @@ if [[ "$mode" == "file" ]]; then
         printf '%s/%s' "$(pwd -P)" "$(basename -- "$file")"
     )" || exit "$exit_unsafe_path"
 
-    # Resolve from the file itself so `quality file <path>` checks the
-    # repository that owns the path even when invoked from elsewhere.
+    # Resolved from the file's own directory, not $PWD/CLAUDE_PROJECT_DIR: a
+    # repo can nest more than one Composer project, and running `quality file
+    # <path>` from inside a different one of them must still gate the project
+    # the given file actually belongs to, not whichever one the shell is in.
     start_dir="$(dirname -- "$canonical")"
 else
     start_dir="${CLAUDE_PROJECT_DIR:-$PWD}"
 fi
 
-resolve_project_root "$start_dir" root || {
-    echo "QUALITY_NO_PROJECT: no composer.json found at the Git repository root for $start_dir" >&2
+resolve_project_root "$start_dir" git_root root || {
+    echo "QUALITY_NO_PROJECT: no Composer project (composer.json) found for $start_dir" >&2
     exit "$exit_nothing_to_check"
 }
 
 if [[ "$mode" == "file" ]]; then
     # .git is checked before the general containment check, because a path
-    # inside .git would otherwise pass as "inside the project".
+    # inside .git would otherwise pass as "inside the project". Checked against
+    # git_root (the whole repo), not root (the nearest project), since a repo
+    # can legitimately nest more than one project below the same .git.
     case "$canonical" in
-        "$root"/.git/*)
+        "$git_root"/.git/*)
             echo "Refusing a path inside .git: $canonical" >&2
             exit "$exit_unsafe_path"
             ;;
-        "$root"/*) ;;
+        "$git_root"/*) ;;
         *)
             echo "Path is outside the project: $canonical" >&2
             exit "$exit_unsafe_path"
@@ -183,11 +189,6 @@ if [[ "$mode" == "file" ]]; then
     # Nothing to check for anything but a PHP file or composer.json; exit
     # before touching any tool.
     if [[ "$canonical" != *.php ]] && [[ "$(basename -- "$canonical")" != "composer.json" ]]; then
-        exit 0
-    fi
-
-    # Only the repository-level manifest belongs to this project.
-    if [[ "$(basename -- "$canonical")" == "composer.json" && "$canonical" != "$root/composer.json" ]]; then
         exit 0
     fi
 fi

@@ -61,6 +61,21 @@ teardown() {
     assert_path_exists "$marker"
 }
 
+@test "editing a PHP file in a nested project marks that nested project, not the Git root" {
+    # Arrange
+    given_nested_project_with_tools pint rector
+    nested_marker="$config_home/claude-quality/runs$project.dirty"
+    root_marker="$config_home/claude-quality/runs$git_root.dirty"
+
+    # Act
+    run post_event post-php-edit.sh "$project/src/Example.php"
+
+    # Assert
+    assert_success
+    assert_path_exists "$nested_marker"
+    assert_path_does_not_exist "$root_marker"
+}
+
 @test "disabling automatic checks leaves an edited PHP file alone" {
     # Arrange
     given_project_with_tools pint rector

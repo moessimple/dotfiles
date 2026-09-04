@@ -47,19 +47,21 @@ teardown() {
     assert_path_exists "$marker"
 }
 
-@test "editing a composer.json outside the repository root does nothing" {
+@test "editing a composer.json nested below the repository root marks that nested project" {
     # Arrange
     given_project_with_tools composer
-    marker="$config_home/claude-quality/runs$project.dirty"
-    other_manifest="$project/packages/example/composer.json"
-    mkdir -p "$(dirname -- "$other_manifest")"
-    printf '{}\n' > "$other_manifest"
+    nested_manifest="$project/packages/example/composer.json"
+    mkdir -p "$(dirname -- "$nested_manifest")"
+    printf '{}\n' > "$nested_manifest"
+    nested_marker="$config_home/claude-quality/runs$project/packages/example.dirty"
+    root_marker="$config_home/claude-quality/runs$project.dirty"
 
     # Act
-    run post_event post-composer-edit.sh "$other_manifest"
+    run post_event post-composer-edit.sh "$nested_manifest"
 
     # Assert
     assert_success
-    assert_file_is_empty "$log"
-    assert_path_does_not_exist "$marker"
+    assert_tool_ran composer
+    assert_path_exists "$nested_marker"
+    assert_path_does_not_exist "$root_marker"
 }

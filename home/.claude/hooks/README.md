@@ -1,7 +1,7 @@
 # Quality Gate Hooks
 
 These Claude Code hooks run the available quality tools for a PHP or Laravel project after relevant edits and before
-Claude finishes a response. They reuse the project's installed tools and configuration; they do not install project
+Claude finishes a response. They reuse each project's installed tools and configuration; they do not install project
 dependencies or provide Pint, PHPStan, Rector, Pest, PHPUnit, or ParaTest themselves.
 
 See the [root README](../../../README.md) for installation and the wider dotfiles setup.
@@ -13,7 +13,7 @@ Claude Code [hooks](https://code.claude.com/docs/en/hooks) provide deterministic
 depending on the model to remember them.
 
 This gate uses two feedback loops: inexpensive file checks after supported edits, then a project check before Claude
-stops for a Composer project marked by those edits. Both loops run the project's installed tools and configuration,
+stops for Composer projects marked by those edits. Both loops run the project's installed tools and configuration,
 which remain the source of truth.
 
 A passing gate is evidence that the configured checks succeeded, not proof that the change is correct. Local hooks
@@ -32,10 +32,10 @@ shell command comes from [`home/.functions`](../../.functions), which `.zshrc` l
 A checked project must:
 
 - be inside a Git repository;
-- contain a `composer.json` at the Git repository root; and
+- contain a `composer.json` at or above the checked path, without going above the Git root; and
 - have at least one supported project tool, an `artisan` file, or a global `composer` command.
 
-The hook scripts also use Bash, Git, and `jq`. The full dotfiles installer provides the global commands, but
+The hook scripts also use Bash, Git, `find`, and `jq`. The full dotfiles installer provides the global commands, but
 the project's own Composer dependencies remain the project's responsibility.
 
 ## Checks and Modes
@@ -73,16 +73,17 @@ Claude Code invokes both `PostToolUse` hooks after every `Write` or `Edit` opera
 - [`post-composer-edit.sh`](post-composer-edit.sh) accepts files named `composer.json` and runs
   `composer validate` through `file` mode.
 
-Each hook resolves the surrounding Git repository and requires its `composer.json` at the repository root. When
-supported tooling is found, it creates a dirty marker for that project even if the immediate file check passes. A
-failing check returns its output to Claude so the next action can address it. Because these are post-edit hooks, they
-report problems but cannot undo the edit.
+Each hook resolves the nearest Composer project inside the surrounding Git repository. When supported tooling is
+found, it creates a dirty marker for that project even if the immediate file check passes. A failing check returns its
+output to Claude so the next action can address it. Because these are post-edit hooks, they report problems but cannot
+undo the edit.
 
 ### Before Claude Stops
 
-[`require-evidence.sh`](require-evidence.sh) runs whenever Claude tries to finish a response. If the current Git
-repository has a dirty marker, it runs `quality fast`. A passing run clears the marker. A failing run leaves it in
-place, returns the tool output, and blocks the response with exit code 2.
+[`require-evidence.sh`](require-evidence.sh) runs whenever Claude tries to finish a response. It finds dirty project
+markers belonging to the current Git repository and runs `quality fast` for each project. A passing run clears that
+project's marker. A failing run leaves the marker in place, returns the tool output, and blocks the response with exit
+code 2.
 
 This implementation deliberately reruns the real gate on every subsequent stop attempt instead of accepting a claim
 that the failure was fixed. Claude Code overrides a Stop hook after eight consecutive blocks without progress; the
@@ -138,7 +139,8 @@ remains on disk and may be reconsidered by later Stop events.
 project's absolute path. The JSON record contains the project root, mode, Git commit, worktree state, exit code, and a
 UTC timestamp. A sibling `.dirty` marker records that a relevant edit has not yet been followed by a passing gate.
 
-The Stop hook considers only the marker for the current Git repository.
+Nested Composer projects are tracked separately. The Stop hook only considers markers at or below the Git repository
+for the current Claude Code session.
 
 ## Implementation and Tests
 
@@ -146,10 +148,10 @@ The Stop hook considers only the marker for the current Git repository.
 | -------------------------------------------------------- | ------------------------------------------------------------------ |
 | [`post-php-edit.sh`](post-php-edit.sh)                   | Matches PHP edits and starts the file gate                         |
 | [`post-composer-edit.sh`](post-composer-edit.sh)         | Matches `composer.json` edits and starts validation                |
-| [`require-evidence.sh`](require-evidence.sh)             | Runs `fast` for the dirty repository and blocks on failure         |
+| [`require-evidence.sh`](require-evidence.sh)             | Runs `fast` for dirty projects and blocks on failure               |
 | [`quality-gate.sh`](quality-gate.sh)                     | Resolves modes, detects tools, runs checks, and records results    |
 | [`support/post-edit-gate.sh`](support/post-edit-gate.sh) | Shares post-edit execution, marker, and reporting logic            |
-| [`support/project-root.sh`](support/project-root.sh)     | Requires a root Composer manifest and resolves the Git repository  |
+| [`support/project-root.sh`](support/project-root.sh)     | Resolves the nearest Composer project inside a Git repository      |
 | [`tests/claude/hooks/`](../../../tests/claude/hooks/)    | Bats coverage for each hook, the dispatcher, and their integration |
 
 Run the hook tests from the dotfiles root:

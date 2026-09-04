@@ -144,6 +144,38 @@ teardown() {
     assert_path_does_not_exist "$marker"
 }
 
+@test "a final check clears passing projects and keeps failed projects dirty" {
+    # Arrange
+    given_dirty_project_after_php_edit_with_tools composer pint phpstan rector pest phpunit
+    given_second_dirty_project_with_failing_phpstan
+    : > "$log"
+
+    # Act
+    run stop_event false
+
+    # Assert
+    assert_status 2
+    assert_path_does_not_exist "$marker"
+    assert_path_exists "$second_marker"
+}
+
+@test "the next final check retries only projects that are still dirty" {
+    # Arrange
+    given_dirty_project_after_php_edit_with_tools composer pint phpstan rector pest phpunit
+    given_second_dirty_project_with_failing_phpstan
+    run stop_event false
+    ln -sf "$fake_bin/tool" "$second_project/vendor/bin/phpstan"
+    : > "$log"
+
+    # Act
+    run stop_event false
+
+    # Assert
+    assert_success
+    assert_tool_run_count phpstan 1
+    assert_path_does_not_exist "$second_marker"
+}
+
 @test "a dirty project without tooling does not block the response" {
     # Arrange
     given_dirty_project_after_php_edit_with_tools composer pint phpstan rector pest phpunit

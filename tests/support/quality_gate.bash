@@ -73,6 +73,26 @@ given_project_with_tools() {
     done
 }
 
+# A Composer project nested below the Git root (e.g. a Laravel app's own
+# packages/* package), distinct from a repository-root project.
+new_nested_project() {
+    git_root="$fixture/repo"
+    project="$git_root/packages/example"
+
+    mkdir -p "$project/src" "$project/vendor/bin"
+    git init -q "$git_root"
+    printf '{}\n' > "$project/composer.json"
+    printf '<?php\n' > "$project/src/Example.php"
+}
+
+given_nested_project_with_tools() {
+    local tool
+    new_nested_project
+    for tool in "$@"; do
+        install_tool "$project" "$tool"
+    done
+}
+
 given_composer_project_without_quality_tools() {
     new_project
 }
@@ -83,6 +103,26 @@ given_dirty_project_after_php_edit_with_tools() {
     post_event post-php-edit.sh "$project/src/Example.php"
     [ -e "$marker" ]
     : > "$log"
+}
+
+# A second, sibling Composer project inside the same Git root as the current
+# $project, dirtied by a PHP edit and left with a failing PHPStan so tests can
+# prove multiple nested projects are tracked and gated independently.
+given_second_dirty_project_with_failing_phpstan() {
+    second_project="$git_root/second"
+    second_marker="$config_home/claude-quality/runs$second_project.dirty"
+    mkdir -p "$second_project/src" "$second_project/vendor/bin"
+    printf '{}\n' > "$second_project/composer.json"
+    printf '<?php\n' > "$second_project/src/Example.php"
+    install_tool "$second_project" pint
+    install_tool "$second_project" rector
+    cat > "$second_project/vendor/bin/phpstan" <<'TOOL'
+#!/usr/bin/env bash
+printf 'phpstan\n' >> "$QUALITY_TEST_LOG"
+exit 1
+TOOL
+    chmod +x "$second_project/vendor/bin/phpstan"
+    post_event post-php-edit.sh "$second_project/src/Example.php"
 }
 
 given_project_with_artisan_test_runner() {
