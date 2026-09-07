@@ -123,3 +123,6 @@ suites also load their own `tests/support/<name>_helper.bash` for suite-specific
   one-function-per-file split under `support/git/` is deliberate for that set (a coherent group with its own Bats
   suite and shell-startup sourcing loop), not a pattern to extend here. Do not split `home/.functions` into
   per-topic files without a concrete reason; add new helpers under the matching section header.
+- The `precmd` `_fix_tty` hook in `.zshrc` runs `stty sane` before every prompt on purpose. Interactive tools that
+  exit uncleanly (artisan prompts, some TUIs) leave the terminal in a broken state; repairing it on every prompt is
+  the accepted cost. Keep it unless it is shown to clobber a deliberate `stty` setting in practice.
