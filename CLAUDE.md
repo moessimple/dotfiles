@@ -119,3 +119,7 @@ suites also load their own `tests/support/<name>_helper.bash` for suite-specific
   or rewrite their absolute paths, and expect Herd to re-add or reorder them on the next install/update.
 - `home/.claude/CLAUDE.md` is the user-level Claude Code instructions file (symlinked to `~/.claude/CLAUDE.md`); it
   is a different file from this one and applies globally across all projects, not just this repo.
+- `home/.functions` stays a single file, sourced whole by `.zshrc`, grouped by `# === section ===` headers. The
+  one-function-per-file split under `support/git/` is deliberate for that set (a coherent group with its own Bats
+  suite and shell-startup sourcing loop), not a pattern to extend here. Do not split `home/.functions` into
+  per-topic files without a concrete reason; add new helpers under the matching section header.
