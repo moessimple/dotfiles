@@ -20,6 +20,8 @@ set -u
 dispatcher="$HOME/.claude/hooks/quality-gate.sh"
 config_home="${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality"
 
+source "$(dirname -- "${BASH_SOURCE[0]}")/support/exit-codes.sh"
+
 input="$(cat)"
 
 cwd="$(jq -r '.cwd // empty' <<<"$input")"
@@ -47,9 +49,9 @@ for project in "${dirty_projects[@]}"; do
     output="$(CLAUDE_PROJECT_DIR="$project" "$dispatcher" fast 2>&1)"
     status=$?
 
-    # exit 3 (QUALITY_NO_PROJECT / QUALITY_NO_TOOLING) means there is nothing
-    # left to prove clean for this marker, not that it failed.
-    [[ "$status" == 0 || "$status" == 3 ]] && continue
+    # A dispatcher run with nothing to check (QUALITY_NO_PROJECT /
+    # QUALITY_NO_TOOLING) is a pass for this marker, not a failure.
+    [[ "$status" == 0 || "$status" == "$exit_nothing_to_check" ]] && continue
 
     still_dirty+=("$project")
     printf '%s\n' "$output" >&2

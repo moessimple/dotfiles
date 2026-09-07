@@ -5,6 +5,7 @@
 # reports failures consistently.
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/project-root.sh"
+source "$(dirname -- "${BASH_SOURCE[0]}")/exit-codes.sh"
 
 # Exits the calling hook script directly, the same way both hooks already
 # did inline: 0 when there's no project to gate or the gate passed, 2 with
@@ -29,7 +30,7 @@ run_post_edit_gate() {
     output="$("$dispatcher" file "$file" 2>&1)"
     status=$?
 
-    [[ "$status" == 3 ]] && exit 0
+    [[ "$status" == "$exit_nothing_to_check" ]] && exit 0
 
     local marker="$config_home/runs$root.dirty"
     mkdir -p "$(dirname -- "$marker")" && : > "$marker"

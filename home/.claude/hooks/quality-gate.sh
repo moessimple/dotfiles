@@ -36,6 +36,7 @@ if [[ -x "$php_bin" ]]; then
 fi
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/support/project-root.sh"
+source "$(dirname -- "${BASH_SOURCE[0]}")/support/exit-codes.sh"
 
 # Pint ignores dot-files and dot-directories by default. Projects using this
 # gate also reserve .ai, .github and .claude for tooling and omit them from
@@ -121,11 +122,6 @@ run_test_suite() {
         fi
     fi
 }
-
-exit_nothing_to_check=3
-exit_usage=64
-exit_unsafe_path=65
-exit_internal=66
 
 mode="${1:-}"
 file="${2:-}"

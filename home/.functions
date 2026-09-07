@@ -212,7 +212,7 @@ commit() {
 
 # Run PHPStan static analysis with an increased memory limit
 phpstan() {
-    php -d memory_limit=4096M ./vendor/bin/phpstan -vvv "$@"
+    php -d memory_limit=8192M ./vendor/bin/phpstan -vvv "$@"
 }
 
 # Run Rector, preferring the local vendor binary over a global installation
@@ -358,10 +358,11 @@ HELP
 _quality_status() {
     local git_root root record
     source "$HOME/.claude/hooks/support/project-root.sh"
+    source "$HOME/.claude/hooks/support/exit-codes.sh"
 
     resolve_project_root "$PWD" git_root root || {
         echo "No Composer project (composer.json) found for $PWD." >&2
-        return 3
+        return "$exit_nothing_to_check"
     }
     record="${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality/runs$root.json"
 
