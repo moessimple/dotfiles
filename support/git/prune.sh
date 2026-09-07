@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 
+source "${0:A:h}/support/long-lived-branches.sh"
+
 # Delete local and remote branches that have been merged or whose remote is gone
 function prune() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
@@ -10,9 +12,8 @@ function prune() {
         return 0
     fi
 
-    # Match only whole branch names, not any name containing these words as a substring
-    # (e.g. "feature/domain-model" or "premaster" must not count as protected).
-    local protected_branches="(^\*|(^|[[:space:]/])(develop|master|main|release)\$)"
+    # Whole-name match only, so "feature/domain-model" or "premaster" don't count.
+    local protected_pattern="(^\*|(^|[[:space:]/])(${(j:|:)long_lived_branches})\$)"
     local default_branch
     default_branch=$(git default-branch)
 
@@ -24,12 +25,12 @@ function prune() {
     # Merged against origin/$default_branch, not the local branch, so a stale local
     # default branch doesn't leave branches merged upstream undetected.
     git branch --merged origin/$default_branch \
-        | grep -E -v "${protected_branches}" \
+        | grep -E -v "${protected_pattern}" \
         | xargs git branch -d
 
     # Delete remote branches fully merged into the remote default branch.
     git branch -r --merged origin/$default_branch \
-        | grep -E -v "${protected_branches}" \
+        | grep -E -v "${protected_pattern}" \
         | grep origin/ \
         | cut -d"/" -f2- \
         | xargs -I% git push origin :% 2>&1 \
@@ -37,7 +38,7 @@ function prune() {
 
     # Delete local branches whose upstream no longer exists.
     git branch --format '%(upstream:track,nobracket)%09%(refname:short)' \
-        | grep -E -v "${protected_branches}" \
+        | grep -E -v "${protected_pattern}" \
         | awk -F "\t" '{ if($1 ~ /gone/) { print $2 } }' \
         | xargs git branch -D
 }

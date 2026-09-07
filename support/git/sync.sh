@@ -1,6 +1,7 @@
 #!/usr/bin/env zsh
 
 source "${0:A:h}/support/stash-guard.sh"
+source "${0:A:h}/support/long-lived-branches.sh"
 
 # Sync local long-lived branches from upstream and push them to origin
 function sync() {
@@ -17,7 +18,6 @@ function sync() {
     if [ -z "$current_branch" ]; then
         current_commit=$(git rev-parse HEAD) || return
     fi
-    local branches=("develop" "main" "master" "release")
 
     if ! git remote | grep -qxF upstream; then
         echo 'No upstream remote configured'
@@ -31,7 +31,7 @@ function sync() {
     stashed=$_git_stash_guard_active
 
     local branch exit_code=0
-    for branch in "${branches[@]}"; do
+    for branch in "${long_lived_branches[@]}"; do
         if git show-ref --verify --quiet "refs/remotes/upstream/$branch"; then
             if git show-ref --verify --quiet "refs/heads/$branch"; then
                 git switch "$branch"

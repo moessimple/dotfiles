@@ -94,7 +94,8 @@ from the scripts.
 Shared internal pieces sit in `support/git/support/`, which `.zshrc`'s non-recursive `*.sh` loop skips on its own:
 `stash-guard.sh` defines `_git_stash_guard` / `_git_stash_restore` (stash the working tree aside for an operation,
 then restore it; `merge`, `pull`, and `sync` each `source` it, while `switch` keeps its own version because it tags
-every stash with the branch it belongs to), and `pickaxe-diff.sh` is the diff driver `search` invokes.
+every stash with the branch it belongs to), `long-lived-branches.sh` holds the develop/main/master/release list
+that `sync` iterates and `prune` protects, and `pickaxe-diff.sh` is the diff driver `search` invokes.
 
 `review`, `compare`, `prune`, and the `cchangelog` function all resolve "the default branch" through the
 `git default-branch` alias, which runs `home/.config/git/default-branch`. That script tries the live remote HEAD

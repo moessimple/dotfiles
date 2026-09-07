@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# Runs both sourced from bin/install.sh / bin/reconfigure.sh (which define these)
+# and on its own, so it provides the loggers when they are missing.
+if ! declare -f warn >/dev/null 2>&1; then
+    BLUE='\033[0;34m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
+    step()    { echo ""; echo -e "${BLUE}➜${NC} $1"; }
+    success() { echo -e "${GREEN}✓${NC} $1"; }
+    warn()    { echo -e "${YELLOW}⚠${NC} $1"; }
+    error()   { echo -e "${RED}✗${NC} $1"; exit 1; }
+fi
+
 echo ""
 warn "This will change macOS system settings."
 echo "Close System Settings before continuing."
