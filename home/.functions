@@ -2,9 +2,9 @@
 
 # === General Utilities ===
 
-# Open VS Code with an increased memory limit
+# Open VS Code, defaulting to the current directory when no path is given
 code() {
-    command code -max-old-space-size=8192 "${@:-.}"
+    command code "${@:-.}"
 }
 
 # Search file contents with ripgrep and open the result in VS Code via fzf

@@ -13,20 +13,20 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "code opens the current directory with the memory flag when no path is given" {
+@test "code opens the current directory when no path is given" {
     # Act
     run call_code
 
     # Assert
     assert_success
-    assert_binary_called_with code "-max-old-space-size=8192 ."
+    assert_binary_called_with code "."
 }
 
-@test "code forwards a given path alongside the memory flag" {
+@test "code forwards a given path" {
     # Act
     run call_code "src/App.php"
 
     # Assert
     assert_success
-    assert_binary_called_with code "-max-old-space-size=8192 src/App.php"
+    assert_binary_called_with code "src/App.php"
 }

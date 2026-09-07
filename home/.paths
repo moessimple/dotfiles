@@ -13,14 +13,8 @@ add_to_path "$DOTFILES_DIR/bin"
 # === Composer ===
 add_to_path ~/.composer/vendor/bin
 
-# === Node ===
-add_to_path ~/.node/bin
-
 # === Ruby ===
 add_to_path ~/.gem/bin
-
-# === Yarn ===
-add_to_path ~/.yarn/bin
 
 # === Homebrew ===
 if command -v brew &>/dev/null; then
