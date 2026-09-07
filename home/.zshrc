@@ -33,9 +33,9 @@ for _dotfile in ~/.dotfiles/home/.{exports,paths,aliases,functions}; do
 done
 unset _dotfile
 
-# Load git functions (pickaxe-diff.sh is a diff driver invoked by search, not sourced)
+# Load git command functions. Shared helpers live in support/git/support/ and
+# are pulled in by the functions that need them, not sourced here.
 for _git_fn in ~/.dotfiles/support/git/*.sh; do
-    [[ "$_git_fn" == */pickaxe-diff.sh ]] && continue
     source "$_git_fn"
 done
 unset _git_fn

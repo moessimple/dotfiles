@@ -89,10 +89,12 @@ Full behavior, the file/fast/full check matrix, and per-project opt-outs (`CLAUD
 are documented in `home/.claude/hooks/README.md`; read it before changing hook behavior instead of re-deriving it
 from the scripts.
 
-**Git helpers (`support/git/`).** Each `*.sh` file defines one function (`branches`, `push`, `pull`, `nah`, `merge`,
-`review`, `prune`, `switch`, `sync`, `search`, `compare`) and is sourced individually by `.zshrc`. `pickaxe-diff.sh`
-is an exception: it is a diff driver invoked by `search`, not sourced at shell startup, and `.zshrc` explicitly
-skips it in its sourcing loop.
+**Git helpers (`support/git/`).** Each top-level `*.sh` file defines one command function (`branches`, `push`,
+`pull`, `nah`, `merge`, `review`, `prune`, `switch`, `sync`, `search`, `compare`) and is sourced by `.zshrc`.
+Shared internal pieces sit in `support/git/support/`, which `.zshrc`'s non-recursive `*.sh` loop skips on its own:
+`stash-guard.sh` defines `_git_stash_guard` / `_git_stash_restore` (stash the working tree aside for an operation,
+then restore it; `merge`, `pull`, and `sync` each `source` it, while `switch` keeps its own version because it tags
+every stash with the branch it belongs to), and `pickaxe-diff.sh` is the diff driver `search` invokes.
 
 `review`, `compare`, `prune`, and the `cchangelog` function all resolve "the default branch" through the
 `git default-branch` alias, which runs `home/.config/git/default-branch`. That script tries the live remote HEAD

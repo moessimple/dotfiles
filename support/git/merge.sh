@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 
+source "${0:A:h}/support/stash-guard.sh"
+
 # Merge a branch into the current branch, stashing and restoring uncommitted changes
 function merge() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
@@ -11,15 +13,9 @@ function merge() {
 
     [ $# -eq 0 ] && { echo "No branch name given."; return 1; }
 
-    # `git stash push` on a clean tree creates no stash, so pop only if we stashed.
-    local stashed=0 exit_code status_output
-    status_output=$(git status --porcelain) || return
-    if [ -n "$status_output" ]; then
-        git stash push --include-untracked
-        exit_code=$?
-        [ "$exit_code" -eq 0 ] || return "$exit_code"
-        stashed=1
-    fi
+    local stashed exit_code
+    _git_stash_guard || return
+    stashed=$_git_stash_guard_active
 
     git merge "$@"
     exit_code=$?
@@ -29,10 +25,5 @@ function merge() {
         return "$exit_code"
     fi
 
-    if [ "$stashed" -eq 1 ]; then
-        git stash pop
-        return $?
-    fi
-
-    return 0
+    _git_stash_restore
 }

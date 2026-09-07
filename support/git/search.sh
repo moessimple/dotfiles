@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 # Search git history for commits that introduced or removed a string (pickaxe search)
-_SEARCH_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+_SEARCH_DIR="${0:A:h}"
 
 function search() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
@@ -15,5 +15,5 @@ function search() {
 
     export GREPDIFF_REGEX="$1"
 
-    git -c core.pager="less -RFX" -c diff.external="$_SEARCH_DIR/pickaxe-diff.sh" log -p --ext-diff --regexp-ignore-case -S"$1" -- . ":(exclude)phpstan-baseline.neon" ":(exclude)phparkitect-baseline.json"
+    git -c core.pager="less -RFX" -c diff.external="$_SEARCH_DIR/support/pickaxe-diff.sh" log -p --ext-diff --regexp-ignore-case -S"$1" -- . ":(exclude)phpstan-baseline.neon" ":(exclude)phparkitect-baseline.json"
 }

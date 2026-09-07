@@ -27,6 +27,29 @@ call_dotfiles_function_in() {
         zsh "$directory" "$functions_file" "$@"
 }
 
+# Sources a support/git command script in a fresh zsh process, in $repository,
+# with `git stash push` stubbed to exit 0 without saving anything (the way an
+# all-submodule change does), then runs the remaining arguments as a command.
+# Every other git call is real. Proves each command aborts before it acts when
+# the working tree could not actually be stashed.
+run_git_command_with_stash_that_saves_nothing() {
+    local script="$1"
+    shift
+    zsh -c '
+        function git() {
+            if [[ "$1" == "stash" && "$2" == "push" ]]; then
+                echo "No local changes to save"
+                return 0
+            fi
+            command git "$@"
+        }
+        source "$1"
+        cd "$2"
+        shift 2
+        "$@"
+    ' zsh "$dotfiles_dir/support/git/$script" "$repository" "$@"
+}
+
 # Sources home/.aliases in a fresh zsh process and invokes the named alias.
 # Shared by every tests/aliases/*_helper.bash so each one only defines a thin
 # call_<name> wrapper around this. Unlike a function name, an alias name only

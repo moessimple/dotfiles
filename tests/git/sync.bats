@@ -52,6 +52,23 @@ teardown() {
     assert_stash_is_empty
 }
 
+@test "sync touches no branch when local changes could not be stashed" {
+    # Arrange
+    given_repository_on_feature_branch
+    given_upstream_main_and_empty_origin
+    given_tracked_and_untracked_changes
+
+    # Act
+    run run_git_command_with_stash_that_saves_nothing sync.sh sync
+
+    # Assert
+    assert_failure
+    assert_output_contains "Could not stash local changes."
+    assert_current_branch feature
+    assert_local_changes_are_present
+    assert_origin_has_no_branch main
+}
+
 @test "sync updates origin main to match upstream" {
     # Arrange
     given_repository_on_feature_branch

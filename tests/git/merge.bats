@@ -70,6 +70,27 @@ teardown() {
     assert_output_contains "changes remain in the stash"
 }
 
+@test "merge does not run when local changes could not be stashed" {
+    # Arrange
+    given_repository_on_feature_branch
+    git -C "$repository" switch -q main
+    printf 'from main\n' > "$repository/from-main.txt"
+    git -C "$repository" add from-main.txt
+    git -C "$repository" commit -qm "change on main"
+    git -C "$repository" switch -q feature
+    given_tracked_and_untracked_changes
+
+    # Act
+    run run_git_command_with_stash_that_saves_nothing merge.sh merge main
+
+    # Assert
+    assert_failure
+    assert_output_contains "Could not stash local changes."
+    assert_current_branch feature
+    assert_local_changes_are_present
+    [ ! -f "$repository/from-main.txt" ]
+}
+
 @test "merge brings changes from the selected branch into the current branch" {
     # Arrange
     given_repository_on_feature_branch

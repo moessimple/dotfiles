@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 
+source "${0:A:h}/support/stash-guard.sh"
+
 # Sync local long-lived branches from upstream and push them to origin
 function sync() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
@@ -24,15 +26,9 @@ function sync() {
 
     git fetch upstream --tags --jobs=10 || return
 
-    # `git stash push` on a clean tree creates no stash, so pop only if we stashed.
-    local stashed=0 status_output stash_exit
-    status_output=$(git status --porcelain) || return
-    if [ -n "$status_output" ]; then
-        git stash push --include-untracked
-        stash_exit=$?
-        [ "$stash_exit" -eq 0 ] || return "$stash_exit"
-        stashed=1
-    fi
+    local stashed
+    _git_stash_guard || return
+    stashed=$_git_stash_guard_active
 
     local branch exit_code=0
     for branch in "${branches[@]}"; do
@@ -76,7 +72,7 @@ function sync() {
 
     local pop_exit=0
     if [ "$stashed" -eq 1 ]; then
-        git stash pop
+        _git_stash_restore
         pop_exit=$?
     fi
 

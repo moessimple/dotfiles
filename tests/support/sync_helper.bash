@@ -70,3 +70,10 @@ assert_origin_branch_matches_upstream() {
     [ "$(git --git-dir="$origin" rev-parse "refs/heads/$branch")" = \
         "$(git --git-dir="$upstream" rev-parse "refs/heads/$branch")" ]
 }
+
+assert_origin_has_no_branch() {
+    if git --git-dir="$origin" show-ref --quiet --verify "refs/heads/$1"; then
+        echo "expected origin to have no branch $1" >&2
+        return 1
+    fi
+}

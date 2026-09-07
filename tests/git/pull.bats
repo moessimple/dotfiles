@@ -56,6 +56,23 @@ teardown() {
     assert_output_contains "changes remain in the stash"
 }
 
+@test "pull does not run when local changes could not be stashed" {
+    # Arrange
+    given_repository_on_feature_branch
+    given_origin_commit_missing_from_local_branch from-origin.txt "from origin"
+    given_tracked_and_untracked_changes
+
+    # Act
+    run run_git_command_with_stash_that_saves_nothing pull.sh pull
+
+    # Assert
+    assert_failure
+    assert_output_contains "Could not stash local changes."
+    assert_current_branch feature
+    assert_local_changes_are_present
+    [ ! -f "$repository/from-origin.txt" ]
+}
+
 @test "pull brings remote changes into the current branch" {
     # Arrange
     given_repository_on_feature_branch

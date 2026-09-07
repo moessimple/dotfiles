@@ -6,6 +6,6 @@ call_pickaxe_diff() {
     local term="$1"
     shift
     GREPDIFF_REGEX="$term" git -C "$repository" \
-        -c diff.external="$dotfiles_dir/support/git/pickaxe-diff.sh" \
+        -c diff.external="$dotfiles_dir/support/git/support/pickaxe-diff.sh" \
         diff --ext-diff "$@"
 }
