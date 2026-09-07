@@ -112,5 +112,10 @@ suites also load their own `tests/support/<name>_helper.bash` for suite-specific
 
 - Machine-specific or secret shell configuration goes in `~/.extra` (sourced by `.zshrc`, never committed), not in
   any file under `home/`.
+- Herd is the exception. Its installer and its NVM/PHP shims append machine-specific lines to `~/.zshrc` (absolute
+  `/Users/<name>/Library/Application Support/Herd/...` paths, per-version `HERD_PHP_*_INI_SCAN_DIR` exports, a
+  repeated "Herd injected PHP binary" block). Because `~/.zshrc` is a symlink into `home/.zshrc`, those writes land
+  in the tracked file and are committed as-is. This is expected: do not relocate Herd's injected blocks to `~/.extra`
+  or rewrite their absolute paths, and expect Herd to re-add or reorder them on the next install/update.
 - `home/.claude/CLAUDE.md` is the user-level Claude Code instructions file (symlinked to `~/.claude/CLAUDE.md`); it
   is a different file from this one and applies globally across all projects, not just this repo.
