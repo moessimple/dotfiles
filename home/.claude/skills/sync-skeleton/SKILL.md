@@ -206,13 +206,27 @@ Kept: <list>"
 ### Phase 6: Reconcile manifests
 
 If a selected bucket touched `composer.json` or `package.json`, apply the guided
-partial diffs the user approved (`scripts` + `require-dev` /
-tooling `devDependencies`). `require-dev` must cover every tool the scripts
-reference (`rector/rector`, `laravel/pint`, `larastan/larastan`, `pestphp/pest`
-+ `pest-plugin-type-coverage` + `pest-plugin-browser`, `nunomaduro/essentials`,
-`roave/security-advisories`); `devDependencies` likewise for `vite-plus`,
-`vitest`, `@vitest/coverage-*`, `vue-tsc`. Otherwise the scripts are dead
-references.
+partial diffs the user approved. Two parts, both manifests:
+
+1. **Adopt the kit's script aliases, do not just check equivalents exist.**
+   Bring in every kit `scripts` entry for the quality gate (`dev`, `lint`,
+   `test:lint`, `test:types`, `test:type-coverage`, `test:unit`, `test:browser`,
+   `test`, `update:dependencies` in `composer.json`; `build`, `dev`, `lint`,
+   `test:lint`, `test:unit`, `test:types` in `package.json`). Where the project
+   has diverged, align the alias body to the kit's exact commands and order.
+   Keep only steps the project genuinely adds for paths the kit does not have
+   (e.g. a monorepo sub-package fan-out), appended after the kit's commands.
+   A project alias that merely wraps the same tool differently
+   (`vendor/bin/pest` vs `pest`, an added `--memory-limit`, a reordered chain)
+   is realigned to the kit; flag any such change so the user can veto it.
+2. **Tooling dependencies.** `require-dev` must cover every tool the scripts
+   reference (`rector/rector`, `laravel/pint`, `larastan/larastan`,
+   `pestphp/pest` + `pest-plugin-type-coverage` + `pest-plugin-browser`,
+   `nunomaduro/essentials`, `roave/security-advisories`); `devDependencies`
+   likewise for `vite-plus`, `vitest`, `@vitest/coverage-*`, `vue-tsc`.
+   Otherwise the aliases are dead references.
+
+Runtime `require` / `dependencies` are never written, only shown.
 
 Regenerate lockfiles with `composer update --lock` and the project's JS package
 manager. Commit as a separate `sync-skeleton: dependency lockfiles` commit.
@@ -237,6 +251,19 @@ missing binary is a manifest-merge bug, not an app-code to-do.
   the report as the app-code to-do list.
 - If a coverage driver (Xdebug/PCOV) is missing, note the coverage part as
   "unchecked, CI enforces it".
+
+**Run summary (always print this at the end).** Before writing the report file,
+show a short at-a-glance summary in the reply so the user sees what happened
+without opening anything:
+
+- branch and kit SHA
+- one line per bucket commit: `<short-sha> <bucket>` and the file counts
+  (added / took-upstream / kept)
+- manifest changes: which aliases were adopted or realigned, which dev-deps were
+  added or removed, lockfiles regenerated yes/no
+- Available Tooling checklist result: which commands start, which do not
+- count of open app-code items from `composer test`
+- the one revert line
 
 **Report.** Write to `/tmp/sync-skeleton-report-<id>.md` (`<id>` matches the
 branch's `sync-skeleton/<id>`). Show the path, ask whether to copy it into the
