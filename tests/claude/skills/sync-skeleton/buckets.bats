@@ -88,3 +88,35 @@ teardown() {
     assert_bucket "tests/Browser/Pest.php" "arch-tests"
     assert_bucket "tests/Browser/WelcomeTest.php" "never-touch"
 }
+
+@test "a kit path outside every cascade arm is unclassified, not silently dropped" {
+    # Arrange
+    given_classify_fixture
+    kit_has "resources/js/components/AppShell.vue" "<template></template>"
+    commit_kit
+
+    # Act
+    run_classify
+
+    # Assert
+    assert_success
+    assert_classified "resources/js/components/AppShell.vue" "new"
+    assert_bucket "resources/js/components/AppShell.vue" "unclassified"
+}
+
+@test "the pinned kit manifest still matches the live kit clone" {
+    # Arrange
+    live_kit_clone_or_skip
+
+    # Act
+    local live pinned
+    live="$(live_kit_manifest)"
+    pinned="$(pinned_kit_manifest)"
+
+    # Assert
+    if [ "$live" != "$pinned" ]; then
+        echo "SYNC_SKELETON_KIT_MANIFEST is stale (< pinned, > live):" >&2
+        diff <(printf '%s\n' "$pinned") <(printf '%s\n' "$live") >&2 || true
+        return 1
+    fi
+}

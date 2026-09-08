@@ -10,9 +10,11 @@
 #
 # Output, tab-separated, one line per path:
 #   <status>\t<bucket>\t<path>
-# where <bucket> is one of the curated theme buckets, never-touch, drift-only, or
-# not-in-scope (see reference/profiles/laravel-starter-kit.md; buckets.bats keeps
-# the two in sync).
+# where <bucket> is one of the curated theme buckets, never-touch, drift-only,
+# not-in-scope, or unclassified (see reference/profiles/laravel-starter-kit.md;
+# buckets.bats keeps the two in sync). unclassified means the path matched no arm
+# of the cascade: the kit added a file the map does not know yet, so it is
+# surfaced for a human and never auto-applied.
 #
 # Statuses:
 #   new               absent in the project, present at origin/<branch>
@@ -73,7 +75,9 @@ is_manifest() {
 }
 
 # Map a kit path to its theme bucket. Priority order matches the catalog in
-# reference/profiles/laravel-starter-kit.md; the first matching arm wins.
+# reference/profiles/laravel-starter-kit.md; the first matching arm wins. A path
+# that matches no arm is unclassified, never silently not-in-scope: the caller
+# must show it and let the user place it.
 bucket_for() {
     case "$1" in
         .github/*|pint.json|phpstan.neon|rector.php|phpunit.xml|.gitattributes|composer.json|composer.lock)
@@ -101,7 +105,7 @@ bucket_for() {
         app/*|database/*|routes/*|bootstrap/*|config/*|tests/Pest.php|tests/Browser/*|tests/TestCase.php|tests/Unit/Models/*)
             echo never-touch ;;
         *)
-            echo not-in-scope ;;
+            echo unclassified ;;
     esac
 }
 

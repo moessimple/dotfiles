@@ -362,8 +362,11 @@ vitest.config.ts
 vitest.setup.ts
 "
 
-# The canonical bucket vocabulary. classify.sh's cascade must emit only these and
-# reference/profiles/laravel-starter-kit.md must document each.
+# The canonical bucket vocabulary. classify.sh's cascade emits only these plus
+# `unclassified` for a path that matches no arm; reference/profiles/laravel-starter-kit.md
+# documents each. `unclassified` is deliberately not in this list, so
+# assert_every_manifest_path_has_known_bucket fails the moment a pinned kit path
+# stops matching the cascade.
 SYNC_SKELETON_BUCKETS="quality-gate frontend-tooling essentials arch-tests frontend-test-setup agent-rules welcome-page misc-config drift-only not-in-scope never-touch"
 
 # A kit repo (bare origin) whose origin/main tree is exactly the pinned manifest,
@@ -377,6 +380,32 @@ given_kit_manifest_as_fixture() {
     done
     git -C "$classify_kit" add -A
     commit_kit
+}
+
+# The pinned manifest is only meaningful against a real kit clone. Skip when
+# $HOME/Code/laravel-starter-kit is absent, is a different repo, or has no
+# fetched origin/main (e.g. CI, where the clone does not exist).
+live_kit_clone_or_skip() {
+    live_kit_clone="$HOME/Code/laravel-starter-kit"
+    [ -d "$live_kit_clone/.git" ] || skip "no local kit clone at $live_kit_clone"
+    local origin
+    origin="$(git -C "$live_kit_clone" config --get remote.origin.url 2>/dev/null || true)"
+    case "$origin" in
+        *moessimple/laravel-starter-kit*) ;;
+        *) skip "local clone origin is not the kit" ;;
+    esac
+    git -C "$live_kit_clone" rev-parse --verify --quiet origin/main >/dev/null \
+        || skip "local clone has no origin/main"
+}
+
+# The kit tree at origin/main, one path per line, sorted.
+live_kit_manifest() {
+    git -C "$live_kit_clone" ls-tree -r --name-only origin/main | sort
+}
+
+# The pinned SYNC_SKELETON_KIT_MANIFEST, one path per line, sorted.
+pinned_kit_manifest() {
+    printf '%s\n' "$SYNC_SKELETON_KIT_MANIFEST" | sed '/^$/d' | sort
 }
 
 assert_known_bucket() {

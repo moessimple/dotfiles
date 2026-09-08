@@ -65,8 +65,10 @@ All under `scripts/`. Every script takes the profile as its first argument
 - `classify.sh <profile> <kit_dir> <default-branch> <target>` - one line per
   path, `<status>\t<bucket>\t<path>`. Status is
   `new | identical | differs | differs-binary | deleted-upstream | manifest`.
-  Bucket is one of the catalog buckets, `never-touch`, `drift-only`, or
-  `not-in-scope`. Comparison is `cmp -s` against `git show origin/<branch>:<path>`.
+  Bucket is one of the catalog buckets, `never-touch`, `drift-only`,
+  `not-in-scope`, or `unclassified` (matched no cascade arm; the kit added a file
+  the map does not know yet). Comparison is `cmp -s` against
+  `git show origin/<branch>:<path>`.
 
 Read `reference/profiles/laravel-starter-kit.md` before presenting the catalog.
 It is the human copy of the bucket map; the machine truth is the cascade in
@@ -116,6 +118,10 @@ grouped by status.
 - `never-touch` `differs` stays silent. `never-touch` `new` appears only under a
   short "other new files" note.
 - `not-in-scope` paths never appear.
+- `unclassified` paths always appear, in their own "kit added something the map
+  does not know - place by hand" block. Never preselected, never auto-applied.
+  Before finishing the run, add a cascade arm and a profile line for each, so the
+  next run classifies it properly.
 
 **Drift report** (per `differs` file in a bucket): path, bucket, changed line
 count, and a rating:
@@ -127,10 +133,12 @@ count, and a rating:
 `never-touch` `differs` only under `--verbose`. `identical` never.
 
 **Guided manifest diffs** as their own block: `composer.json` `scripts` +
-`require-dev`, and `package.json` `scripts` + tooling `devDependencies`
-(`vite-plus`, `vitest`, `@vitest/*`, `vue-tsc`; removed `eslint*` / `prettier*`).
-Show only that slice of the diff. Runtime deps (`require`, `dependencies`) are
-shown, never written.
+`require-dev`, and `package.json` `scripts` + `devDependencies`, diffed against
+the kit manifest read live (`git show origin/<branch>:composer.json`,
+`:package.json`). Take the kit's `require-dev` / `devDependencies` whole; the
+only removals are entries the project deliberately dropped (`eslint*`,
+`prettier*` after the vite-plus move). Show only that slice of the diff. Runtime
+deps (`require`, `dependencies`) are shown, never written.
 
 **Drift-only block** (show the diff, never write, never preselect): `.gitignore`,
 `.env.example`, `CLAUDE.md`.
@@ -237,18 +245,23 @@ partial diffs the user approved. Two parts, both manifests:
    A project alias that merely wraps the same tool differently
    (`vendor/bin/pest` vs `pest`, an added `--memory-limit`, a reordered chain)
    is realigned to the kit; flag any such change so the user can veto it.
-2. **Tooling dependencies.** `require-dev` must cover every tool the scripts
-   *and the synced config files* reference. `phpstan.neon` `includes:` need
-   `larastan/larastan`, `pestphp/pest-plugin-phpstan`, `phpstan/phpstan-mockery`;
-   `rector.php` needs `driftingly/rector-laravel`; `tests/Pest.php` needs
-   `pestphp/pest-plugin-laravel`. Full list: `rector/rector`,
-   `driftingly/rector-laravel`, `laravel/pint`, `larastan/larastan`,
-   `phpstan/phpstan-mockery`, `pestphp/pest`, `pestphp/pest-plugin-phpstan`,
-   `pestphp/pest-plugin-laravel`, `pestphp/pest-plugin-type-coverage`,
-   `pestphp/pest-plugin-browser`, `nunomaduro/essentials`,
-   `roave/security-advisories`. `devDependencies` likewise for `vite-plus`,
-   `vitest`, `@vitest/coverage-*`, `vue-tsc`. A missing one is not a finding, it
-   is a dead `includes:` path or set import that stops the check on load.
+2. **Tooling dependencies. Read the kit's list, never a copy of it.** The target
+   set is the kit's own `require-dev` and `devDependencies` maps, read live:
+
+   ```
+   git -C <kit_dir> show origin/<branch>:composer.json
+   git -C <kit_dir> show origin/<branch>:package.json
+   ```
+
+   For every entry in the kit's `require-dev`, propose adding it (or aligning the
+   constraint) unless the project already has it at a compatible version. Same
+   for `devDependencies`. Do not hand-filter to a "tooling only" subset; the kit
+   keeps `require-dev` lean on purpose, so take it whole and let the user veto
+   individual lines. A missing one is not a finding, it is a dead `phpstan.neon`
+   `includes:` path, `rector.php` import, or `tests/Pest.php` plugin that stops
+   the check on load. Sanity cross-check after merging: `phpstan.neon`
+   `includes:` resolve, `rector.php` `->withSets()` imports resolve,
+   `tests/Pest.php` plugins resolve.
 
 Runtime `require` / `dependencies` are never written, only shown.
 
@@ -326,6 +339,7 @@ with the verbatim output; how to revert (`git revert <sha>` for one bucket,
 ## Never (without an explicit instruction)
 
 - Sync a never-touch path automatically.
+- Auto-apply an `unclassified` path. Surface it and let the user place it.
 - Auto-resolve a conflict.
 - Overwrite a manifest or lockfile wholesale.
 - Bump a runtime dependency.

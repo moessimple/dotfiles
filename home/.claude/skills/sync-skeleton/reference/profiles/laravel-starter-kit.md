@@ -47,9 +47,9 @@ Guided manifest (never overwritten wholesale): `composer.json` `scripts` +
 `vite.config.ts`, `vitest.config.ts`, `vitest.setup.ts`, `tsconfig.json`,
 `.npmrc`, `.nvmrc`, `pnpm-workspace.yaml`.
 
-Guided manifest: `package.json` `scripts` + tooling `devDependencies`
-(`vite-plus`, `vitest`, `@vitest/*`, `vue-tsc`; removed `eslint*` / `prettier*`),
-and `package-lock.json` regenerated afterwards.
+Guided manifest: `package.json` `scripts` + `devDependencies` taken whole from
+the kit manifest read live (only deliberate removals: `eslint*` / `prettier*`
+after the vite-plus move), and `package-lock.json` regenerated afterwards.
 
 `deleted-upstream` for `eslint.config.*`, `.prettierrc*`, `.prettierignore`,
 `resources/js/lib/utils.ts` (the kit dropped these in the vite-plus move). Keep
@@ -115,6 +115,17 @@ proposal, even here.
 `database/.gitignore`, `LICENSE`, `README.md`. The kit ships no git hooks, no
 PR/issue templates and no `Makefile`; there is nothing to sync there.
 
+## unclassified (matched no cascade arm)
+
+Any tracked kit path that falls through every arm of `bucket_for` in
+`classify.sh`: the kit added a file the map does not know yet (a new
+`resources/js/components/**` file, a new root dotfile, a new `config/*.php` that
+is not `essentials` or `inertia`). It is never folded into `not-in-scope`
+silently. `classify.sh` emits bucket `unclassified`; the skill shows it in its
+own block for a manual decision and never auto-applies it. When one appears, add
+an arm to the cascade and a line to the relevant section above, then regenerate
+`SYNC_SKELETON_KIT_MANIFEST` in `tests/support/sync_skeleton_helper.bash`.
+
 ## Available Tooling (P1 + P2 acceptance)
 
 Source: the kit README `#available-tooling` section. After `quality-gate` +
@@ -133,15 +144,9 @@ findings are expected):
 - `composer update:dependencies` - Composer + npm bump
 
 `require-dev` must cover every tool the scripts *and the config files* reference.
-`phpstan.neon` `includes:` pull in `larastan/larastan`,
-`pestphp/pest-plugin-phpstan`, `phpstan/phpstan-mockery` (plus `nesbot/carbon`,
-already a runtime dep); `rector.php` uses `driftingly/rector-laravel`;
-`tests/Pest.php` uses `pestphp/pest-plugin-laravel`. Full list:
-`rector/rector`, `driftingly/rector-laravel`, `laravel/pint`,
-`larastan/larastan`, `phpstan/phpstan-mockery`, `pestphp/pest`,
-`pestphp/pest-plugin-phpstan`, `pestphp/pest-plugin-laravel`,
-`pestphp/pest-plugin-type-coverage`, `pestphp/pest-plugin-browser`,
-`nunomaduro/essentials`, `roave/security-advisories`. A missing one leaves a
-dead `includes:` path or set import, so the check dies on load, not on a
-finding. `package.json` `devDependencies` likewise for `vite-plus`, `vitest`,
-`@vitest/coverage-*`, `vue-tsc`.
+Do not work from a copy of the list here; read the kit's own manifests live
+(`git show origin/<branch>:composer.json` and `:package.json`) and take
+`require-dev` / `devDependencies` whole. The parts that break on load rather than
+as a finding: `phpstan.neon` `includes:` (larastan, the pest phpstan plugin,
+phpstan-mockery), `rector.php` set imports (rector-laravel), `tests/Pest.php`
+plugins (pest-plugin-laravel). After merging, confirm each of those resolves.
