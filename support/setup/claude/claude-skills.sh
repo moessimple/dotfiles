@@ -7,7 +7,6 @@ LOCAL_SKILLS=(
     code-review-dispatch
     outcome-writing
     quality
-    sync-skeleton
 )
 
 # Third-party Claude Code skills installed via the `skills` CLI, one "owner/repo:skill" pair
