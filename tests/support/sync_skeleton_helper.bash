@@ -65,6 +65,85 @@ run_preflight() {
     run bash "$preflight" laravel-starter-kit "$target"
 }
 
+# --- fetch-kit fixtures --------------------------------------------------------
+#
+# fetch-kit.sh reaches for $HOME/Code/laravel-starter-kit and, failing that,
+# clones https://github.com/moessimple/laravel-starter-kit.git. These fixtures
+# redirect $HOME to a fixture tree and rewrite that GitHub URL to a local bare
+# repo via git's insteadOf, so both paths run offline.
+
+kit_test_home() {
+    printf '%s' "$fixture/home"
+}
+
+# Bare repo standing in for the GitHub remote, seeded with one commit on the
+# given branch (default: main) and its HEAD pointed at that branch.
+given_kit_remote() {
+    local branch="${1:-main}"
+    kit_remote="$fixture/remote/laravel-starter-kit.git"
+    local seed="$fixture/seed"
+
+    git init -q --bare "$kit_remote"
+    git -C "$kit_remote" config uploadpack.allowFilter true
+    git init -q "$seed"
+    git -C "$seed" config user.name "Sync Skeleton Tests"
+    git -C "$seed" config user.email "sync-skeleton-tests@example.com"
+    git -C "$seed" checkout -q -b "$branch"
+    printf 'kit\n' > "$seed/README.md"
+    git -C "$seed" add -A
+    git -C "$seed" commit -qm "kit initial"
+    git -C "$seed" push -q "$kit_remote" "$branch"
+    git -C "$kit_remote" symbolic-ref HEAD "refs/heads/$branch"
+
+    mkdir -p "$(kit_test_home)"
+    git config --file "$(kit_test_home)/.gitconfig" \
+        "url.$kit_remote.insteadOf" "https://github.com/moessimple/laravel-starter-kit.git"
+}
+
+# A clone at $HOME/Code/laravel-starter-kit whose origin URL matches the profile
+# regex (so fetch-kit.sh reuses it).
+given_local_kit_clone() {
+    local_kit_clone="$(kit_test_home)/Code/laravel-starter-kit"
+    mkdir -p "$(dirname "$local_kit_clone")"
+    git clone -q "$kit_remote" "$local_kit_clone"
+    git -C "$local_kit_clone" remote set-url origin \
+        "https://github.com/moessimple/laravel-starter-kit.git"
+}
+
+# Same location, but an origin URL that is not the starter kit (fetch-kit.sh must
+# ignore it and clone fresh instead).
+given_local_clone_with_unrelated_origin() {
+    local_kit_clone="$(kit_test_home)/Code/laravel-starter-kit"
+    mkdir -p "$(dirname "$local_kit_clone")"
+    git clone -q "$kit_remote" "$local_kit_clone"
+    git -C "$local_kit_clone" remote set-url origin \
+        "https://github.com/someone-else/laravel-starter-kit-fork.git"
+}
+
+# Adds a second commit to the bare remote's default branch.
+given_kit_remote_advanced() {
+    local seed="$fixture/seed"
+    printf 'more\n' >> "$seed/README.md"
+    git -C "$seed" commit -qam "kit second"
+    git -C "$seed" push -q "$kit_remote" HEAD
+}
+
+kit_clone_head() {
+    git -C "$local_kit_clone" rev-parse HEAD
+}
+
+run_fetch_kit() {
+    run env HOME="$(kit_test_home)" bash "$fetch_kit" laravel-starter-kit
+}
+
+# The last line fetch-kit.sh prints is always "<dir>\t<branch>\t<sha>"; a fresh
+# clone from a local path also emits git's "--filter is ignored" warning first.
+# Splits that result line into $fk_dir / $fk_branch / $fk_sha.
+split_fetch_kit_result() {
+    local last="${lines[$((${#lines[@]} - 1))]}"
+    IFS=$'\t' read -r fk_dir fk_branch fk_sha <<< "$last"
+}
+
 # Runs preflight.sh capturing only its stderr, so a test can assert what the
 # script routes there (the SPEC requires `git status --short` on stderr).
 run_preflight_stderr() {
