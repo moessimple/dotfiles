@@ -144,6 +144,72 @@ split_fetch_kit_result() {
     IFS=$'\t' read -r fk_dir fk_branch fk_sha <<< "$last"
 }
 
+# --- classify fixtures -------------------------------------------------------
+#
+# classify.sh compares origin/<branch> of a kit clone against a target project.
+# The fixture is a real kit repo with a bare origin (so `git show origin/main`
+# resolves) plus a plain target directory. Stage kit files with kit_has /
+# kit_has_binary, project files with project_has / project_has_binary, then call
+# commit_kit before run_classify.
+
+given_classify_fixture() {
+    classify_kit="$fixture/kit"
+    target="$fixture/project"
+    local remote="$fixture/kit-remote.git"
+
+    git init -q --bare "$remote"
+    git init -q "$classify_kit"
+    git -C "$classify_kit" config user.name "Sync Skeleton Tests"
+    git -C "$classify_kit" config user.email "sync-skeleton-tests@example.com"
+    git -C "$classify_kit" checkout -q -b main
+    git -C "$classify_kit" remote add origin "$remote"
+    mkdir -p "$target"
+}
+
+kit_has() {
+    local path="$1" content="$2"
+    mkdir -p "$classify_kit/$(dirname "$path")"
+    printf '%s' "$content" > "$classify_kit/$path"
+    git -C "$classify_kit" add -- "$path"
+}
+
+kit_has_binary() {
+    local path="$1"
+    mkdir -p "$classify_kit/$(dirname "$path")"
+    printf '\x89PNG\r\n\x1a\x00\x00\x01kit' > "$classify_kit/$path"
+    git -C "$classify_kit" add -- "$path"
+}
+
+project_has() {
+    local path="$1" content="$2"
+    mkdir -p "$target/$(dirname "$path")"
+    printf '%s' "$content" > "$target/$path"
+}
+
+project_has_binary() {
+    local path="$1"
+    mkdir -p "$target/$(dirname "$path")"
+    printf '\x89PNG\r\n\x1a\x00\x00\x02project' > "$target/$path"
+}
+
+commit_kit() {
+    git -C "$classify_kit" commit -qm "kit state"
+    git -C "$classify_kit" push -q origin main
+    git -C "$classify_kit" fetch -q origin
+}
+
+run_classify() {
+    run bash "$classify" laravel-starter-kit "$classify_kit" main "$target"
+}
+
+# Asserts classify.sh emitted <expected-status> in column 1 for <path>.
+assert_classified() {
+    local path="$1" expected="$2" got
+    got="$(printf '%s\n' "$output" | awk -F'\t' -v p="$path" '$3 == p { print $1 }')"
+    [ "$got" = "$expected" ] \
+        || { echo "expected '$expected' for $path, got '${got:-<no line>}'" >&2; return 1; }
+}
+
 # Runs preflight.sh capturing only its stderr, so a test can assert what the
 # script routes there (the SPEC requires `git status --short` on stderr).
 run_preflight_stderr() {
