@@ -102,7 +102,7 @@ that `sync` iterates and `prune` protects, and `pickaxe-diff.sh` is the diff dri
 (`upstream`, then `origin`), then the local remote-tracking cache, then a `main`/`master` probe. It is the single
 place that logic lives; callers never re-derive it. Its priority order is covered by `tests/git/default-branch.bats`.
 
-**Tests mirror source layout.** `tests/claude/hooks/*.bats` covers the quality gate hooks; `tests/functions/*.bats`
+**Tests mirror source layout.** `tests/claude/hooks/*.bats` covers the quality gate hooks; `tests/claude/skills/*/*.bats` covers the bundled scripts of local skills under `home/.claude/skills/`; `tests/functions/*.bats`
 covers selected functions from `home/.functions`; `tests/aliases/*.bats` covers selected aliases from
 `home/.aliases`; `tests/git/*.bats` covers the helpers from `support/git/`; `tests/setup/claude/*.bats` and
 `tests/setup/packages/*.bats` cover the setup/cleanup declarations in `support/setup/claude/` and
