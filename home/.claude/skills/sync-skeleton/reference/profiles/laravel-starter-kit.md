@@ -66,12 +66,15 @@ the baseline comparison catch regressions.
 ### P4 arch-tests
 
 `tests/Arch/**`, `tests/ArchTest.php`, `tests/Http/WelcomeTest.php`,
-`tests/Console/.gitkeep`, `tests/Unit/*/.gitkeep`. `deleted-upstream` for
-`tests/Feature/ExampleTest.php`, `tests/Unit/ExampleTest.php`.
+`tests/Console/.gitkeep`, `tests/Unit/*/.gitkeep`, and `tests/Browser/Pest.php`
+(the browser test-suite bootstrap, not the browser domain tests).
+`deleted-upstream` for `tests/Feature/ExampleTest.php`,
+`tests/Unit/ExampleTest.php`.
 
 Report-only Pest patterns (`tests/Pest.php` itself stays never-touch):
 `freezeDeterministicState`, `LazilyRefreshDatabase` in Http/Console,
-`arch()->preset()`.
+`arch()->preset()`, and the `require_once __DIR__.'/Browser/Pest.php'` line that
+wires the applied `tests/Browser/Pest.php` in.
 
 ### P5 frontend-test-setup
 
@@ -102,9 +105,9 @@ proposal, even here.
 `app/**`, `database/**` (except `database/.gitignore`), `routes/**`,
 `bootstrap/**` (except `bootstrap/cache/.gitignore`), `config/**` except
 `config/essentials.php` and `config/inertia.php`, `tests/Pest.php`,
-`tests/Browser/**`, `tests/TestCase.php`, `tests/Unit/Models/**`.
-`composer.json` / `package.json` `require` / `dependencies` (runtime) are shown,
-never written.
+`tests/Browser/**` except `tests/Browser/Pest.php` (arch-tests),
+`tests/TestCase.php`, `tests/Unit/Models/**`. `composer.json` / `package.json`
+`require` / `dependencies` (runtime) are shown, never written.
 
 ## not-in-scope (framework boilerplate or project-owned; never in the catalog)
 
@@ -129,9 +132,16 @@ findings are expected):
 - `composer test` - the full chain in order
 - `composer update:dependencies` - Composer + npm bump
 
-`require-dev` must cover every tool the scripts reference: `rector/rector`,
-`laravel/pint`, `larastan/larastan`, `pestphp/pest`,
+`require-dev` must cover every tool the scripts *and the config files* reference.
+`phpstan.neon` `includes:` pull in `larastan/larastan`,
+`pestphp/pest-plugin-phpstan`, `phpstan/phpstan-mockery` (plus `nesbot/carbon`,
+already a runtime dep); `rector.php` uses `driftingly/rector-laravel`;
+`tests/Pest.php` uses `pestphp/pest-plugin-laravel`. Full list:
+`rector/rector`, `driftingly/rector-laravel`, `laravel/pint`,
+`larastan/larastan`, `phpstan/phpstan-mockery`, `pestphp/pest`,
+`pestphp/pest-plugin-phpstan`, `pestphp/pest-plugin-laravel`,
 `pestphp/pest-plugin-type-coverage`, `pestphp/pest-plugin-browser`,
-`nunomaduro/essentials`, `roave/security-advisories`. `package.json`
-`devDependencies` likewise for `vite-plus`, `vitest`, `@vitest/coverage-*`,
-`vue-tsc`.
+`nunomaduro/essentials`, `roave/security-advisories`. A missing one leaves a
+dead `includes:` path or set import, so the check dies on load, not on a
+finding. `package.json` `devDependencies` likewise for `vite-plus`, `vitest`,
+`@vitest/coverage-*`, `vue-tsc`.

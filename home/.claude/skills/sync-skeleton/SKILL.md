@@ -89,6 +89,12 @@ scripts/preflight.sh laravel-starter-kit <target>
 
 Surface its message verbatim and stop on any non-zero exit.
 
+Then check the environment against what the kit's README requires and record it
+for the report: PHP `>= 8.5` (`php -v`), Node `>= 24` (`node -v` vs `.nvmrc`),
+and a coverage driver (Xdebug or PCOV, `php -m`). A mismatch is not a stop, but
+it means `composer update` may refuse to resolve and the 100% coverage gate
+cannot run locally; note it and carry on.
+
 ### Phase 2: Fetch the kit and classify
 
 ```
@@ -143,6 +149,18 @@ reference:
   `casts()` method instead of `$casts`.
 - Missing `declare(strict_types=1)` in app files turns the arch test
   `strict types everywhere` red.
+- `tests/Pest.php` (never-touch) needs the wiring the applied arch/browser tests
+  rely on: `freezeDeterministicState()` in `beforeEach`,
+  `->in('Arch', 'Unit', 'Http', 'Console')`, `LazilyRefreshDatabase` on Http and
+  Console, and `require_once __DIR__.'/Browser/Pest.php'`. Until then the arch
+  suite errors on load.
+- `tests/Http/WelcomeTest.php` (applied as `new` in P4) calls `route('home')`
+  and asserts an Inertia `Welcome` component; `config/inertia.php` has
+  `ensure_pages_exist`. A descendant that renamed the home route or page must
+  adjust the test or skip it.
+- Browser suite: `composer test:browser` needs `tests/Browser/Pest.php` (applied
+  in P4 only when absent) plus a one-time `npx playwright install chromium`
+  (the kit does this in `composer setup`, which is not synced).
 - Files the kit deleted: `resources/js/lib/utils.ts`,
   `tests/Feature/ExampleTest.php`, `tests/Unit/ExampleTest.php` - check in the
   project, remove only on request.
@@ -220,11 +238,17 @@ partial diffs the user approved. Two parts, both manifests:
    (`vendor/bin/pest` vs `pest`, an added `--memory-limit`, a reordered chain)
    is realigned to the kit; flag any such change so the user can veto it.
 2. **Tooling dependencies.** `require-dev` must cover every tool the scripts
-   reference (`rector/rector`, `laravel/pint`, `larastan/larastan`,
-   `pestphp/pest` + `pest-plugin-type-coverage` + `pest-plugin-browser`,
-   `nunomaduro/essentials`, `roave/security-advisories`); `devDependencies`
-   likewise for `vite-plus`, `vitest`, `@vitest/coverage-*`, `vue-tsc`.
-   Otherwise the aliases are dead references.
+   *and the synced config files* reference. `phpstan.neon` `includes:` need
+   `larastan/larastan`, `pestphp/pest-plugin-phpstan`, `phpstan/phpstan-mockery`;
+   `rector.php` needs `driftingly/rector-laravel`; `tests/Pest.php` needs
+   `pestphp/pest-plugin-laravel`. Full list: `rector/rector`,
+   `driftingly/rector-laravel`, `laravel/pint`, `larastan/larastan`,
+   `phpstan/phpstan-mockery`, `pestphp/pest`, `pestphp/pest-plugin-phpstan`,
+   `pestphp/pest-plugin-laravel`, `pestphp/pest-plugin-type-coverage`,
+   `pestphp/pest-plugin-browser`, `nunomaduro/essentials`,
+   `roave/security-advisories`. `devDependencies` likewise for `vite-plus`,
+   `vitest`, `@vitest/coverage-*`, `vue-tsc`. A missing one is not a finding, it
+   is a dead `includes:` path or set import that stops the check on load.
 
 Runtime `require` / `dependencies` are never written, only shown.
 
@@ -240,6 +264,31 @@ expected and fine): `composer dev`, `composer lint`, `composer test:lint`,
 `composer test:types`, `composer test:type-coverage`, `composer test:unit`,
 `composer test:browser`, `composer test`, `composer update:dependencies`. A
 missing binary is a manifest-merge bug, not an app-code to-do.
+
+**README quality-gate checklist.** The kit's README is a promise. Report a
+verdict per line, `met` / `needs a follow-up` / `not applicable`:
+
+- PHPStan `level: max`, no baseline: `phpstan.neon` synced.
+- 100% line coverage (Pest + Vitest) and 100% type coverage: `phpunit.xml`,
+  `vitest.config.ts`, and the `--exactly=100.0` / `--min=100` scripts synced.
+- `roave/security-advisories` installs and blocks nothing (or names what it
+  blocks).
+- Rector + hardened Pint: `rector.php`, `pint.json` synced.
+- `vp lint` + `vp fmt` + `vue-tsc`: `vite.config.ts` and the `vp` scripts synced.
+- Real-browser tests: `pest-plugin-browser` present, `tests/Browser/Pest.php`
+  present, Chromium installed.
+- Essentials defaults: `config/essentials.php` synced and wired in
+  `bootstrap/app.php`.
+- Split CI: the three workflows and `setup-app` synced.
+- Agent rules: `.ai/rules/**` present.
+
+**Prerequisites for a green gate** (list what the user still has to do by hand):
+`npx playwright install chromium`; add the kit's `.gitignore` entries
+(`/resources/js/{actions,routes,wayfinder}`, `/.phpunit.cache`, `/storage/pail`,
+`/coverage`); add the `.env` keys (`INERTIA_SSR_ENABLED`, `VITE_APP_NAME`,
+`APP_FAKER_LOCALE`); wire `tests/Pest.php`; wire `bootstrap/app.php` /
+`AppServiceProvider` for Essentials; run `php artisan wayfinder:generate` before
+the JS type-check.
 
 **Behavior guarantee.** Run the project's `composer test` chain again.
 
@@ -267,8 +316,9 @@ without opening anything:
 
 **Report.** Write to `/tmp/sync-skeleton-report-<id>.md` (`<id>` matches the
 branch's `sync-skeleton/<id>`). Show the path, ask whether to copy it into the
-project. Sections: date, kit SHA, branch; buckets applied with per-file
-decisions; guided manifest changes and lockfile regeneration; drift report;
+project. Sections: date, kit SHA, branch, environment check; buckets applied
+with per-file decisions; guided manifest changes and lockfile regeneration;
+drift report; README quality-gate checklist; prerequisites for a green gate;
 manual app-code follow-ups; "composer test after sync - open app-code items"
 with the verbatim output; how to revert (`git revert <sha>` for one bucket,
 `git switch <previous> && git branch -D sync-skeleton/<id>` for everything).

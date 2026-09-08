@@ -84,7 +84,7 @@ bucket_for() {
             echo frontend-tooling ;;
         config/essentials.php)
             echo essentials ;;
-        tests/Arch/*|tests/ArchTest.php|tests/Http/*|tests/Console/.gitkeep|tests/Unit/*/.gitkeep|tests/Feature/ExampleTest.php|tests/Unit/ExampleTest.php)
+        tests/Arch/*|tests/ArchTest.php|tests/Http/*|tests/Console/.gitkeep|tests/Unit/*/.gitkeep|tests/Browser/Pest.php|tests/Feature/ExampleTest.php|tests/Unit/ExampleTest.php)
             echo arch-tests ;;
         resources/js/pages/Welcome.test.ts)
             echo frontend-test-setup ;;

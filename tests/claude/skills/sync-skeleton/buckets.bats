@@ -75,3 +75,16 @@ teardown() {
     assert_bucket "artisan" "not-in-scope"
     assert_bucket "LICENSE" "not-in-scope"
 }
+
+@test "the browser suite bootstrap is appliable but browser domain tests are never-touch" {
+    # Arrange
+    given_kit_manifest_as_fixture
+
+    # Act
+    run_classify
+
+    # Assert
+    assert_success
+    assert_bucket "tests/Browser/Pest.php" "arch-tests"
+    assert_bucket "tests/Browser/WelcomeTest.php" "never-touch"
+}
