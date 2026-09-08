@@ -61,13 +61,44 @@ Read before starting; apply throughout.
   with its own `composer.json` and gate. The kit knows nothing about it. When
   realigning a script alias, align the base to the kit and **append** the
   project's `--working-dir=packages/runner` fan-out; never drop it.
+- **Alias bodies can be ahead of the kit, not behind.** A `composer.json` /
+  `package.json` script body that diverges is not automatically drift. Before
+  realigning one, `git log -p` the manifest: a body that changed in a dated,
+  message-bearing commit (`vendor/bin/` prefixes, `--memory-limit` flags,
+  failure-before-format ordering) is deliberate hardening. Keep it; realign only
+  bodies that are stale, and flag every realignment for veto either way.
 - **eslint/prettier to vite-plus.** The kit dropped eslint and prettier for
   vite-plus. `plan-manifest.sh` emits `remove npm` directives and `classify.sh`
   marks the config files `deleted-upstream`. Applying this is a toolchain swap:
   do the mechanical part (remove the family, add vite-plus, rewrite the
   `package.json` gate scripts, delete the config files), then list every
   `eslint-disable` / `prettier-ignore` / `@/lib/utils` hit in `resources/**` as
-  an app-code follow-up. Whether `vp lint` then passes is the user's problem.
+  an app-code follow-up.
+  `vp lint` failing is the user's problem, but name the knobs: the type-aware
+  linter (oxlint + tsgolint) has **no Vue SFC language service**, so it reads
+  every `.vue` import as `DefineComponent<{}>` and false-positives `TS2353` on
+  `render(Component, { props })` in component tests, plus `unbound-method` on a
+  destructured `render()` result. `vue-tsc --noEmit` (the `test:types` gate)
+  already type-checks the whole `resources/js` tree SFC-aware, so the choices,
+  least blunt first, are: a scoped `lint.overrides` rule-disable for
+  `**/*.test.ts`; `lint.options.typeCheck: false` (drop the redundant, Vue-blind
+  full tsc pass, keep `typeAware`); or an `ignorePatterns` entry (turns *all*
+  lint off for those files). This is upstream-tracked (oxc #15761); revisit when
+  oxlint gains SFC support.
+- **`phpstan.neon` / `rector.php` `paths` gaining a directory (usually
+  `- tests/`).** A one-line gate diff that is *not* a take-the-kit default: it
+  pulls a whole tree the project previously scoped out under `level: max`, and is
+  routinely the single largest item in the sync. `run-tests.sh`'s baseline runs
+  the low-level test binary, not `composer test:types`, so the resulting failure
+  never shows as a `REGRESSION`. Surface the `paths` line as its own decision
+  with a rough size, and if taken, the report must state that `composer
+  test:types` is expected-red until the app-code follow-up lands. When the tree
+  is `tests/` and the project defines custom `expect()->extend()` expectations,
+  the follow-up includes a PHPStan `MethodsClassReflectionExtension` for them
+  (pest-plugin-phpstan does not discover custom expectations) in the project's
+  test-support namespace — and check that the installed `pest-plugin-phpstan`
+  patch version handles the project's `Pest.php` constructs; they have regressed
+  between patches.
 - **PHP 8.5 / Node 24.** The kit requires them. If the project is behind,
   `composer update` may refuse to resolve and the 100% coverage gate cannot run
   locally. Note it, carry on; CI still enforces it.
@@ -76,9 +107,15 @@ Read before starting; apply throughout.
   project's, not drift.
 - **`roave/security-advisories` (dev-latest).** Once a dependency has a known
   advisory it blocks the next `composer update`. Expected; name what it blocks.
-- **Essentials wiring.** `config/essentials.php` syncs as a gate file, but
-  `nunomaduro/essentials` in `require` and the `bootstrap/app.php` wiring are
-  never-touch. List them as follow-ups.
+- **Essentials is already on.** `nunomaduro/essentials` (v1) auto-registers via
+  package discovery; there is no `bootstrap/app.php` wiring and no
+  `->withEssentials()`. Each configurable reads `config('essentials.<Class>',
+  <built-in default>)`, so the package is active with its defaults whether or not
+  `config/essentials.php` exists. Syncing the file only changes runtime behavior
+  where a value in it diverges from the package's `Configurable` defaults — diff
+  it against `vendor/nunomaduro/essentials/src/Configurables/*` before claiming
+  the apply is a no-op or a change. `nunomaduro/essentials` in `require` is a
+  runtime dep: shown, never written.
 - **More than ~40 `differs`.** The per-file walk stops being useful. Recommend a
   manual pass for the gate and skip the walk.
 - **Framework majors.** A Laravel or Inertia major jump is not this skill. Point
@@ -93,6 +130,10 @@ Read before starting; apply throughout.
   any kit path at the repo root or under `.github/` that the list omits as
   `ungrouped`; adopt it in the Phase 5 walk, and add it to the list if it should
   sync automatically from then on.
+  `phpunit.xml` is a gate file but its `<testsuite>` entries and `<env>` values
+  are project topology, not gate config: sync a testsuite only if its directory
+  exists in the project, and treat env removals (`INERTIA_SSR_ENABLED`, ...) as
+  the project's, not drift.
 - **Manifests (guided)**: `composer.json` `scripts` + `require-dev`, `package.json`
   `scripts` + `devDependencies`, via `plan-manifest.sh` and script realignment.
   Runtime `require` / `dependencies` are shown, never written.
