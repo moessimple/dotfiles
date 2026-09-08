@@ -149,6 +149,9 @@ Group the `classify.sh` output for the user:
 
 Also show, never write: the diff for `.gitignore`, `.env.example`, `CLAUDE.md`.
 
+If every gate path is `already-present` and `plan-manifest.sh` prints nothing,
+the gate already matches the kit: say so and stop. No branch, no empty commit.
+
 Wait for the selection. Recap the picks and counts. Confirm once more before any
 side effect.
 
@@ -179,7 +182,15 @@ this branch.
    ```
 
    Before running, the rename check: if a `new` path's basename already exists
-   elsewhere in the project, surface it, do not auto-apply.
+   elsewhere in the project, surface it, do not auto-apply. After, scan the
+   written files for imports of helpers the project may lack:
+
+   ```
+   scripts/scan-imports.sh <applied_files...>
+   ```
+
+   Each `<file>:<line>:<match>` whose target is missing is a follow-up
+   dependency; do not book the group as done.
 
 2. **Walk `differs`, `deleted-upstream`, `ungrouped`.** One file at a time: show
    the kit version (`git -C <kit_dir> show origin/<branch>:<path>`), the project

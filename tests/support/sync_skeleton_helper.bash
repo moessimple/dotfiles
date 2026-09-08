@@ -17,6 +17,7 @@ new_sync_skeleton_fixture() {
     classify="$skill_dir/scripts/classify.sh"
     plan_manifest="$skill_dir/scripts/plan-manifest.sh"
     apply_new_files="$skill_dir/scripts/apply-new-files.sh"
+    scan_imports="$skill_dir/scripts/scan-imports.sh"
     run_tests_sh="$skill_dir/scripts/run-tests.sh"
     reconcile="$skill_dir/scripts/reconcile-manifests.sh"
 
@@ -252,6 +253,12 @@ assert_no_directive_for() {
 
 run_apply_new_files() {
     run bash "$apply_new_files" laravel-starter-kit "$classify_kit" main "$target"
+}
+
+# --- scan-imports fixtures ------------------------------------------------
+
+run_scan_imports() {
+    run bash "$scan_imports" "$@"
 }
 
 # --- run-tests / reconcile fixtures ----------------------------------------
