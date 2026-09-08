@@ -16,7 +16,9 @@ new_sync_skeleton_fixture() {
     fetch_kit="$skill_dir/scripts/fetch-kit.sh"
     classify="$skill_dir/scripts/classify.sh"
     plan_manifest="$skill_dir/scripts/plan-manifest.sh"
-    profile="$skill_dir/reference/profiles/laravel-starter-kit.md"
+    apply_new_files="$skill_dir/scripts/apply-new-files.sh"
+    run_tests_sh="$skill_dir/scripts/run-tests.sh"
+    reconcile="$skill_dir/scripts/reconcile-manifests.sh"
 
     target="$fixture/project"
 }
@@ -25,8 +27,10 @@ teardown_sync_skeleton_fixture() {
     teardown_dotfiles_fixture
 }
 
-# A committed, clean git repo carrying all three descendant markers the profile
-# requires: boost.json, .ai/rules/, and an Inertia + Vue signature.
+# --- preflight fixtures ------------------------------------------------------
+
+# A committed, clean repo carrying the descendant markers preflight requires:
+# boost.json, .ai/rules/, and an Inertia + Vue signature.
 given_kit_descendant_project() {
     mkdir -p "$target/.ai/rules" "$target/resources/js"
     git init -q "$target"
@@ -51,7 +55,7 @@ given_non_git_dir() {
     mkdir -p "$target"
 }
 
-# A clean git repo that is missing the descendant markers.
+# A clean repo missing the descendant markers.
 given_project_without_kit_markers() {
     mkdir -p "$target"
     git init -q "$target"
@@ -66,19 +70,22 @@ run_preflight() {
     run bash "$preflight" laravel-starter-kit "$target"
 }
 
-# --- fetch-kit fixtures --------------------------------------------------------
+# Runs preflight.sh capturing only its stderr.
+run_preflight_stderr() {
+    run bash -c 'bash "$1" laravel-starter-kit "$2" 2>&1 1>/dev/null' _ "$preflight" "$target"
+}
+
+# --- fetch-kit fixtures ----------------------------------------------------
 #
 # fetch-kit.sh reaches for $HOME/Code/laravel-starter-kit and, failing that,
 # clones https://github.com/moessimple/laravel-starter-kit.git. These fixtures
-# redirect $HOME to a fixture tree and rewrite that GitHub URL to a local bare
-# repo via git's insteadOf, so both paths run offline.
+# redirect $HOME and rewrite that URL to a local bare repo via git insteadOf, so
+# both paths run offline.
 
 kit_test_home() {
     printf '%s' "$fixture/home"
 }
 
-# Bare repo standing in for the GitHub remote, seeded with one commit on the
-# given branch (default: main) and its HEAD pointed at that branch.
 given_kit_remote() {
     local branch="${1:-main}"
     kit_remote="$fixture/remote/laravel-starter-kit.git"
@@ -101,8 +108,6 @@ given_kit_remote() {
         "url.$kit_remote.insteadOf" "https://github.com/moessimple/laravel-starter-kit.git"
 }
 
-# A clone at $HOME/Code/laravel-starter-kit whose origin URL matches the profile
-# regex (so fetch-kit.sh reuses it).
 given_local_kit_clone() {
     local_kit_clone="$(kit_test_home)/Code/laravel-starter-kit"
     mkdir -p "$(dirname "$local_kit_clone")"
@@ -111,8 +116,6 @@ given_local_kit_clone() {
         "https://github.com/moessimple/laravel-starter-kit.git"
 }
 
-# Same location, but an origin URL that is not the starter kit (fetch-kit.sh must
-# ignore it and clone fresh instead).
 given_local_clone_with_unrelated_origin() {
     local_kit_clone="$(kit_test_home)/Code/laravel-starter-kit"
     mkdir -p "$(dirname "$local_kit_clone")"
@@ -121,7 +124,6 @@ given_local_clone_with_unrelated_origin() {
         "https://github.com/someone-else/laravel-starter-kit-fork.git"
 }
 
-# Adds a second commit to the bare remote's default branch.
 given_kit_remote_advanced() {
     local seed="$fixture/seed"
     printf 'more\n' >> "$seed/README.md"
@@ -137,21 +139,16 @@ run_fetch_kit() {
     run env HOME="$(kit_test_home)" bash "$fetch_kit" laravel-starter-kit
 }
 
-# The last line fetch-kit.sh prints is always "<dir>\t<branch>\t<sha>"; a fresh
-# clone from a local path also emits git's "--filter is ignored" warning first.
-# Splits that result line into $fk_dir / $fk_branch / $fk_sha.
 split_fetch_kit_result() {
     local last="${lines[$((${#lines[@]} - 1))]}"
     IFS=$'\t' read -r fk_dir fk_branch fk_sha <<< "$last"
 }
 
-# --- classify fixtures -------------------------------------------------------
+# --- kit + target fixtures (classify / plan-manifest / apply) --------------
 #
-# classify.sh compares origin/<branch> of a kit clone against a target project.
-# The fixture is a real kit repo with a bare origin (so `git show origin/main`
-# resolves) plus a plain target directory. Stage kit files with kit_has /
-# kit_has_binary, project files with project_has / project_has_binary, then call
-# commit_kit before run_classify.
+# A real kit repo with a bare origin (so `git show origin/main` resolves) plus a
+# plain target dir. Stage kit files with kit_has, project files with project_has,
+# then commit_kit before running a script.
 
 given_classify_fixture() {
     classify_kit="$fixture/kit"
@@ -174,23 +171,10 @@ kit_has() {
     git -C "$classify_kit" add -- "$path"
 }
 
-kit_has_binary() {
-    local path="$1"
-    mkdir -p "$classify_kit/$(dirname "$path")"
-    printf '\x89PNG\r\n\x1a\x00\x00\x01kit' > "$classify_kit/$path"
-    git -C "$classify_kit" add -- "$path"
-}
-
 project_has() {
     local path="$1" content="$2"
     mkdir -p "$target/$(dirname "$path")"
     printf '%s' "$content" > "$target/$path"
-}
-
-project_has_binary() {
-    local path="$1"
-    mkdir -p "$target/$(dirname "$path")"
-    printf '\x89PNG\r\n\x1a\x00\x00\x02project' > "$target/$path"
 }
 
 commit_kit() {
@@ -203,33 +187,25 @@ run_classify() {
     run bash "$classify" laravel-starter-kit "$classify_kit" main "$target"
 }
 
-# Asserts classify.sh emitted <expected-status> in column 1 for <path>.
+# Asserts classify.sh emitted "<expected-status>\t<path>".
 assert_classified() {
     local path="$1" expected="$2" got
-    got="$(printf '%s\n' "$output" | awk -F'\t' -v p="$path" '$3 == p { print $1 }')"
+    got="$(printf '%s\n' "$output" | awk -F'\t' -v p="$path" '$2 == p { print $1 }')"
     [ "$got" = "$expected" ] \
         || { echo "expected '$expected' for $path, got '${got:-<no line>}'" >&2; return 1; }
 }
 
-# Asserts classify.sh put <path> in bucket <expected> (column 2).
-assert_bucket() {
-    local path="$1" expected="$2" got
-    got="$(printf '%s\n' "$output" | awk -F'\t' -v p="$path" '$3 == p { print $2 }')"
-    [ "$got" = "$expected" ] \
-        || { echo "expected bucket '$expected' for $path, got '${got:-<no line>}'" >&2; return 1; }
+# Asserts classify.sh emitted no line at all for <path>.
+assert_not_classified() {
+    local path="$1"
+    printf '%s\n' "$output" | awk -F'\t' -v p="$path" '$2 == p { exit 1 }' \
+        || { echo "expected no line for '$path'" >&2; printf '%s\n' "$output" >&2; return 1; }
 }
 
-# --- plan-manifest fixtures -------------------------------------------------
-#
-# plan-manifest.sh diffs the kit's require-dev / devDependencies against the
-# project's. Reuses given_classify_fixture (kit repo with a bare origin/main,
-# plain target dir); stage the two manifests with kit_manifest / project_manifest
-# then commit_kit before run_plan_manifest.
+# --- plan-manifest fixtures ----------------------------------------------------
 
-# Builds a minimal pretty-printed manifest: a JSON object with one block named
-# $1 holding the remaining args as "name": "constraint" pairs. plan-manifest.sh
-# only reads the require-dev / devDependencies block, so that is all a fixture
-# needs.
+# A minimal pretty-printed manifest: a JSON object with one block named $1
+# holding the remaining args as "name": "constraint" pairs.
 #   manifest_json require-dev  phpstan/phpstan ^2.0  laravel/pint ^1.0
 manifest_json() {
     local block="$1"; shift
@@ -244,14 +220,12 @@ manifest_json() {
 }
 
 # Writes composer.json + package.json into the kit tree. An omitted arg defaults
-# to a manifest with an empty require-dev / devDependencies block, so every
-# fixture is a realistic project with both files.
+# to an empty require-dev / devDependencies block.
 kit_manifest() {
     kit_has "composer.json" "${1:-$(manifest_json require-dev)}"
     kit_has "package.json" "${2:-$(manifest_json devDependencies)}"
 }
 
-# Same for the project tree.
 project_manifest() {
     project_has "composer.json" "${1:-$(manifest_json require-dev)}"
     project_has "package.json" "${2:-$(manifest_json devDependencies)}"
@@ -261,7 +235,6 @@ run_plan_manifest() {
     run bash "$plan_manifest" laravel-starter-kit "$classify_kit" main "$target"
 }
 
-# Asserts plan-manifest.sh emitted exactly this directive line.
 assert_directive() {
     local want
     printf -v want '%s\t%s\t%s\t%s' "$1" "$2" "$3" "$4"
@@ -269,243 +242,33 @@ assert_directive() {
         || { echo "missing directive: $1 $2 $3 $4" >&2; echo "got:" >&2; printf '%s\n' "$output" >&2; return 1; }
 }
 
-# Asserts plan-manifest.sh emitted no directive at all for <name> (column 3).
 assert_no_directive_for() {
     local name="$1"
     printf '%s\n' "$output" | awk -F'\t' -v n="$name" '$3 == n { exit 1 }' \
         || { echo "unexpected directive for '$name'" >&2; printf '%s\n' "$output" >&2; return 1; }
 }
 
-# --- kit path manifest ------------------------------------------------------
+# --- apply-new-files fixtures ------------------------------------------------
+
+run_apply_new_files() {
+    run bash "$apply_new_files" laravel-starter-kit "$classify_kit" main "$target"
+}
+
+# --- run-tests / reconcile fixtures ----------------------------------------
 #
-# Every path `git -C ~/Code/laravel-starter-kit ls-tree -r --name-only origin/main`
-# reports, pinned at 30399efd8b58f6925f5cc0bdb01ab14d5d372d4d. buckets.bats
-# checks that classify.sh assigns each of these a known bucket and that the
-# cascade and reference/profiles/laravel-starter-kit.md stay in step. Regenerate
-# this list whenever the kit adds or removes a tracked path.
-SYNC_SKELETON_KIT_MANIFEST="
-.ai/rules/actions.md
-.ai/rules/index.md
-.claude/skills/inertia-vue-development/SKILL.md
-.claude/skills/infer-conventions/SKILL.md
-.claude/skills/infer-conventions/references/checklist.md
-.claude/skills/laravel-best-practices/SKILL.md
-.claude/skills/laravel-best-practices/rules/advanced-queries.md
-.claude/skills/laravel-best-practices/rules/architecture.md
-.claude/skills/laravel-best-practices/rules/blade-views.md
-.claude/skills/laravel-best-practices/rules/caching.md
-.claude/skills/laravel-best-practices/rules/collections.md
-.claude/skills/laravel-best-practices/rules/config.md
-.claude/skills/laravel-best-practices/rules/db-performance.md
-.claude/skills/laravel-best-practices/rules/eloquent.md
-.claude/skills/laravel-best-practices/rules/error-handling.md
-.claude/skills/laravel-best-practices/rules/events-notifications.md
-.claude/skills/laravel-best-practices/rules/http-client.md
-.claude/skills/laravel-best-practices/rules/mail.md
-.claude/skills/laravel-best-practices/rules/migrations.md
-.claude/skills/laravel-best-practices/rules/queue-jobs.md
-.claude/skills/laravel-best-practices/rules/routing.md
-.claude/skills/laravel-best-practices/rules/scheduling.md
-.claude/skills/laravel-best-practices/rules/security.md
-.claude/skills/laravel-best-practices/rules/style.md
-.claude/skills/laravel-best-practices/rules/validation.md
-.claude/skills/tailwindcss-development/SKILL.md
-.claude/skills/testing-best-practices/SKILL.md
-.claude/skills/testing-best-practices/rules/assertions.md
-.claude/skills/testing-best-practices/rules/endpoint-tests.md
-.claude/skills/testing-best-practices/rules/finding-features.md
-.claude/skills/testing-best-practices/rules/isolation.md
-.claude/skills/testing-best-practices/rules/naming.md
-.claude/skills/testing-best-practices/rules/performance.md
-.claude/skills/testing-best-practices/rules/review.md
-.claude/skills/testing-best-practices/rules/security.md
-.claude/skills/testing-best-practices/rules/test-data.md
-.claude/skills/wayfinder-development/SKILL.md
-.editorconfig
-.env.example
-.gitattributes
-.github/actions/setup-app/action.yml
-.github/dependabot.yml
-.github/workflows/lint.yml
-.github/workflows/static.yml
-.github/workflows/tests.yml
-.gitignore
-.mcp.json
-.npmrc
-.nvmrc
-CLAUDE.md
-LICENSE
-README.md
-app/Http/Controllers/Controller.php
-app/Http/Middleware/HandleInertiaRequests.php
-app/Models/User.php
-app/Providers/AppServiceProvider.php
-artisan
-boost.json
-bootstrap/app.php
-bootstrap/cache/.gitignore
-bootstrap/providers.php
-composer.json
-composer.lock
-config/app.php
-config/auth.php
-config/cache.php
-config/database.php
-config/essentials.php
-config/filesystems.php
-config/inertia.php
-config/logging.php
-config/mail.php
-config/queue.php
-config/services.php
-config/session.php
-database/.gitignore
-database/factories/UserFactory.php
-database/migrations/0001_01_01_000000_create_users_table.php
-database/migrations/0001_01_01_000001_create_cache_table.php
-database/migrations/0001_01_01_000002_create_jobs_table.php
-database/seeders/DatabaseSeeder.php
-package-lock.json
-package.json
-phpstan.neon
-phpunit.xml
-pint.json
-pnpm-workspace.yaml
-public/.htaccess
-public/apple-touch-icon.png
-public/favicon.ico
-public/favicon.svg
-public/index.php
-public/robots.txt
-rector.php
-resources/css/app.css
-resources/js/app.ts
-resources/js/pages/Welcome.test.ts
-resources/js/pages/Welcome.vue
-resources/js/types/auth.ts
-resources/js/types/global.d.ts
-resources/js/types/index.ts
-resources/js/types/vue-shims.d.ts
-resources/views/app.blade.php
-routes/console.php
-routes/web.php
-storage/app/.gitignore
-storage/app/private/.gitignore
-storage/app/public/.gitignore
-storage/framework/.gitignore
-storage/framework/cache/.gitignore
-storage/framework/cache/data/.gitignore
-storage/framework/sessions/.gitignore
-storage/framework/testing/.gitignore
-storage/framework/views/.gitignore
-storage/logs/.gitignore
-tests/Arch/FactoriesTest.php
-tests/Arch/HttpTest.php
-tests/Arch/ModelsTest.php
-tests/Arch/ProvidersTest.php
-tests/ArchTest.php
-tests/Browser/Pest.php
-tests/Browser/WelcomeTest.php
-tests/Console/.gitkeep
-tests/Http/WelcomeTest.php
-tests/Pest.php
-tests/TestCase.php
-tests/Unit/Actions/.gitkeep
-tests/Unit/Enums/.gitkeep
-tests/Unit/Models/UserTest.php
-tests/Unit/Support/.gitkeep
-tsconfig.json
-vite.config.ts
-vitest.config.ts
-vitest.setup.ts
-"
+# These scripts shell out to composer / npm / vendor binaries. Build $target as a
+# plain (non-git) project dir and put fakes on PATH with given_fake_bin_on_path +
+# write_fake_binary from test_helper.bash.
 
-# The canonical bucket vocabulary. classify.sh's cascade emits only these plus
-# `unclassified` for a path that matches no arm; reference/profiles/laravel-starter-kit.md
-# documents each. `unclassified` is deliberately not in this list, so
-# assert_every_manifest_path_has_known_bucket fails the moment a pinned kit path
-# stops matching the cascade.
-SYNC_SKELETON_BUCKETS="quality-gate frontend-tooling essentials arch-tests frontend-test-setup agent-rules welcome-page misc-config drift-only not-in-scope never-touch"
-
-# A kit repo (bare origin) whose origin/main tree is exactly the pinned manifest,
-# every path an empty file. Lets buckets.bats drive the real classify.sh.
-given_kit_manifest_as_fixture() {
-    given_classify_fixture
-    local path
-    for path in $SYNC_SKELETON_KIT_MANIFEST; do
-        mkdir -p "$classify_kit/$(dirname "$path")"
-        : > "$classify_kit/$path"
-    done
-    git -C "$classify_kit" add -A
-    commit_kit
+given_plain_project() {
+    target="$fixture/project"
+    mkdir -p "$target"
 }
 
-# The pinned manifest is only meaningful against a real kit clone. Skip when
-# $HOME/Code/laravel-starter-kit is absent, is a different repo, or has no
-# fetched origin/main (e.g. CI, where the clone does not exist).
-live_kit_clone_or_skip() {
-    live_kit_clone="$HOME/Code/laravel-starter-kit"
-    [ -d "$live_kit_clone/.git" ] || skip "no local kit clone at $live_kit_clone"
-    local origin
-    origin="$(git -C "$live_kit_clone" config --get remote.origin.url 2>/dev/null || true)"
-    case "$origin" in
-        *moessimple/laravel-starter-kit*) ;;
-        *) skip "local clone origin is not the kit" ;;
-    esac
-    git -C "$live_kit_clone" rev-parse --verify --quiet origin/main >/dev/null \
-        || skip "local clone has no origin/main"
+run_run_tests() {
+    run env PATH="$fake_bin:$PATH" bash "$run_tests_sh" "$@"
 }
 
-# The kit tree at origin/main, one path per line, sorted.
-live_kit_manifest() {
-    git -C "$live_kit_clone" ls-tree -r --name-only origin/main | sort
-}
-
-# The pinned SYNC_SKELETON_KIT_MANIFEST, one path per line, sorted.
-pinned_kit_manifest() {
-    printf '%s\n' "$SYNC_SKELETON_KIT_MANIFEST" | sed '/^$/d' | sort
-}
-
-assert_known_bucket() {
-    local bucket="$1" known
-    for known in $SYNC_SKELETON_BUCKETS; do
-        [ "$bucket" = "$known" ] && return 0
-    done
-    return 1
-}
-
-# Every pinned kit path must get a bucket from the canonical vocabulary.
-assert_every_manifest_path_has_known_bucket() {
-    local path bucket
-    for path in $SYNC_SKELETON_KIT_MANIFEST; do
-        bucket="$(printf '%s\n' "$output" | awk -F'\t' -v p="$path" '$3 == p { print $2 }')"
-        assert_known_bucket "$bucket" \
-            || { echo "path '$path' -> bucket '${bucket:-<none>}'" >&2; return 1; }
-    done
-}
-
-# Every canonical bucket name must be documented in the profile catalog.
-assert_buckets_documented_in_profile() {
-    local bucket
-    for bucket in $SYNC_SKELETON_BUCKETS; do
-        grep -q -- "$bucket" "$profile" \
-            || { echo "profile doc does not mention bucket '$bucket'" >&2; return 1; }
-    done
-}
-
-# Every canonical bucket name must actually be used by the cascade (no stale
-# entries in the vocabulary).
-assert_every_bucket_used_by_cascade() {
-    local bucket used
-    used="$(printf '%s\n' "$output" | awk -F'\t' '{ print $2 }' | sort -u)"
-    for bucket in $SYNC_SKELETON_BUCKETS; do
-        printf '%s\n' "$used" | grep -qx -- "$bucket" \
-            || { echo "bucket '$bucket' is in the vocabulary but never assigned" >&2; return 1; }
-    done
-}
-
-# Runs preflight.sh capturing only its stderr, so a test can assert what the
-# script routes there (the SPEC requires `git status --short` on stderr).
-run_preflight_stderr() {
-    run bash -c 'bash "$1" laravel-starter-kit "$2" 2>&1 1>/dev/null' _ "$preflight" "$target"
+run_reconcile() {
+    run env PATH="$fake_bin:$PATH" bash "$reconcile" "$target"
 }

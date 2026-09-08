@@ -4,15 +4,15 @@ load ../../../support/sync_skeleton_helper
 
 setup() {
     new_sync_skeleton_fixture
+    given_classify_fixture
 }
 
 teardown() {
     teardown_sync_skeleton_fixture
 }
 
-@test "a kit file the project lacks is new" {
+@test "a gate file the project lacks is new" {
     # Arrange
-    given_classify_fixture
     kit_has "config/essentials.php" "<?php return [];"
     commit_kit
 
@@ -24,9 +24,8 @@ teardown() {
     assert_classified "config/essentials.php" "new"
 }
 
-@test "a byte-identical file is identical" {
+@test "a byte-identical gate file is already-present" {
     # Arrange
-    given_classify_fixture
     kit_has "pint.json" '{"preset":"laravel"}'
     project_has "pint.json" '{"preset":"laravel"}'
     commit_kit
@@ -36,12 +35,11 @@ teardown() {
 
     # Assert
     assert_success
-    assert_classified "pint.json" "identical"
+    assert_classified "pint.json" "already-present"
 }
 
-@test "a text file with different bytes differs" {
+@test "a gate file with different bytes differs" {
     # Arrange
-    given_classify_fixture
     kit_has "phpstan.neon" "parameters:\n    level: max\n"
     project_has "phpstan.neon" "parameters:\n    level: 5\n"
     commit_kit
@@ -54,24 +52,8 @@ teardown() {
     assert_classified "phpstan.neon" "differs"
 }
 
-@test "a binary file with different bytes differs as binary" {
+@test "an eslint config the kit dropped but the project keeps is deleted-upstream" {
     # Arrange
-    given_classify_fixture
-    kit_has_binary "public/favicon.ico"
-    project_has_binary "public/favicon.ico"
-    commit_kit
-
-    # Act
-    run_classify
-
-    # Assert
-    assert_success
-    assert_classified "public/favicon.ico" "differs-binary"
-}
-
-@test "a file the kit dropped but the project keeps is deleted-upstream" {
-    # Arrange
-    given_classify_fixture
     kit_has "vite.config.ts" "export default {}"
     project_has "vite.config.ts" "export default {}"
     project_has "eslint.config.js" "export default []"
@@ -85,13 +67,9 @@ teardown() {
     assert_classified "eslint.config.js" "deleted-upstream"
 }
 
-@test "a manifest is always manifest even when byte-identical" {
+@test "a kit path under a gate glob that gate-paths.txt omits is ungrouped" {
     # Arrange
-    given_classify_fixture
-    kit_has "composer.json" '{"name":"kit"}'
-    project_has "composer.json" '{"name":"kit"}'
-    kit_has "package-lock.json" '{"lockfileVersion":3}'
-    project_has "package-lock.json" '{"lockfileVersion":2}'
+    kit_has ".github/workflows/coverage.yml" "name: coverage"
     commit_kit
 
     # Act
@@ -99,15 +77,13 @@ teardown() {
 
     # Assert
     assert_success
-    assert_classified "composer.json" "manifest"
-    assert_classified "package-lock.json" "manifest"
+    assert_classified ".github/workflows/coverage.yml" "ungrouped"
 }
 
-@test "a text=auto file that is byte-equal is identical, not differs" {
+@test "manifests are not classified here" {
     # Arrange
-    given_classify_fixture
-    kit_has ".gitattributes" "* text=auto eol=lf\n"
-    project_has ".gitattributes" "* text=auto eol=lf\n"
+    kit_has "composer.json" '{"name":"kit"}'
+    project_has "composer.json" '{"name":"project"}'
     commit_kit
 
     # Act
@@ -115,5 +91,5 @@ teardown() {
 
     # Assert
     assert_success
-    assert_classified ".gitattributes" "identical"
+    assert_not_classified "composer.json"
 }

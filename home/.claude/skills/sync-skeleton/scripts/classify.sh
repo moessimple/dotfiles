@@ -1,31 +1,21 @@
 #!/usr/bin/env bash
-# classify.sh - compare every tracked starter-kit path against the target project
-# and print one classification line per path.
+# classify.sh - compare each quality-gate path against the kit and print its
+# status. Comparison is always against origin/<default-branch>; the project's
+# git history is unrelated to the kit's, so there is no before-image to merge.
 #
 # Usage: classify.sh <profile> <kit_dir> <default-branch> <target>
-#   profile          skeleton profile (only laravel-starter-kit is supported)
+#   profile          only laravel-starter-kit is supported
 #   kit_dir          local kit clone from fetch-kit.sh
-#   default-branch   kit default branch; comparison is always against origin/<it>
+#   default-branch   kit default branch
 #   target           the project directory
 #
-# Output, tab-separated, one line per path:
-#   <status>\t<bucket>\t<path>
-# where <bucket> is one of the curated theme buckets, never-touch, drift-only,
-# not-in-scope, or unclassified (see reference/profiles/laravel-starter-kit.md;
-# buckets.bats keeps the two in sync). unclassified means the path matched no arm
-# of the cascade: the kit added a file the map does not know yet, so it is
-# surfaced for a human and never auto-applied.
-#
-# Statuses:
+# Gate paths come from scripts/gate-paths.txt. Per path, and per deleted-upstream
+# candidate the project still carries, prints "<status>\t<path>":
 #   new               absent in the project, present at origin/<branch>
-#   identical         byte-equal (cmp -s)
-#   differs           present in both, text, bytes differ
-#   differs-binary    present in both, binary, bytes differ
-#   deleted-upstream  present in the project, gone from origin/<branch>
-#   manifest          composer/package manifest or lockfile (always user-mediated)
-#
-# Comparison is byte-exact via cmp -s against `git show origin/<branch>:<path>`,
-# never against the kit worktree and never via diff.
+#   already-present    byte-identical (cmp -s)
+#   differs            present in both, bytes differ
+#   deleted-upstream   present in the project, gone from origin/<branch>
+#   ungrouped          kit path under a gate glob that gate-paths.txt omits
 #
 # Exit codes:
 #   1   kit_dir has no origin/<branch>
@@ -37,6 +27,8 @@ profile="${1:-}"
 kit_dir="${2:-}"
 branch="${3:-}"
 target="${4:-}"
+here="$(cd "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+gate_list="$here/gate-paths.txt"
 
 if [[ "$profile" != "laravel-starter-kit" || -z "$kit_dir" || -z "$branch" || -z "$target" ]]; then
     echo "Usage: classify.sh laravel-starter-kit <kit_dir> <default-branch> <target>" >&2
@@ -48,8 +40,8 @@ if ! git -C "$kit_dir" rev-parse --verify --quiet "origin/$branch" >/dev/null; t
     exit 1
 fi
 
-# Paths the kit removed in the vite-plus / strict-suite cleanup. Reported only
-# when the project still carries them; they are never enumerated from upstream.
+# Files the kit dropped in the vite-plus move. Reported only when the project
+# still carries them; never enumerated from upstream.
 deleted_upstream_candidates="
 eslint.config.js
 eslint.config.mjs
@@ -63,96 +55,62 @@ eslint.config.ts
 .prettierrc.yaml
 .prettierignore
 resources/js/lib/utils.ts
-tests/Feature/ExampleTest.php
-tests/Unit/ExampleTest.php
 "
 
-is_manifest() {
+# A kit path matching one of these globs but absent from gate-paths.txt is
+# reported as `ungrouped` so a new upstream gate file is visible, not silent.
+is_gate_glob() {
     case "$1" in
-        composer.json|package.json|composer.lock|pnpm-lock.yaml|*-lock.*) return 0 ;;
+        .github/workflows/*.yml|.github/actions/*|.github/dependabot.yml) return 0 ;;
+        phpstan.neon|phpstan.neon.dist|rector.php|pint.json|phpunit.xml|.gitattributes) return 0 ;;
+        vite.config.*|vitest.config.*|vitest.setup.*|tsconfig.json|.npmrc|.nvmrc|pnpm-workspace.yaml) return 0 ;;
+        config/essentials.php) return 0 ;;
         *) return 1 ;;
     esac
 }
 
-# Map a kit path to its theme bucket. Priority order matches the catalog in
-# reference/profiles/laravel-starter-kit.md; the first matching arm wins. A path
-# that matches no arm is unclassified, never silently not-in-scope: the caller
-# must show it and let the user place it.
-bucket_for() {
-    case "$1" in
-        .github/*|pint.json|phpstan.neon|rector.php|phpunit.xml|.gitattributes|composer.json|composer.lock)
-            echo quality-gate ;;
-        vite.config.ts|vitest.config.ts|vitest.setup.ts|tsconfig.json|.npmrc|.nvmrc|pnpm-workspace.yaml|package.json|package-lock.json|pnpm-lock.yaml)
-            echo frontend-tooling ;;
-        eslint.config.*|.prettierrc*|.prettierignore|resources/js/lib/utils.ts)
-            echo frontend-tooling ;;
-        config/essentials.php)
-            echo essentials ;;
-        tests/Arch/*|tests/ArchTest.php|tests/Http/*|tests/Console/.gitkeep|tests/Unit/*/.gitkeep|tests/Browser/Pest.php|tests/Feature/ExampleTest.php|tests/Unit/ExampleTest.php)
-            echo arch-tests ;;
-        resources/js/pages/Welcome.test.ts)
-            echo frontend-test-setup ;;
-        .ai/rules/*|.claude/skills/*|.mcp.json|boost.json)
-            echo agent-rules ;;
-        resources/js/pages/Welcome.vue|resources/views/app.blade.php|resources/css/app.css)
-            echo welcome-page ;;
-        config/inertia.php|resources/js/app.ts|resources/js/types/*|.editorconfig)
-            echo misc-config ;;
-        .gitignore|.env.example|CLAUDE.md)
-            echo drift-only ;;
-        artisan|public/*|storage/*|bootstrap/cache/.gitignore|database/.gitignore|LICENSE|README.md)
-            echo not-in-scope ;;
-        app/*|database/*|routes/*|bootstrap/*|config/*|tests/Pest.php|tests/Browser/*|tests/TestCase.php|tests/Unit/Models/*)
-            echo never-touch ;;
-        *)
-            echo unclassified ;;
-    esac
-}
-
-is_binary() {
-    [ -s "$1" ] || return 1
-    [ "$(file --mime-encoding -b -- "$1")" = "binary" ]
-}
-
-classify_path() {
-    local path="$1"
-    local project_file="$target/$path"
-    local bucket
-    bucket="$(bucket_for "$path")"
-
-    if is_manifest "$path"; then
-        printf 'manifest\t%s\t%s\n' "$bucket" "$path"
-        return
-    fi
-
-    local upstream
+classify_one() {
+    local path="$1" project_file="$target/$1" upstream
     upstream="$(mktemp "${TMPDIR:-/tmp}/sync-skeleton-blob.XXXXXX")"
     if ! git -C "$kit_dir" show "origin/$branch:$path" >"$upstream" 2>/dev/null; then
         rm -f "$upstream"
-        return
+        if [[ -e "$project_file" ]]; then
+            printf 'deleted-upstream\t%s\n' "$path"
+        fi
+        return 0
     fi
-
     if [[ ! -e "$project_file" ]]; then
-        printf 'new\t%s\t%s\n' "$bucket" "$path"
+        printf 'new\t%s\n' "$path"
     elif cmp -s "$upstream" "$project_file"; then
-        printf 'identical\t%s\t%s\n' "$bucket" "$path"
-    elif is_binary "$upstream" || is_binary "$project_file"; then
-        printf 'differs-binary\t%s\t%s\n' "$bucket" "$path"
+        printf 'already-present\t%s\n' "$path"
     else
-        printf 'differs\t%s\t%s\n' "$bucket" "$path"
+        printf 'differs\t%s\n' "$path"
     fi
-
     rm -f "$upstream"
+    return 0
 }
 
-git -C "$kit_dir" ls-tree -r --name-only "origin/$branch" \
-    | while IFS= read -r path; do
-        [ -n "$path" ] || continue
-        classify_path "$path"
-      done
+gate_paths=""
+while IFS= read -r line; do
+    line="${line%%#*}"
+    line="${line//[[:space:]]/}"
+    [ -n "$line" ] || continue
+    gate_paths="$gate_paths $line "
+    classify_one "$line"
+done < "$gate_list"
 
 for path in $deleted_upstream_candidates; do
     [ -e "$target/$path" ] || continue
     git -C "$kit_dir" show "origin/$branch:$path" >/dev/null 2>&1 && continue
-    printf 'deleted-upstream\t%s\t%s\n' "$(bucket_for "$path")" "$path"
+    printf 'deleted-upstream\t%s\n' "$path"
 done
+
+git -C "$kit_dir" ls-tree -r --name-only "origin/$branch" \
+    | while IFS= read -r path; do
+        [ -n "$path" ] || continue
+        is_gate_glob "$path" || continue
+        case "$gate_paths" in *" $path "*) continue ;; esac
+        printf 'ungrouped\t%s\n' "$path"
+      done
+
+exit 0
