@@ -1,8 +1,9 @@
 # Quality-gate and tooling paths synced from moessimple/laravel-starter-kit.
 # One path per line, "#" starts a comment, blank lines ignored. classify.sh
 # compares each against origin/<default-branch>. When the kit adds a gate file,
-# add its path here; classify.sh flags a kit path under a gate glob that is not
-# listed as `ungrouped` so the omission is visible, not silent.
+# add its path here; classify.sh flags any kit path at the repo root or under
+# .github/ that is not listed as `ungrouped` so the omission is visible, not
+# silent.
 #
 # Manifests (composer.json, package.json) and lockfiles are NOT listed: they go
 # through plan-manifest.sh and the script-alias realignment instead.

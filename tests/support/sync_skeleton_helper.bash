@@ -272,6 +272,37 @@ given_plain_project() {
     mkdir -p "$target"
 }
 
+# composer.json carrying a "test" script, the fallback run-tests.sh discovers
+# when no pest/phpunit/artisan is present.
+given_composer_test_script() {
+    printf '{\n    "scripts": {\n        "test": "pest"\n    }\n}\n' > "$target/composer.json"
+}
+
+# An executable vendor/bin/pest that exits 0. run-tests.sh must prefer this over
+# the realignable `composer test` alias for the preservation baseline.
+given_local_pest_binary() {
+    mkdir -p "$target/vendor/bin"
+    printf '#!/usr/bin/env bash\nexit 0\n' > "$target/vendor/bin/pest"
+    chmod +x "$target/vendor/bin/pest"
+}
+
+# Strips every PHP test entry point so php_tests discovers nothing and reports
+# skip, leaving the JS checks as the only observable behavior.
+given_no_php_project() {
+    rm -rf "$target/composer.json" "$target/artisan" "$target/vendor"
+}
+
+# package.json with a "scripts" block holding the given name/body pairs.
+#   given_package_json_scripts build "vite build"
+#   given_package_json_scripts types "vue-tsc --noEmit" tsc "tsc"
+given_package_json_scripts() {
+    project_has "package.json" "$(manifest_json scripts "$@")"
+}
+
+given_js_lockfile() {
+    : > "$target/${1:?lockfile name}"
+}
+
 run_run_tests() {
     run env PATH="$fake_bin:$PATH" bash "$run_tests_sh" "$@"
 }

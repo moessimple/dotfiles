@@ -90,8 +90,9 @@ Read before starting; apply throughout.
 - **Gate paths**: everything in `scripts/gate-paths.txt` (split CI, `phpstan.neon`,
   `rector.php`, `pint.json`, `.gitattributes`, `phpunit.xml`, the vite/vitest/
   tsconfig/npm tooling files, `config/essentials.php`). `classify.sh` also flags
-  a kit path under a gate glob that the list omits as `ungrouped`; add it to the
-  list and re-run.
+  any kit path at the repo root or under `.github/` that the list omits as
+  `ungrouped`; adopt it in the Phase 5 walk, and add it to the list if it should
+  sync automatically from then on.
 - **Manifests (guided)**: `composer.json` `scripts` + `require-dev`, `package.json`
   `scripts` + `devDependencies`, via `plan-manifest.sh` and script realignment.
   Runtime `require` / `dependencies` are shown, never written.
@@ -162,8 +163,10 @@ baseline=$(mktemp "${TMPDIR:-/tmp}/sync-skeleton-baseline.XXXXXX")
 scripts/run-tests.sh <target> --baseline "$baseline"
 ```
 
-Hold `$baseline`; Phase 6 compares against it. If a check is red already, note it
-in the report; Phase 6 only flags checks that were green and turn red.
+`run-tests.sh` records the PHP suite plus, when `package.json` has them, the JS
+typecheck and JS build. Hold `$baseline`; Phase 6 compares against it. If a check
+is red already, note it in the report; Phase 6 only flags checks that were green
+and turn red.
 
 ```
 git -C <target> switch -c "sync-skeleton/$(date +%Y%m%d-%H%M)-<first-slug>"
@@ -241,12 +244,22 @@ this branch.
    scripts/run-tests.sh <target> --compare "$baseline"
    ```
 
-   Compare mode prints only checks that were `pass` in the baseline and `fail`
-   now. Any such line: stop, show the log it points to, recommend
-   `git revert <group-sha>`; if uncertain which group,
+   Three checks: the PHP suite, and (when `package.json` carries the scripts) the
+   JS typecheck and the JS build. The PHP baseline runs the low-level suite
+   (`vendor/bin/pest` / `phpunit`), not `composer test`, so realigning the `test`
+   alias in Phase 5 does not by itself turn the comparison red. Compare re-runs
+   each command the baseline recorded and prints `REGRESSION` only for a check
+   that was `pass` before and `fail` now. Any such line: stop, show the log it
+   points to, recommend `git revert <group-sha>`; if uncertain which group,
    `git bisect start <branch> <previous>`. Do not edit code to go green.
 
-   The synced gate is stricter than the baseline command, so run the *full*
+   If the Phase 1 environment check found PHP, Node, or the coverage driver short
+   of the kit's requirement, the 100%-coverage and type-coverage gates cannot run
+   locally. Record the result as `NOT-VERIFIED-LOCALLY: <what was missing>` and
+   say so at the top of the report; do not imply verification passed. CI still
+   enforces it.
+
+   The synced gate is stricter than this preservation check, so run the *full*
    `composer test` once more and copy its output verbatim into the report as the
    app-code to-do list. Findings there are follow-ups, not regressions.
 
@@ -266,8 +279,9 @@ this branch.
    - directives applied / vetoed; script aliases realigned; vite-plus migration; lockfiles
 
    ## Verification
-   - baseline vs compare: PASS / REGRESSED <list> / NO-CHECKS
-   - full `composer test` output: <verbatim, the app-code to-do list>
+   - environment: PHP <version> / Node <version> / coverage driver <yes|no>
+   - baseline vs compare: PASS / REGRESSED <list> / NOT-VERIFIED-LOCALLY <reason> / NO-CHECKS
+   - full gate (`composer test`) output: <verbatim, the app-code to-do list>
 
    ## Follow-ups (not done by this skill)
    - npx playwright install chromium (if it could not run)

@@ -15,7 +15,8 @@
 #   already-present    byte-identical (cmp -s)
 #   differs            present in both, bytes differ
 #   deleted-upstream   present in the project, gone from origin/<branch>
-#   ungrouped          kit path under a gate glob that gate-paths.txt omits
+#   ungrouped          kit path at the repo root or under .github/ that
+#                      gate-paths.txt omits
 #
 # Exit codes:
 #   1   kit_dir has no origin/<branch>
@@ -57,16 +58,31 @@ eslint.config.ts
 resources/js/lib/utils.ts
 "
 
-# A kit path matching one of these globs but absent from gate-paths.txt is
-# reported as `ungrouped` so a new upstream gate file is visible, not silent.
-is_gate_glob() {
+# Root-level kit files that are NOT quality-gate config: manifests and lockfiles
+# (plan-manifest.sh handles those) and paths SKILL.md marks never-write or
+# out-of-scope. Any OTHER root-level kit path, and anything under .github/, that
+# gate-paths.txt does not list is reported `ungrouped`, so a gate file the kit
+# adds later (a new linter, a spell-checker config, a baseline file) is surfaced
+# rather than silently skipped. config/ is not scanned: only config/essentials.php
+# is in scope, the rest is application config.
+root_non_gate="
+composer.json composer.lock
+package.json package-lock.json pnpm-lock.yaml yarn.lock bun.lock bun.lockb
+artisan boost.json
+.gitignore .env .env.example .mcp.json
+CLAUDE.md README.md README.markdown LICENSE LICENSE.md
+"
+
+is_ungrouped_candidate() {
     case "$1" in
-        .github/workflows/*.yml|.github/actions/*|.github/dependabot.yml) return 0 ;;
-        phpstan.neon|phpstan.neon.dist|rector.php|pint.json|phpunit.xml|.gitattributes) return 0 ;;
-        vite.config.*|vitest.config.*|vitest.setup.*|tsconfig.json|.npmrc|.nvmrc|pnpm-workspace.yaml) return 0 ;;
-        config/essentials.php) return 0 ;;
-        *) return 1 ;;
+        .github/*) return 0 ;;
+        */*)       return 1 ;;
     esac
+    local skip
+    for skip in $root_non_gate; do
+        [ "$1" = "$skip" ] && return 1
+    done
+    return 0
 }
 
 classify_one() {
@@ -108,7 +124,7 @@ done
 git -C "$kit_dir" ls-tree -r --name-only "origin/$branch" \
     | while IFS= read -r path; do
         [ -n "$path" ] || continue
-        is_gate_glob "$path" || continue
+        is_ungrouped_candidate "$path" || continue
         case "$gate_paths" in *" $path "*) continue ;; esac
         printf 'ungrouped\t%s\n' "$path"
       done
