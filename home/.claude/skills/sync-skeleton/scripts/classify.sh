@@ -10,7 +10,9 @@
 #
 # Output, tab-separated, one line per path:
 #   <status>\t<bucket>\t<path>
-# The bucket column is the literal "TODO" until Slice 4 fills it in.
+# where <bucket> is one of the curated theme buckets, never-touch, drift-only, or
+# not-in-scope (see reference/profiles/laravel-starter-kit.md; buckets.bats keeps
+# the two in sync).
 #
 # Statuses:
 #   new               absent in the project, present at origin/<branch>
@@ -70,6 +72,39 @@ is_manifest() {
     esac
 }
 
+# Map a kit path to its theme bucket. Priority order matches the catalog in
+# reference/profiles/laravel-starter-kit.md; the first matching arm wins.
+bucket_for() {
+    case "$1" in
+        .github/*|pint.json|phpstan.neon|rector.php|phpunit.xml|.gitattributes|composer.json|composer.lock)
+            echo quality-gate ;;
+        vite.config.ts|vitest.config.ts|vitest.setup.ts|tsconfig.json|.npmrc|.nvmrc|pnpm-workspace.yaml|package.json|package-lock.json|pnpm-lock.yaml)
+            echo frontend-tooling ;;
+        eslint.config.*|.prettierrc*|.prettierignore|resources/js/lib/utils.ts)
+            echo frontend-tooling ;;
+        config/essentials.php)
+            echo essentials ;;
+        tests/Arch/*|tests/ArchTest.php|tests/Http/*|tests/Console/.gitkeep|tests/Unit/*/.gitkeep|tests/Feature/ExampleTest.php|tests/Unit/ExampleTest.php)
+            echo arch-tests ;;
+        resources/js/pages/Welcome.test.ts)
+            echo frontend-test-setup ;;
+        .ai/rules/*|.claude/skills/*|.mcp.json|boost.json)
+            echo agent-rules ;;
+        resources/js/pages/Welcome.vue|resources/views/app.blade.php|resources/css/app.css)
+            echo welcome-page ;;
+        config/inertia.php|resources/js/app.ts|resources/js/types/*|.editorconfig)
+            echo misc-config ;;
+        .gitignore|.env.example|CLAUDE.md)
+            echo drift-only ;;
+        artisan|public/*|storage/*|bootstrap/cache/.gitignore|database/.gitignore|LICENSE|README.md)
+            echo not-in-scope ;;
+        app/*|database/*|routes/*|bootstrap/*|config/*|tests/Pest.php|tests/Browser/*|tests/TestCase.php|tests/Unit/Models/*)
+            echo never-touch ;;
+        *)
+            echo not-in-scope ;;
+    esac
+}
+
 is_binary() {
     [ -s "$1" ] || return 1
     [ "$(file --mime-encoding -b -- "$1")" = "binary" ]
@@ -78,9 +113,11 @@ is_binary() {
 classify_path() {
     local path="$1"
     local project_file="$target/$path"
+    local bucket
+    bucket="$(bucket_for "$path")"
 
     if is_manifest "$path"; then
-        printf 'manifest\tTODO\t%s\n' "$path"
+        printf 'manifest\t%s\t%s\n' "$bucket" "$path"
         return
     fi
 
@@ -92,13 +129,13 @@ classify_path() {
     fi
 
     if [[ ! -e "$project_file" ]]; then
-        printf 'new\tTODO\t%s\n' "$path"
+        printf 'new\t%s\t%s\n' "$bucket" "$path"
     elif cmp -s "$upstream" "$project_file"; then
-        printf 'identical\tTODO\t%s\n' "$path"
+        printf 'identical\t%s\t%s\n' "$bucket" "$path"
     elif is_binary "$upstream" || is_binary "$project_file"; then
-        printf 'differs-binary\tTODO\t%s\n' "$path"
+        printf 'differs-binary\t%s\t%s\n' "$bucket" "$path"
     else
-        printf 'differs\tTODO\t%s\n' "$path"
+        printf 'differs\t%s\t%s\n' "$bucket" "$path"
     fi
 
     rm -f "$upstream"
@@ -113,5 +150,5 @@ git -C "$kit_dir" ls-tree -r --name-only "origin/$branch" \
 for path in $deleted_upstream_candidates; do
     [ -e "$target/$path" ] || continue
     git -C "$kit_dir" show "origin/$branch:$path" >/dev/null 2>&1 && continue
-    printf 'deleted-upstream\tTODO\t%s\n' "$path"
+    printf 'deleted-upstream\t%s\t%s\n' "$(bucket_for "$path")" "$path"
 done

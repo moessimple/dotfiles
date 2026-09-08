@@ -210,6 +210,213 @@ assert_classified() {
         || { echo "expected '$expected' for $path, got '${got:-<no line>}'" >&2; return 1; }
 }
 
+# Asserts classify.sh put <path> in bucket <expected> (column 2).
+assert_bucket() {
+    local path="$1" expected="$2" got
+    got="$(printf '%s\n' "$output" | awk -F'\t' -v p="$path" '$3 == p { print $2 }')"
+    [ "$got" = "$expected" ] \
+        || { echo "expected bucket '$expected' for $path, got '${got:-<no line>}'" >&2; return 1; }
+}
+
+# --- kit path manifest ------------------------------------------------------
+#
+# Every path `git -C ~/Code/laravel-starter-kit ls-tree -r --name-only origin/main`
+# reports, pinned at 30399efd8b58f6925f5cc0bdb01ab14d5d372d4d. buckets.bats
+# checks that classify.sh assigns each of these a known bucket and that the
+# cascade and reference/profiles/laravel-starter-kit.md stay in step. Regenerate
+# this list whenever the kit adds or removes a tracked path.
+SYNC_SKELETON_KIT_MANIFEST="
+.ai/rules/actions.md
+.ai/rules/index.md
+.claude/skills/inertia-vue-development/SKILL.md
+.claude/skills/infer-conventions/SKILL.md
+.claude/skills/infer-conventions/references/checklist.md
+.claude/skills/laravel-best-practices/SKILL.md
+.claude/skills/laravel-best-practices/rules/advanced-queries.md
+.claude/skills/laravel-best-practices/rules/architecture.md
+.claude/skills/laravel-best-practices/rules/blade-views.md
+.claude/skills/laravel-best-practices/rules/caching.md
+.claude/skills/laravel-best-practices/rules/collections.md
+.claude/skills/laravel-best-practices/rules/config.md
+.claude/skills/laravel-best-practices/rules/db-performance.md
+.claude/skills/laravel-best-practices/rules/eloquent.md
+.claude/skills/laravel-best-practices/rules/error-handling.md
+.claude/skills/laravel-best-practices/rules/events-notifications.md
+.claude/skills/laravel-best-practices/rules/http-client.md
+.claude/skills/laravel-best-practices/rules/mail.md
+.claude/skills/laravel-best-practices/rules/migrations.md
+.claude/skills/laravel-best-practices/rules/queue-jobs.md
+.claude/skills/laravel-best-practices/rules/routing.md
+.claude/skills/laravel-best-practices/rules/scheduling.md
+.claude/skills/laravel-best-practices/rules/security.md
+.claude/skills/laravel-best-practices/rules/style.md
+.claude/skills/laravel-best-practices/rules/validation.md
+.claude/skills/tailwindcss-development/SKILL.md
+.claude/skills/testing-best-practices/SKILL.md
+.claude/skills/testing-best-practices/rules/assertions.md
+.claude/skills/testing-best-practices/rules/endpoint-tests.md
+.claude/skills/testing-best-practices/rules/finding-features.md
+.claude/skills/testing-best-practices/rules/isolation.md
+.claude/skills/testing-best-practices/rules/naming.md
+.claude/skills/testing-best-practices/rules/performance.md
+.claude/skills/testing-best-practices/rules/review.md
+.claude/skills/testing-best-practices/rules/security.md
+.claude/skills/testing-best-practices/rules/test-data.md
+.claude/skills/wayfinder-development/SKILL.md
+.editorconfig
+.env.example
+.gitattributes
+.github/actions/setup-app/action.yml
+.github/dependabot.yml
+.github/workflows/lint.yml
+.github/workflows/static.yml
+.github/workflows/tests.yml
+.gitignore
+.mcp.json
+.npmrc
+.nvmrc
+CLAUDE.md
+LICENSE
+README.md
+app/Http/Controllers/Controller.php
+app/Http/Middleware/HandleInertiaRequests.php
+app/Models/User.php
+app/Providers/AppServiceProvider.php
+artisan
+boost.json
+bootstrap/app.php
+bootstrap/cache/.gitignore
+bootstrap/providers.php
+composer.json
+composer.lock
+config/app.php
+config/auth.php
+config/cache.php
+config/database.php
+config/essentials.php
+config/filesystems.php
+config/inertia.php
+config/logging.php
+config/mail.php
+config/queue.php
+config/services.php
+config/session.php
+database/.gitignore
+database/factories/UserFactory.php
+database/migrations/0001_01_01_000000_create_users_table.php
+database/migrations/0001_01_01_000001_create_cache_table.php
+database/migrations/0001_01_01_000002_create_jobs_table.php
+database/seeders/DatabaseSeeder.php
+package-lock.json
+package.json
+phpstan.neon
+phpunit.xml
+pint.json
+pnpm-workspace.yaml
+public/.htaccess
+public/apple-touch-icon.png
+public/favicon.ico
+public/favicon.svg
+public/index.php
+public/robots.txt
+rector.php
+resources/css/app.css
+resources/js/app.ts
+resources/js/pages/Welcome.test.ts
+resources/js/pages/Welcome.vue
+resources/js/types/auth.ts
+resources/js/types/global.d.ts
+resources/js/types/index.ts
+resources/js/types/vue-shims.d.ts
+resources/views/app.blade.php
+routes/console.php
+routes/web.php
+storage/app/.gitignore
+storage/app/private/.gitignore
+storage/app/public/.gitignore
+storage/framework/.gitignore
+storage/framework/cache/.gitignore
+storage/framework/cache/data/.gitignore
+storage/framework/sessions/.gitignore
+storage/framework/testing/.gitignore
+storage/framework/views/.gitignore
+storage/logs/.gitignore
+tests/Arch/FactoriesTest.php
+tests/Arch/HttpTest.php
+tests/Arch/ModelsTest.php
+tests/Arch/ProvidersTest.php
+tests/ArchTest.php
+tests/Browser/Pest.php
+tests/Browser/WelcomeTest.php
+tests/Console/.gitkeep
+tests/Http/WelcomeTest.php
+tests/Pest.php
+tests/TestCase.php
+tests/Unit/Actions/.gitkeep
+tests/Unit/Enums/.gitkeep
+tests/Unit/Models/UserTest.php
+tests/Unit/Support/.gitkeep
+tsconfig.json
+vite.config.ts
+vitest.config.ts
+vitest.setup.ts
+"
+
+# The canonical bucket vocabulary. classify.sh's cascade must emit only these and
+# reference/profiles/laravel-starter-kit.md must document each.
+SYNC_SKELETON_BUCKETS="quality-gate frontend-tooling essentials arch-tests frontend-test-setup agent-rules welcome-page misc-config drift-only not-in-scope never-touch"
+
+# A kit repo (bare origin) whose origin/main tree is exactly the pinned manifest,
+# every path an empty file. Lets buckets.bats drive the real classify.sh.
+given_kit_manifest_as_fixture() {
+    given_classify_fixture
+    local path
+    for path in $SYNC_SKELETON_KIT_MANIFEST; do
+        mkdir -p "$classify_kit/$(dirname "$path")"
+        : > "$classify_kit/$path"
+    done
+    git -C "$classify_kit" add -A
+    commit_kit
+}
+
+assert_known_bucket() {
+    local bucket="$1" known
+    for known in $SYNC_SKELETON_BUCKETS; do
+        [ "$bucket" = "$known" ] && return 0
+    done
+    return 1
+}
+
+# Every pinned kit path must get a bucket from the canonical vocabulary.
+assert_every_manifest_path_has_known_bucket() {
+    local path bucket
+    for path in $SYNC_SKELETON_KIT_MANIFEST; do
+        bucket="$(printf '%s\n' "$output" | awk -F'\t' -v p="$path" '$3 == p { print $2 }')"
+        assert_known_bucket "$bucket" \
+            || { echo "path '$path' -> bucket '${bucket:-<none>}'" >&2; return 1; }
+    done
+}
+
+# Every canonical bucket name must be documented in the profile catalog.
+assert_buckets_documented_in_profile() {
+    local bucket
+    for bucket in $SYNC_SKELETON_BUCKETS; do
+        grep -q -- "$bucket" "$profile" \
+            || { echo "profile doc does not mention bucket '$bucket'" >&2; return 1; }
+    done
+}
+
+# Every canonical bucket name must actually be used by the cascade (no stale
+# entries in the vocabulary).
+assert_every_bucket_used_by_cascade() {
+    local bucket used
+    used="$(printf '%s\n' "$output" | awk -F'\t' '{ print $2 }' | sort -u)"
+    for bucket in $SYNC_SKELETON_BUCKETS; do
+        printf '%s\n' "$used" | grep -qx -- "$bucket" \
+            || { echo "bucket '$bucket' is in the vocabulary but never assigned" >&2; return 1; }
+    done
+}
+
 # Runs preflight.sh capturing only its stderr, so a test can assert what the
 # script routes there (the SPEC requires `git status --short` on stderr).
 run_preflight_stderr() {
