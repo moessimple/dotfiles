@@ -198,8 +198,8 @@ reference:
   `ensure_pages_exist`. A descendant that renamed the home route or page must
   adjust the test or skip it.
 - Browser suite: `composer test:browser` needs `tests/Browser/Pest.php` (applied
-  in P4 only when absent) plus a one-time `npx playwright install chromium`
-  (the kit does this in `composer setup`, which is not synced).
+  in P4 only when absent) plus a one-time `npx playwright install chromium`,
+  which Phase 6 step 4 runs and step 1 folds into the realigned `setup` alias.
 - Files the kit deleted: `resources/js/lib/utils.ts` is removed by the P2
   kit-authoritative arm (its `cn(` / `@/lib/utils` callers become app-code
   follow-ups). `tests/Feature/ExampleTest.php`, `tests/Unit/ExampleTest.php` are
@@ -272,11 +272,13 @@ partial diffs the user approved. Script aliases, then dependency directives, the
 the toolchain migration when it is triggered:
 
 1. **Adopt the kit's script aliases, do not just check equivalents exist.**
-   Bring in every kit `scripts` entry for the quality gate (`dev`, `lint`,
-   `test:lint`, `test:types`, `test:type-coverage`, `test:unit`, `test:browser`,
-   `test`, `update:dependencies` in `composer.json`; `build`, `dev`, `lint`,
-   `test:lint`, `test:unit`, `test:types` in `package.json`). Where the project
-   has diverged, align the alias body to the kit's exact commands and order.
+   Bring in every kit `scripts` entry for the quality gate (`setup`, `dev`,
+   `lint`, `test:lint`, `test:types`, `test:type-coverage`, `test:unit`,
+   `test:browser`, `test`, `update:dependencies` in `composer.json`; `build`,
+   `build:ssr`, `dev`, `lint`, `test:lint`, `test:unit`, `test:types` in
+   `package.json`). `setup` matters because that is where the kit runs
+   `npx playwright install chromium`. Where the project has diverged, align the
+   alias body to the kit's exact commands and order.
    Keep only steps the project genuinely adds for paths the kit does not have
    (e.g. a monorepo sub-package fan-out), appended after the kit's commands.
    A project alias that merely wraps the same tool differently
@@ -314,6 +316,16 @@ the toolchain migration when it is triggered:
 
 Regenerate lockfiles with `composer update --lock` and the project's JS package
 manager. Commit as a separate `sync-skeleton: dependency lockfiles` commit.
+
+4. **Browser runtime.** The kit installs Chromium in its `composer setup`
+   (`npx playwright install chromium`); step 1 realigns the project's `setup`
+   alias so it carries that line for next time. For this run, when
+   `pest-plugin-browser` is now in `require-dev` and `tests/Browser/Pest.php` is
+   present, execute `npx playwright install chromium` directly (one-time,
+   downloads a browser binary, not a repo change; confirm first). Do not run the
+   full `composer setup` (it also runs `migrate --force`). Record it as done so
+   Phase 7 marks the real-browser line `met`. If it fails (offline, no npm), list
+   it as a prerequisite.
 
 ### Phase 7: Verify and report
 
@@ -354,19 +366,20 @@ to-do.
 - `vp lint` + `vp fmt` + `vue-tsc`: vite-plus in `devDependencies`, the eslint /
   prettier family gone, `package.json` gate scripts match the kit.
 - Real-browser tests: `pest-plugin-browser` in `require-dev`,
-  `tests/Browser/Pest.php` present, Chromium a listed follow-up.
+  `tests/Browser/Pest.php` present, `npx playwright install chromium` run in
+  Phase 6 (a listed follow-up only if that install failed).
 - Essentials defaults: `config/essentials.php` byte-matches; `nunomaduro/essentials`
   in `require` and the `bootstrap/app.php` wiring are follow-ups (never-touch).
 - Split CI: the three workflows and `setup-app` byte-match the kit.
 - Agent rules: `.ai/rules/**` present.
 
-**Prerequisites for a green gate** (list what the user still has to do by hand):
-`npx playwright install chromium`; add the kit's `.gitignore` entries
-(`/resources/js/{actions,routes,wayfinder}`, `/.phpunit.cache`, `/storage/pail`,
-`/coverage`); add the `.env` keys (`INERTIA_SSR_ENABLED`, `VITE_APP_NAME`,
-`APP_FAKER_LOCALE`); wire `tests/Pest.php`; wire `bootstrap/app.php` /
-`AppServiceProvider` for Essentials; run `php artisan wayfinder:generate` before
-the JS type-check.
+**Prerequisites for a green gate** (list what the user still has to do by hand;
+`npx playwright install chromium` is here only if Phase 6 step 4 could not run
+it): add the kit's `.gitignore` entries (`/resources/js/{actions,routes,wayfinder}`,
+`/.phpunit.cache`, `/storage/pail`, `/coverage`); add the `.env` keys
+(`INERTIA_SSR_ENABLED`, `VITE_APP_NAME`, `APP_FAKER_LOCALE`); wire
+`tests/Pest.php`; wire `bootstrap/app.php` / `AppServiceProvider` for Essentials;
+run `php artisan wayfinder:generate` before the JS type-check.
 
 **Behavior guarantee.** Run the project's `composer test` chain again.
 

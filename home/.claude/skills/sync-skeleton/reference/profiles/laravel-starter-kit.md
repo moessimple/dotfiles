@@ -151,7 +151,8 @@ for every item. Nothing may be silently divergent.
 `.npmrc`, `.nvmrc`, `pnpm-workspace.yaml`, `config/essentials.php`.
 
 **Scripts** carry the kit's bodies (a monorepo fan-out suffix is allowed) and
-each at least starts: `composer dev`, `composer lint`, `composer test:lint`,
+each at least starts: `composer setup` (the kit's `npx playwright install
+chromium` lives here), `composer dev`, `composer lint`, `composer test:lint`,
 `composer test:types`, `composer test:type-coverage`, `composer test:unit`,
 `composer test:browser`, `composer test`, `composer update:dependencies`; and in
 `package.json` `build`, `build:ssr`, `dev`, `lint`, `test:lint`, `test:unit`,
@@ -164,7 +165,13 @@ confirm after merging: `phpstan.neon` `includes:` (larastan, pest phpstan plugin
 phpstan-mockery), `rector.php` set imports (rector-laravel), `tests/Pest.php`
 plugins (pest-plugin-laravel).
 
-**Blocked (named follow-ups, never done by the skill)**: `npx playwright install
-chromium`; `nunomaduro/essentials` in `require` and its `bootstrap/app.php`
-wiring; `tests/Pest.php` wiring; app-code changes for PHPStan max / 100% coverage
-/ strict types. These make the verdict `blocked`, not `incomplete`.
+**Browser runtime**: the kit runs `npx playwright install chromium` in `composer
+setup`. Phase 6 step 1 realigns the project's `setup` alias to carry that line;
+step 4 executes it directly for this run (with confirmation, not the full
+`setup`) once `pest-plugin-browser` and `tests/Browser/Pest.php` are in place. A
+`blocked` follow-up only if that install could not run.
+
+**Blocked (named follow-ups, never done by the skill)**: `nunomaduro/essentials`
+in `require` and its `bootstrap/app.php` wiring; `tests/Pest.php` wiring;
+app-code changes for PHPStan max / 100% coverage / strict types. These make the
+verdict `blocked`, not `incomplete`.
