@@ -263,9 +263,8 @@ this branch.
    `composer test` once more and copy its output verbatim into the report as the
    app-code to-do list. Findings there are follow-ups, not regressions.
 
-4. **Report.** Write to `${TMPDIR:-/tmp}/sync-skeleton-report-<id>.md` (`<id>`
-   matches the branch's `sync-skeleton/<id>`). Show the path; ask whether to copy
-   it into the project. Sections:
+4. **Report.** Print it directly in the chat response as Markdown. Do not write
+   it to a file and do not offer to copy it into the project. Sections:
 
    ```markdown
    # Sync Skeleton Report

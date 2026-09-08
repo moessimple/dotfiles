@@ -29,6 +29,7 @@ vite.config.ts
 vitest.config.ts
 vitest.setup.ts
 tsconfig.json
+.editorconfig
 .npmrc
 .nvmrc
 pnpm-workspace.yaml
