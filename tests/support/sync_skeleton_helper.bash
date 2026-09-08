@@ -15,6 +15,7 @@ new_sync_skeleton_fixture() {
     preflight="$skill_dir/scripts/preflight.sh"
     fetch_kit="$skill_dir/scripts/fetch-kit.sh"
     classify="$skill_dir/scripts/classify.sh"
+    plan_manifest="$skill_dir/scripts/plan-manifest.sh"
     profile="$skill_dir/reference/profiles/laravel-starter-kit.md"
 
     target="$fixture/project"
@@ -216,6 +217,63 @@ assert_bucket() {
     got="$(printf '%s\n' "$output" | awk -F'\t' -v p="$path" '$3 == p { print $2 }')"
     [ "$got" = "$expected" ] \
         || { echo "expected bucket '$expected' for $path, got '${got:-<no line>}'" >&2; return 1; }
+}
+
+# --- plan-manifest fixtures -------------------------------------------------
+#
+# plan-manifest.sh diffs the kit's require-dev / devDependencies against the
+# project's. Reuses given_classify_fixture (kit repo with a bare origin/main,
+# plain target dir); stage the two manifests with kit_manifest / project_manifest
+# then commit_kit before run_plan_manifest.
+
+# Builds a minimal pretty-printed manifest: a JSON object with one block named
+# $1 holding the remaining args as "name": "constraint" pairs. plan-manifest.sh
+# only reads the require-dev / devDependencies block, so that is all a fixture
+# needs.
+#   manifest_json require-dev  phpstan/phpstan ^2.0  laravel/pint ^1.0
+manifest_json() {
+    local block="$1"; shift
+    printf '{\n    "%s": {\n' "$block"
+    local first=1
+    while [ $# -ge 2 ]; do
+        [ "$first" -eq 1 ] && first=0 || printf ',\n'
+        printf '        "%s": "%s"' "$1" "$2"
+        shift 2
+    done
+    printf '\n    }\n}\n'
+}
+
+# Writes composer.json + package.json into the kit tree. An omitted arg defaults
+# to a manifest with an empty require-dev / devDependencies block, so every
+# fixture is a realistic project with both files.
+kit_manifest() {
+    kit_has "composer.json" "${1:-$(manifest_json require-dev)}"
+    kit_has "package.json" "${2:-$(manifest_json devDependencies)}"
+}
+
+# Same for the project tree.
+project_manifest() {
+    project_has "composer.json" "${1:-$(manifest_json require-dev)}"
+    project_has "package.json" "${2:-$(manifest_json devDependencies)}"
+}
+
+run_plan_manifest() {
+    run bash "$plan_manifest" laravel-starter-kit "$classify_kit" main "$target"
+}
+
+# Asserts plan-manifest.sh emitted exactly this directive line.
+assert_directive() {
+    local want
+    printf -v want '%s\t%s\t%s\t%s' "$1" "$2" "$3" "$4"
+    printf '%s\n' "$output" | grep -qxF "$want" \
+        || { echo "missing directive: $1 $2 $3 $4" >&2; echo "got:" >&2; printf '%s\n' "$output" >&2; return 1; }
+}
+
+# Asserts plan-manifest.sh emitted no directive at all for <name> (column 3).
+assert_no_directive_for() {
+    local name="$1"
+    printf '%s\n' "$output" | awk -F'\t' -v n="$name" '$3 == n { exit 1 }' \
+        || { echo "unexpected directive for '$name'" >&2; printf '%s\n' "$output" >&2; return 1; }
 }
 
 # --- kit path manifest ------------------------------------------------------

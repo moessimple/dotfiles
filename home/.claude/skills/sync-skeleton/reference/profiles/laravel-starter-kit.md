@@ -32,6 +32,12 @@ The target is treated as a descendant of this skeleton only when all three hold:
 
 P1 and P2 preselect `new` **and** `differs`. P3 through P8 preselect only `new`.
 
+**P1 and P2 are kit-authoritative.** These two buckets are the kit's whole point
+(`README#why-this-starter-kit`), so their sync is convergence, not negotiation:
+the kit wins every `differs`, `deleted-upstream` files are removed, and the
+dependency sets are made equal to the kit's via `plan-manifest.sh`. Per-file /
+per-dependency veto is allowed and recorded. P3-P8 stay conservative.
+
 ### P1 quality-gate
 
 `.github/workflows/lint.yml`, `.github/workflows/static.yml`,
@@ -39,21 +45,26 @@ P1 and P2 preselect `new` **and** `differs`. P3 through P8 preselect only `new`.
 `.github/dependabot.yml`, `pint.json`, `phpstan.neon`, `rector.php`,
 `phpunit.xml`, `.gitattributes`.
 
-Guided manifest (never overwritten wholesale): `composer.json` `scripts` +
-`require-dev`, and `composer.lock` regenerated afterwards.
+Manifest (never overwritten wholesale): `composer.json` `scripts` realigned to
+the kit, `require-dev` converged via `plan-manifest.sh` (`add` / `align`), and
+`composer.lock` regenerated afterwards.
 
 ### P2 frontend-tooling
 
 `vite.config.ts`, `vitest.config.ts`, `vitest.setup.ts`, `tsconfig.json`,
 `.npmrc`, `.nvmrc`, `pnpm-workspace.yaml`.
 
-Guided manifest: `package.json` `scripts` + `devDependencies` taken whole from
-the kit manifest read live (only deliberate removals: `eslint*` / `prettier*`
-after the vite-plus move), and `package-lock.json` regenerated afterwards.
+Manifest: `package.json` `scripts` realigned to the kit, `devDependencies`
+converged via `plan-manifest.sh` (`add` / `align` / `remove`), and
+`package-lock.json` regenerated afterwards.
 
 `deleted-upstream` for `eslint.config.*`, `.prettierrc*`, `.prettierignore`,
-`resources/js/lib/utils.ts` (the kit dropped these in the vite-plus move). Keep
-the project's copy by default; delete only on request.
+`resources/js/lib/utils.ts` (the kit dropped these in the vite-plus move).
+Kit-authoritative: **deleted** by default, veto to keep. When `plan-manifest.sh`
+emits `remove npm` for an eslint/prettier family, the full toolchain migration
+(SKILL.md Phase 6) runs: strip the family, add vite-plus, rewrite the
+`package.json` gate scripts, list `eslint-disable` / `prettier-ignore` /
+`@/lib/utils` hits in `resources/**` as app-code follow-ups.
 
 ### P3 essentials
 
@@ -126,27 +137,34 @@ own block for a manual decision and never auto-applies it. When one appears, add
 an arm to the cascade and a line to the relevant section above, then regenerate
 `SYNC_SKELETON_KIT_MANIFEST` in `tests/support/sync_skeleton_helper.bash`.
 
-## Available Tooling (P1 + P2 acceptance)
+## P1 + P2 acceptance (the guarantee)
 
-Source: the kit README `#available-tooling` section. After `quality-gate` +
-`frontend-tooling` are applied, `composer.json` `scripts` must carry these and
-each must at least start (no "command not found", no missing binary; real code
-findings are expected):
+Source: the kit README `#why-this-starter-kit` and `#available-tooling`. After
+P1 + P2 are applied, Phase 7's convergence check must reach a verdict of `met`,
+`deviation: <reason>` (user vetoed), or `blocked: <follow-up>` (app-code work)
+for every item. Nothing may be silently divergent.
 
-- `composer dev` - server + queue + log + Vite together
-- `composer lint` - Rector + Pint + vite-plus formatter/linter, fix in place
-- `composer test:lint` - read-only: Pint `--test`, Rector `--dry-run`, vp check
-- `composer test:types` - PHPStan `level: max` + `vue-tsc`
-- `composer test:type-coverage` - 100% type coverage (Pest)
-- `composer test:unit` - Pest under a 100% line-coverage gate, then Vitest
-- `composer test:browser` - headless Chromium suite
-- `composer test` - the full chain in order
-- `composer update:dependencies` - Composer + npm bump
+**Config files** byte-match `git show origin/<branch>:<path>`: `phpstan.neon`,
+`phpunit.xml`, `pint.json`, `rector.php`, `.gitattributes`, the three
+`.github/workflows/*.yml`, `.github/actions/setup-app/**`, `.github/dependabot.yml`,
+`vite.config.ts`, `vitest.config.ts`, `vitest.setup.ts`, `tsconfig.json`,
+`.npmrc`, `.nvmrc`, `pnpm-workspace.yaml`, `config/essentials.php`.
 
-`require-dev` must cover every tool the scripts *and the config files* reference.
-Do not work from a copy of the list here; read the kit's own manifests live
-(`git show origin/<branch>:composer.json` and `:package.json`) and take
-`require-dev` / `devDependencies` whole. The parts that break on load rather than
-as a finding: `phpstan.neon` `includes:` (larastan, the pest phpstan plugin,
+**Scripts** carry the kit's bodies (a monorepo fan-out suffix is allowed) and
+each at least starts: `composer dev`, `composer lint`, `composer test:lint`,
+`composer test:types`, `composer test:type-coverage`, `composer test:unit`,
+`composer test:browser`, `composer test`, `composer update:dependencies`; and in
+`package.json` `build`, `build:ssr`, `dev`, `lint`, `test:lint`, `test:unit`,
+`test:types`.
+
+**Dependencies**: `plan-manifest.sh` re-run prints nothing (bar vetoed lines).
+That covers `roave/security-advisories`, `pest-plugin-browser`, and the eslint /
+prettier removal. The parts that break on *load* rather than as a finding, to
+confirm after merging: `phpstan.neon` `includes:` (larastan, pest phpstan plugin,
 phpstan-mockery), `rector.php` set imports (rector-laravel), `tests/Pest.php`
-plugins (pest-plugin-laravel). After merging, confirm each of those resolves.
+plugins (pest-plugin-laravel).
+
+**Blocked (named follow-ups, never done by the skill)**: `npx playwright install
+chromium`; `nunomaduro/essentials` in `require` and its `bootstrap/app.php`
+wiring; `tests/Pest.php` wiring; app-code changes for PHPStan max / 100% coverage
+/ strict types. These make the verdict `blocked`, not `incomplete`.
