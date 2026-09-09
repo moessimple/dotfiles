@@ -37,6 +37,28 @@ call_switch_choosing_leave_and_confirming_overwrite_with() {
     ' zsh "$confirm_answer" "$dotfiles_dir/support/git/switch.sh" "$repository" "$branch"
 }
 
+call_switch_choosing_leave_confirming_overwrite_with_stash_that_does_nothing() {
+    zsh -c '
+        function git() {
+            if [[ "$1" == "stash" && "$2" == "push" ]]; then
+                echo "No local changes to save"
+                return 0
+            fi
+            command git "$@"
+        }
+        read() {
+            if [[ "$1" == "-q" ]]; then
+                true
+            else
+                builtin read "$@"
+            fi
+        }
+        source "$1"
+        cd "$2"
+        switch "$3" <<< "1"
+    ' zsh "$dotfiles_dir/support/git/switch.sh" "$repository" "$1"
+}
+
 call_switch_with_stash_that_does_nothing() {
     zsh -c '
         function git() {

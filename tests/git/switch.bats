@@ -222,8 +222,53 @@ teardown() {
     # Assert
     assert_success
     assert_current_branch main
+    assert_stash_count 1
     assert_stash_marked_for feature
     assert_stash_contains "newer change"
+}
+
+@test "a replacement stash that saves nothing leaves the existing stash intact" {
+    # Arrange
+    given_switch_repository_on_feature_branch
+    given_tracked_and_untracked_changes
+    run call_switch_with_input "1" main
+    assert_success
+    git -C "$repository" switch -q feature
+    given_tracked_and_untracked_changes
+
+    # Act
+    run call_switch_choosing_leave_confirming_overwrite_with_stash_that_does_nothing main
+
+    # Assert
+    assert_failure
+    assert_output_contains "Could not stash local changes; branch was not switched."
+    assert_current_branch feature
+    assert_stash_count 1
+    assert_stash_marked_for feature
+}
+
+@test "repeated overwrite confirmations keep exactly one stash for the branch" {
+    # Arrange
+    given_switch_repository_on_feature_branch
+    given_tracked_and_untracked_changes
+    run call_switch_with_input "1" main
+    assert_success
+
+    git -C "$repository" switch -q feature
+    printf 'second round\n' > "$repository/tracked.txt"
+    run call_switch_choosing_leave_and_confirming_overwrite_with "y" main
+    assert_success
+
+    git -C "$repository" switch -q feature
+    printf 'third round\n' > "$repository/tracked.txt"
+
+    # Act
+    run call_switch_choosing_leave_and_confirming_overwrite_with "y" main
+
+    # Assert
+    assert_success
+    assert_stash_count 1
+    assert_stash_contains "third round"
 }
 
 @test "arriving on a branch with changes left behind earlier prints how to restore them" {

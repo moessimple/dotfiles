@@ -25,6 +25,19 @@ _switch_find_stash() {
     return 1
 }
 
+# Drops the stash entry that points at commit $1, wherever it currently sits in the
+# list. Used after a replacement stash is pushed, when the old entry's index has shifted.
+_switch_drop_stash_by_commit() {
+    local target="$1" line ref
+    while IFS= read -r line; do
+        ref="${line%%:*}"
+        if [ "$(git rev-parse --verify --quiet "$ref")" = "$target" ]; then
+            git stash drop "$ref" >/dev/null
+            return
+        fi
+    done < <(git stash list)
+}
+
 # Confirms something was actually saved, since `git stash push` exits 0 even when there
 # was nothing to stash.
 _switch_do_stash() {
@@ -82,15 +95,23 @@ function switch() {
 
         case "$choice" in
             1)
-                if [ -n "$(_switch_find_stash "$current_branch")" ]; then
+                local existing_stash existing_stash_commit=""
+                existing_stash="$(_switch_find_stash "$current_branch")"
+                if [ -n "$existing_stash" ]; then
                     if ! read -q "?Overwrite the existing stash on $current_branch with your current changes? [y/N] "; then
                         echo
                         echo "Switch cancelled."
                         return 1
                     fi
                     echo
+                    # Resolved to a commit, not kept as stash@{N}: pushing the new stash
+                    # below shifts every existing entry's index by one. The old entry is
+                    # dropped only after the replacement exists, so a failed push cannot
+                    # leave the branch with neither stash.
+                    existing_stash_commit="$(git rev-parse --verify --quiet "$existing_stash")"
                 fi
                 _switch_do_stash "$(_switch_stash_marker "$current_branch")" || return
+                [ -n "$existing_stash_commit" ] && _switch_drop_stash_by_commit "$existing_stash_commit"
                 stashed=1
                 leaving=1
                 ;;
