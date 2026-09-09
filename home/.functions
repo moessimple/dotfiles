@@ -486,10 +486,16 @@ importdump() {
     shift
     [[ $# -eq 0 ]] && { echo "No SQL files provided." 1>&2; return 1; }
 
+    # pipefail so an unreadable dump (pv fails) is not masked by mysql exiting 0 on
+    # empty input; failed aggregates so one bad import in a list is reported.
+    setopt localoptions pipefail
+
+    local dump failed=0
     for dump in "$@"; do
         echo "Importing: $dump"
-        pv "$dump" | _mysql_cmd --force --binary-mode "$db"
+        pv "$dump" | _mysql_cmd --force --binary-mode "$db" || failed=1
     done
+    return "$failed"
 }
 
 _env_val() { grep "^$1=" .env 2>/dev/null | tail -n1 | cut -d= -f2- | tr -d '\r'; }

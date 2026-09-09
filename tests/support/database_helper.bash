@@ -19,3 +19,8 @@ given_fake_mysql() {
 given_fake_pv() {
     write_fake_binary pv "cat \"\$1\""
 }
+
+# Fake mysql that exits non-zero when the streamed SQL contains $1, and 0 otherwise.
+given_mysql_fails_when_streamed_content_contains() {
+    write_fake_binary mysql "grep -q -- '$1' - && exit 1; exit 0"
+}

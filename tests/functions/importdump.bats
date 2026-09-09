@@ -82,3 +82,26 @@ teardown() {
     assert_output_contains "Importing: other.sql"
     assert_binary_call_count mysql 2
 }
+
+@test "importdump fails when an earlier file fails even if a later one succeeds" {
+    # Arrange
+    printf 'BROKEN sql\n' > "$working_directory/bad.sql"
+    printf 'good content\n' > "$working_directory/good.sql"
+    given_mysql_fails_when_streamed_content_contains BROKEN
+
+    # Act
+    run call_importdump mydb bad.sql good.sql
+
+    # Assert
+    assert_failure
+    assert_output_contains "Importing: good.sql"
+    assert_binary_call_count mysql 2
+}
+
+@test "importdump fails when a dump file cannot be read" {
+    # Act
+    run call_importdump mydb missing.sql
+
+    # Assert
+    assert_failure
+}
