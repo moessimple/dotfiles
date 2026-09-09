@@ -38,6 +38,7 @@ Thumbs.db
 
 # AI Coding
 .claude/settings.local.json
+.bloom/
 
 # Virtualization
 .vagrant/
