@@ -64,6 +64,23 @@ teardown() {
     assert_tool_did_not_run_with_argument rector src/Unchanged.php
 }
 
+@test "a fast check does not run Rector on a changed PHP file under a hidden path" {
+    # Arrange
+    given_project_with_tools composer pint phpstan rector pest phpunit
+    commit_project
+    mkdir -p "$project/.claude"
+    printf '<?php\n// changed\n' > "$project/src/Example.php"
+    printf '<?php\n' > "$project/.claude/Hook.php"
+
+    # Act
+    run run_gate fast
+
+    # Assert
+    assert_success
+    assert_tool_ran_with_argument rector src/Example.php
+    assert_tool_did_not_run_with_argument rector .claude/Hook.php
+}
+
 @test "a fast check can skip tests without skipping code checks" {
     # Arrange
     given_project_with_tools composer pint phpstan rector pest phpunit

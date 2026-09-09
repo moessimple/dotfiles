@@ -76,14 +76,20 @@ pint_covers_path() {
 # Mirrors Pint's own --dirty semantics (every PHP file with an uncommitted
 # change: staged, unstaged, or new) so Rector, which has no --dirty flag of
 # its own, can be scoped to the same bounded set of files in fast mode.
+# Hidden paths are dropped for the same reason file mode drops them (see
+# is_hidden_path): neither Pint's nor Rector's project-wide run reaches a
+# dot-file or a file under a dot-directory, so fast mode must not either.
 # --relative forces paths relative to the caller's cwd (already $root by the
 # time this runs), matching what a relative `vendor/bin/rector process <path>`
 # call expects; git's default without it is relative to the repo toplevel,
 # which would be wrong for a project nested below the git root.
 dirty_php_files() {
+    local file
     { git diff --name-only --relative --diff-filter=ACMR HEAD -- . 2>/dev/null
       git ls-files --others --exclude-standard -- . 2>/dev/null
-    } | grep '\.php$' | sort -u
+    } | grep '\.php$' | sort -u | while IFS= read -r file; do
+        is_hidden_path "$file" || printf '%s\n' "$file"
+    done
 }
 
 # Rector has no --dirty flag of its own; this gives it Pint's scope instead
