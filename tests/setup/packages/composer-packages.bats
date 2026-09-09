@@ -13,6 +13,19 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
+@test "the composer-diff plugin is allow-listed with an explicit true" {
+    # Arrange
+    given_fake_composer_reporting_installed '{"installed":[]}'
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_binary_called_with composer \
+        "global config --no-plugins allow-plugins.ion-bazan/composer-diff true"
+}
+
 @test "a globally required package not declared in composer-packages.sh is removed" {
     # Arrange
     given_fake_composer_reporting_installed '{"installed":[{"name":"laravel/pint"},{"name":"foo/undeclared"}]}'

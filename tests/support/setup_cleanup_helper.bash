@@ -13,6 +13,18 @@ call_cleanup_function() {
     ' bash "$file" "$function_name"
 }
 
+# Sources one support/setup/**/*.sh file with step/warn/success stubbed, running only
+# its top-level body (no cleanup function). For asserting on what the install step does.
+run_setup_script() {
+    local file="$1"
+    HOME="${test_home:-$HOME}" bash -c '
+        step() { :; }
+        warn() { echo "WARN: $*"; }
+        success() { echo "SUCCESS: $*"; }
+        source "$1"
+    ' bash "$file"
+}
+
 given_fake_composer_reporting_installed() {
     local json="$1"
     cat > "$fake_bin/composer" <<EOF

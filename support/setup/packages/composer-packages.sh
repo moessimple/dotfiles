@@ -13,7 +13,7 @@ COMPOSER_PACKAGES=(
 # Ensure each entry in COMPOSER_PACKAGES is globally required; failures are
 # downgraded to warnings so the remaining packages can still be processed.
 step "Installing global Composer packages"
-composer global config --no-plugins allow-plugins.ion-bazan/composer-diff || warn "composer-diff already configured"
+composer global config --no-plugins allow-plugins.ion-bazan/composer-diff true || warn "Could not allow-list the composer-diff plugin"
 for package in "${COMPOSER_PACKAGES[@]}"; do
     composer global require --no-interaction "$package" || warn "$package already installed or failed"
 done
