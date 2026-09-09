@@ -175,3 +175,17 @@ teardown() {
     assert_commit_count 1
     assert_changes_are_staged
 }
+
+@test "generating a message does not leak clean_it or spinner_pid into the shell" {
+    # Arrange
+    given_repository_with_modified_tracked_file
+    write_successful_claude "Describe the tracked change"
+    write_provider_that_must_not_run codex
+
+    # Act
+    run call_commit_then_report_leaked_state
+
+    # Assert
+    assert_success
+    [ "$output" = "no-clean_it spinner_pid=[<unset>]" ]
+}

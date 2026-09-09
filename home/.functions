@@ -153,7 +153,7 @@ commit() {
                 done
             done
         } &!
-        spinner_pid=$!
+        local spinner_pid=$!
 
         clean_it() {
             { kill $spinner_pid; wait $spinner_pid; } 2>/dev/null
@@ -192,6 +192,7 @@ commit() {
         fi
 
         trap - INT
+        unfunction clean_it 2>/dev/null
         { kill $spinner_pid; wait $spinner_pid; } 2>/dev/null
         printf "\r\033[K"
 
