@@ -15,11 +15,14 @@ function prune() {
     # Whole-name match only, so "feature/domain-model" or "premaster" don't count.
     local protected_pattern="(^\*|(^|[[:space:]/])(${(j:|:)long_lived_branches})\$)"
     local default_branch
-    default_branch=$(git default-branch)
+    # Both preconditions are guarded: prune deletes local and remote branches, so a
+    # failed default-branch resolution or a failed fetch must stop it rather than let
+    # it act on a stale or wrong merge base.
+    default_branch=$(git default-branch) || return
 
     # Prune obsolete remote-tracking branches: branches we once tracked that have since
     # been deleted on the remote.
-    git fetch origin --prune --jobs=10
+    git fetch origin --prune --jobs=10 || return
 
     # List all local branches merged fully into the default branch, then delete them.
     # Merged against origin/$default_branch, not the local branch, so a stale local

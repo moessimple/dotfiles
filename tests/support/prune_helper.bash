@@ -26,6 +26,10 @@ given_unmerged_branch_pushed_to_origin() {
     git -C "$repository" switch -q main
 }
 
+given_origin_became_unreachable() {
+    git -C "$repository" remote set-url origin "$fixture/missing-origin.git"
+}
+
 given_branch_with_gone_upstream() {
     local branch="$1"
     given_merged_branch_pushed_to_origin "$branch"

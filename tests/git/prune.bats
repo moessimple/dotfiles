@@ -106,6 +106,21 @@ teardown() {
     assert_remote_branch_does_not_exist current-work
 }
 
+@test "a failed fetch aborts prune before any branch is deleted" {
+    # Arrange
+    given_repository_with_origin_on_main
+    given_merged_branch_pushed_to_origin merged
+    git -C "$repository" fetch -q origin
+    given_origin_became_unreachable
+
+    # Act
+    run call_prune
+
+    # Assert
+    assert_failure
+    assert_branch_exists merged
+}
+
 @test "an unmerged branch is kept" {
     # Arrange
     given_repository_with_origin_on_main
