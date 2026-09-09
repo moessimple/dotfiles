@@ -143,6 +143,21 @@ teardown() {
     assert_path_does_not_exist "$fake_home/SecureData.sparsebundle"
 }
 
+@test "sd delete keeps the bundle when the unmount fails" {
+    # Arrange
+    given_secure_data_mounted
+    given_bundle_exists
+    write_fake_binary hdiutil 'case "$1" in detach) exit 1 ;; esac'
+
+    # Act
+    run call_sd_delete_confirmed_with "y"
+
+    # Assert
+    assert_failure
+    assert_output_contains "Could not unmount SecureData; not deleting."
+    assert_path_exists "$fake_home/SecureData.sparsebundle"
+}
+
 @test "sd delete reports when the bundle does not exist" {
     # Arrange
     given_secure_data_not_mounted

@@ -643,7 +643,10 @@ sd() {
         delete)
             read -q "?Delete $volume permanently? [y/N] " || { echo; return 1; }
             echo
-            _sd_mounted && hdiutil detach "$mountpoint"
+            if _sd_mounted && ! hdiutil detach "$mountpoint"; then
+                echo "Could not unmount $volume; not deleting." >&2
+                return 1
+            fi
             [ -d "$bundle" ] && rm -rf "$bundle" || echo "$volume does not exist."
             ;;
         status)
