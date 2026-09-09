@@ -34,6 +34,17 @@ EOF
     chmod +x "$fake_bin/herd"
 }
 
+# Writes a fake `herd` whose `php:list --json` exits non-zero, standing in for a
+# broken Herd install or daemon.
+given_herd_php_list_fails() {
+    cat > "$fake_bin/herd" <<EOF
+#!/usr/bin/env bash
+printf '%s\n' "\$*" >> "$fake_bin/herd.calls"
+exit 1
+EOF
+    chmod +x "$fake_bin/herd"
+}
+
 # Creates the Herd-shipped xdebug-<slug>-arm64.so for each given version slug.
 given_herd_ships_xdebug_build_for() {
     mkdir -p "$herd_resources/xdebug"

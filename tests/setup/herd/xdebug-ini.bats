@@ -73,6 +73,19 @@ teardown() {
     assert_file_content "$(ini_path 84/debug/debug.ini)" "hand-tuned by herd"
 }
 
+@test "a failing herd php:list is reported instead of claiming the ini files were installed" {
+    given_herd_php_list_fails
+    given_herd_ships_xdebug_build_for 84
+    given_herd_debug_template_is_present
+
+    run run_herd_debug_ini_setup
+
+    assert_success
+    assert_output_contains "WARN: Could not read Herd's PHP versions"
+    assert_output_does_not_contain "SUCCESS:"
+    assert_no_ini_files_for 84
+}
+
 @test "no Herd debug template found: nothing is generated and a warning is shown" {
     given_herd_reports_installed_php_versions 8.4
     given_herd_ships_xdebug_build_for 84

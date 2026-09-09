@@ -18,8 +18,16 @@ HERD_RESOURCES_DIR="${HERD_RESOURCES_DIR:-/Applications/Herd.app/Contents/Resour
 HERD_DEBUG_TEMPLATE="$HERD_RESOURCES_DIR/config/php/debug.ini"
 HERD_PHP_CONFIG_DIR="$HOME/Library/Application Support/Herd/config/php"
 
-if [ -f "$HERD_DEBUG_TEMPLATE" ]; then
+if [ ! -f "$HERD_DEBUG_TEMPLATE" ]; then
+    warn "Herd's debug.ini template was not found, skipping Xdebug debug.ini setup"
+elif ! installed_versions=$(set -o pipefail; herd php:list --json | jq -r '.[] | select(.installed) | .version'); then
+    # pipefail, and the result captured before the loop, so a failing `herd` or a
+    # jq parse error surfaces here instead of an empty version list that would
+    # process nothing and still report success.
+    warn "Could not read Herd's PHP versions, skipping Xdebug ini setup"
+else
     while IFS= read -r version; do
+        [ -n "$version" ] || continue
         version_slug="${version//./}"
         debug_dir="$HERD_PHP_CONFIG_DIR/$version_slug/debug"
         debug_ini="$debug_dir/debug.ini"
@@ -43,8 +51,6 @@ if [ -f "$HERD_DEBUG_TEMPLATE" ]; then
             printf 'zend_extension=%s\nxdebug.mode=off\n' "$xdebug_extension" > "$always_ini" \
                 || error "Could not install the always-loaded Xdebug ini for PHP $version"
         fi
-    done < <(herd php:list --json | jq -r '.[] | select(.installed) | .version')
+    done <<< "$installed_versions"
     success "Herd Xdebug ini files installed"
-else
-    warn "Herd's debug.ini template was not found, skipping Xdebug debug.ini setup"
 fi
