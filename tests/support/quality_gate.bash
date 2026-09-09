@@ -146,7 +146,8 @@ install_tool() {
 }
 
 run_gate() {
-    PATH="$fake_bin:$PATH" \
+    PATH="${GATE_PATH:-$fake_bin:$PATH}" \
+        HOME="${GATE_HOME:-$HOME}" \
         XDG_CONFIG_HOME="$config_home" \
         CLAUDE_PROJECT_DIR="$project" \
         CLAUDE_QUALITY_SKIP_TESTS="${CLAUDE_QUALITY_SKIP_TESTS:-}" \
@@ -228,7 +229,7 @@ stop_event_json() {
 path_without_composer() {
     local dir="$fixture/minimal-path" tool
     mkdir -p "$dir"
-    for tool in bash git jq php dirname basename mkdir date grep sort rm; do
+    for tool in bash git jq php dirname basename mkdir date grep sort rm mktemp ln; do
         ln -sf "$(bash -c "command -v $tool")" "$dir/$tool"
     done
     printf '%s' "$dir"
@@ -247,6 +248,34 @@ fi
 exit 1
 HERD
     chmod +x "$fake_bin/herd"
+}
+
+# herd is absent from PATH, the state a non-interactive Stop hook sees because
+# only the interactive .zshrc puts Herd on PATH, but it is installed at its
+# default location under $HOME. Its which-php resolves to a wrapper that records
+# the call before handing off to real php, so a test can prove the gate found
+# Herd through the fallback rather than through PATH. Pair with
+# GATE_PATH="$(path_without_composer)" and GATE_HOME="$test_home".
+given_herd_only_at_its_default_install_path() {
+    local real_php herd_home
+    real_php="$(command -v php)"
+    herd_home="$test_home/Library/Application Support/Herd/bin"
+    mkdir -p "$herd_home"
+
+    herd_php_wrapper="$fixture/herd-php"
+    cat > "$herd_php_wrapper" <<WRAPPER
+#!/usr/bin/env bash
+printf 'herd-php\n' >> "\$QUALITY_TEST_LOG"
+exec "$real_php" "\$@"
+WRAPPER
+    chmod +x "$herd_php_wrapper"
+
+    cat > "$herd_home/herd" <<HERD
+#!/usr/bin/env bash
+[[ "\$1" == "which-php" ]] && { printf '%s\n' "$herd_php_wrapper"; exit 0; }
+exit 1
+HERD
+    chmod +x "$herd_home/herd"
 }
 
 # Redirects `mktemp -d` into a fixture-owned directory so a test can assert on

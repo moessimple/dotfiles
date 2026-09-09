@@ -27,7 +27,15 @@ set -u
 # exposed as a plain symlink ahead of PATH, so every invocation below stays
 # unchanged and still resolves the right interpreter through it. No-op when
 # Herd is not installed, as on the CI runner.
-php_bin="$(command -v herd >/dev/null 2>&1 && herd which-php 2>/dev/null)"
+#
+# Herd only reaches PATH through interactive .zshrc, but this runs from a
+# non-interactive Stop hook, so `command -v herd` misses it. Fall back to
+# Herd's default install location before giving up.
+herd_bin="$(command -v herd || true)"
+if [[ -z "$herd_bin" && -x "$HOME/Library/Application Support/Herd/bin/herd" ]]; then
+    herd_bin="$HOME/Library/Application Support/Herd/bin/herd"
+fi
+php_bin="$([[ -n "$herd_bin" ]] && "$herd_bin" which-php 2>/dev/null)"
 if [[ -x "$php_bin" ]]; then
     php_shim_dir="$(mktemp -d)"
     trap 'rm -rf "$php_shim_dir"' EXIT

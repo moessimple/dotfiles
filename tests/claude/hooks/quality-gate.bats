@@ -535,6 +535,20 @@ teardown() {
     assert_tool_ran_with_argument artisan --parallel
 }
 
+@test "the gate finds Herd at its default path when it is absent from PATH" {
+    # Arrange
+    given_project_with_tools pest
+    given_herd_only_at_its_default_install_path
+
+    # Act
+    GATE_PATH="$(path_without_composer)" GATE_HOME="$test_home" run run_gate fast
+
+    # Assert
+    assert_success
+    assert_tool_ran herd-php
+    assert_tool_ran pest
+}
+
 @test "the Herd PHP shim directory is removed after the gate runs" {
     # Arrange
     given_project_with_tools composer pint
