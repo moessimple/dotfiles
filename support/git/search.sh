@@ -13,7 +13,8 @@ function search() {
 
     test -z "$1" && echo "search term required" 1>&2 && return 1
 
-    export GREPDIFF_REGEX="$1"
-
-    git -c core.pager="less -RFX" -c diff.external="$_SEARCH_DIR/support/pickaxe-diff.sh" log -p --ext-diff --regexp-ignore-case -S"$1" -- . ":(exclude)phpstan-baseline.neon" ":(exclude)phparkitect-baseline.json"
+    # Passed to git as a one-shot environment entry, not exported into the shell:
+    # git forwards its environment to the diff.external driver, which reads
+    # GREPDIFF_REGEX, but nothing after this call should see it.
+    GREPDIFF_REGEX="$1" git -c core.pager="less -RFX" -c diff.external="$_SEARCH_DIR/support/pickaxe-diff.sh" log -p --ext-diff --regexp-ignore-case -S"$1" -- . ":(exclude)phpstan-baseline.neon" ":(exclude)phparkitect-baseline.json"
 }

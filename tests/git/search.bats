@@ -103,6 +103,19 @@ teardown() {
     assert_output_contains "UNIQUE_TERM"
 }
 
+@test "search does not leave GREPDIFF_REGEX set in the shell" {
+    # Arrange
+    given_clean_repository_on_main
+    given_commit_adding_term needle.txt UNIQUE_TERM
+
+    # Act
+    run call_search_then_report_regex_env UNIQUE_TERM
+
+    # Assert
+    assert_success
+    [ "$output" = "<unset>" ]
+}
+
 @test "changes to baseline files are excluded even when they contain the term" {
     # Arrange
     given_clean_repository_on_main

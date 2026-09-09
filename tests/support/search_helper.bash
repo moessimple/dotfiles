@@ -3,6 +3,12 @@ call_search() {
         zsh "$dotfiles_dir/support/git/search.sh" "$repository" "$@"
 }
 
+# Runs search, then prints whether GREPDIFF_REGEX is still set in that same shell.
+call_search_then_report_regex_env() {
+    zsh -c 'source "$1"; cd "$2"; search "$3" >/dev/null 2>&1; printf "%s" "${GREPDIFF_REGEX-<unset>}"' \
+        zsh "$dotfiles_dir/support/git/search.sh" "$repository" "$1"
+}
+
 given_commit_adding_term() {
     local path="$1" term="$2"
     printf '%s\n' "$term" > "$repository/$path"
