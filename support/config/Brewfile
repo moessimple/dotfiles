@@ -1,6 +1,9 @@
 # Dotfiles Brewfile
 # Install with: brew bundle --file=~/.dotfiles/support/config/Brewfile
 
+# === Taps ===
+tap "spatie/bloom"
+
 # === Binaries ===
 brew "ack"
 brew "act"
@@ -93,6 +96,7 @@ cask "herd"
 cask "monitorcontrol"
 cask "rectangle"
 cask "sequel-ace"
+cask "spatie/bloom/spatie-bloom"
 cask "visual-studio-code"
 cask "whatsapp"
 
