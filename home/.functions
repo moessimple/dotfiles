@@ -619,13 +619,13 @@ opendb() {
 
 # === macOS ===
 
+_sd_mounted() { mount | grep -q "on $1 "; }
+
 # Manage Secure Data Sparse Bundle: sd <load|unload|delete|status>
 sd() {
     local bundle="$HOME/SecureData.sparsebundle"
     local volume="SecureData"
     local mountpoint="/Volumes/$volume"
-
-    _sd_mounted() { mount | grep -q "on $mountpoint "; }
 
     case "$1" in
         -h|--help)
@@ -641,22 +641,22 @@ sd() {
                 hdiutil create -size 20g -type SPARSEBUNDLE -fs APFS \
                     -volname "$volume" -encryption AES-256 -stdinpass "$bundle"
             fi
-            _sd_mounted && echo "$volume is already mounted." || hdiutil attach "$bundle"
+            _sd_mounted "$mountpoint" && echo "$volume is already mounted." || hdiutil attach "$bundle"
             ;;
         unload)
-            _sd_mounted && hdiutil detach "$mountpoint" || echo "$volume is not mounted."
+            _sd_mounted "$mountpoint" && hdiutil detach "$mountpoint" || echo "$volume is not mounted."
             ;;
         delete)
             read -q "?Delete $volume permanently? [y/N] " || { echo; return 1; }
             echo
-            if _sd_mounted && ! hdiutil detach "$mountpoint"; then
+            if _sd_mounted "$mountpoint" && ! hdiutil detach "$mountpoint"; then
                 echo "Could not unmount $volume; not deleting." >&2
                 return 1
             fi
             [ -d "$bundle" ] && rm -rf "$bundle" || echo "$volume does not exist."
             ;;
         status)
-            _sd_mounted \
+            _sd_mounted "$mountpoint" \
                 && echo "$volume is mounted at $mountpoint." \
                 || echo "$volume is not mounted."
             ;;
@@ -666,6 +666,4 @@ sd() {
             return 1
             ;;
     esac
-
-    unfunction _sd_mounted 2>/dev/null
 }
