@@ -28,8 +28,21 @@ Filter to tests matching a name:
 bin/test.sh -r tests/ -f "some test name"
 ```
 
+`bin/test.sh` runs the files concurrently via `bats --jobs`, because the suite is almost entirely process-spawn
+wait rather than CPU. The parallel backend is `rush` (Brewfile: `rush-parallel`, already a dependency) rather than
+GNU `parallel`, selected with `--parallel-binary-name`. Job count defaults to the core count; set `BATS_JOBS=1` to
+run serially when debugging a test that only fails under concurrency. Fixtures keep all mutable state under
+`$BATS_TEST_TMPDIR`, so tests are order-independent and safe to parallelize.
+
+Most of the wall time is macOS `syspolicyd` assessing each freshly written fake-binary stub
+(`write_fake_binary` in `tests/support/test_helper.bash`) on its first exec. That check is serial and cannot be
+parallelized or skipped, so ~40s of it stays fixed no matter the job count, and under load `bats` shows nothing
+until the first files clear it: the quiet start and the bursts are that queue draining, not a hang. Cutting it
+would mean creating the stub executables once per file instead of once per test.
+
 CI (`.github/workflows/tests.yml`) runs `bin/test.sh` on `macos-latest`, matching the interpreter and userland
-(`/bin/bash` 3.2, BSD tools) the target machine actually has, with `bats-core` and `php` installed via Homebrew.
+(`/bin/bash` 3.2, BSD tools) the target machine actually has, with `bats-core`, `php`, and `rush-parallel`
+installed via Homebrew.
 
 There is no separate lint/build command; shell code is not linted automatically in this repo.
 

@@ -17,8 +17,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install bats, php, and patchutils
-        run: brew install bats-core php patchutils
+      - name: Install bats, php, patchutils, and rush
+        run: brew install bats-core php patchutils rush-parallel
 
       - name: Tests
         run: bin/test.sh
