@@ -5,7 +5,7 @@
 ![Terminal](images/terminal.jpg)
 
 Personal, opinionated dotfiles for Laravel and PHP development on macOS. One script sets up Laravel Herd, Oh My Zsh,
-modern command-line tools, macOS preferences, and a version-controlled Claude Code configuration on a fresh Mac.
+modern command-line tools, macOS preferences, and shared Claude Code and Codex workflows on a fresh Mac.
 
 These dotfiles reflect my personal workflow and are meant to be forked and adapted to your own setup.
 
@@ -13,7 +13,7 @@ These dotfiles reflect my personal workflow and are meant to be forked and adapt
 
 - Develop Laravel projects locally with Herd
 - Navigate, search, and work faster with Oh My Zsh and modern command-line tools
-- Keep Claude Code settings, agents, commands, hooks, rules, and skills version-controlled
+- Keep Claude Code settings, agents, hooks, rules, and shared agent skills version-controlled
 - Keep Claude Code changes disciplined with Addy Osmani's [agent-skills](https://skills.addy.ie) workflow and an
   automatic quality gate (Pint, PHPStan, Rector, Pest/PHPUnit)
 - Install, update, and reconfigure the whole setup with one script each
@@ -131,14 +131,16 @@ These are the commands I use most often. The full list lives in [`home/.aliases`
 - `code` opens VS Code.
 - `https://tinkerbench.test` runs PHP snippets against Herd-linked projects.
 
-### Claude Code Commands
+### Shared Agent Skills
 
-- `/debug` finds and fixes the root cause of a bug through a reproduce-first diagnosis loop.
-- `/pr` turns the current branch into a pull request, writing a why-and-outcome description (never from the diff or
-  commit messages) and waiting for approval before creating it.
-- `/review` reviews code across five axes plus whether it delivers what was promised, auto-detecting a PR (given, or
-  open for the current branch) versus the local diff against the default branch, and delivers the verdict in the
-  chat without posting to GitHub.
+Claude Code invokes these workflows as `/debug`, `/pr`, `/review`, and `/quality`. Codex uses `$debug`, `$pr`,
+`$review`, and `$quality` against the same source files.
+
+- `debug` finds and fixes the root cause of a bug through a reproduce-first diagnosis loop.
+- `pr` prepares or refreshes a pull request and waits for approval before pushing or changing GitHub.
+- `review` reviews code across technical and customer-facing concerns, then reports the verdict without changing
+  files or posting to GitHub.
+- `quality` runs the recorded PHP and Laravel quality gate and reports only checks that actually ran.
 
 Two things keep changes disciplined without me having to think about it: [Addy Osmani's
 agent-skills](https://skills.addy.ie) workflow (spec, plan, build, test, review, ship) and a [quality
@@ -163,14 +165,17 @@ Reapply symlinks, services, Herd and tinkerbench setup, and macOS preferences wi
 bin/reconfigure.sh
 ```
 
-## Claude Code
+## Claude Code and Codex
 
-Claude Code settings, agents, commands, hooks, rules, and skills live under `home/.claude/` and are linked into
+Claude Code settings, agents, hooks, rules, and skills live under `home/.claude/` and are linked into
 `~/.claude/` during installation.
 
-Claude Code is the primary coding agent in this setup. This setup uses Codex only as a lightweight fallback and does
-not treat it as a replacement for Claude Code or its full workflow. Codex reuses the same global instructions through
-`~/.codex/AGENTS.md`.
+Claude Code and Codex reuse the same global instructions through `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md`.
+Harness-neutral skills keep their source under `home/.claude/skills/` or Claude's installed plugin cache and are
+linked individually into Codex's documented user skill directory, `~/.agents/skills/`. Claude remains the only
+installer and updater. The explicit allowlists in
+[`support/setup/codex/codex-skills.sh`](support/setup/codex/codex-skills.sh) prevent Claude-specific skills and
+duplicates of Codex's built-in skills from being shared accidentally.
 
 Third-party skills are managed in
 [`support/setup/claude/claude-skills.sh`](support/setup/claude/claude-skills.sh), while plugins and user-level MCP

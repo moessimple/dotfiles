@@ -31,7 +31,7 @@ teardown() {
 
 @test "a locally authored skill is not removed" {
     # Arrange
-    given_skill_lock_file '{"skills":{"code-review-dispatch":{},"outcome-writing":{}}}'
+    given_skill_lock_file '{"skills":{"code-review-dispatch":{},"debug":{},"outcome-writing":{},"pr":{},"quality":{},"review":{}}}'
 
     # Act
     run call_cleanup_function "$target" claude_skills_cleanup

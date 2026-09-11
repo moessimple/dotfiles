@@ -90,6 +90,9 @@ source ~/.dotfiles/support/setup/claude/claude-skills.sh
 step "Installing Claude Code plugins and MCP servers"
 source ~/.dotfiles/support/setup/claude/claude-plugins.sh
 
+# Share reviewed standalone and plugin-provided skills with Codex after Claude installs them.
+source ~/.dotfiles/support/setup/codex/codex-skills.sh
+
 # Configure some things: starts background services like mailpit.
 step "Configure some things"
 source ~/.dotfiles/support/setup/configure.sh

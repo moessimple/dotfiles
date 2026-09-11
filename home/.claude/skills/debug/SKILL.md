@@ -1,8 +1,6 @@
 ---
+name: debug
 description: Find and fix the root cause of a bug through a disciplined reproduce-first diagnosis loop, with browser escalation where needed.
-argument-hint: "[symptom or error message]"
-disable-model-invocation: true
-allowed-tools: Bash(git branch:*), Bash(git status:*), Bash(git log:*), Bash(git show:*), Bash(git diff:*)
 ---
 
 # Debug a Bug
@@ -11,15 +9,17 @@ Find and fix the root cause, not the symptom. No fix is applied before the bug i
 
 ## Current state
 
-- Branch: !`git branch --show-current`
-- Uncommitted changes: !`git status --porcelain`
-- Recent commits: !`git log --oneline -10`
+Run and inspect:
+
+- `git branch --show-current`
+- `git status --porcelain`
+- `git log --oneline -10`
 
 Recent commits and uncommitted changes are prime suspects. Check their actual diffs (`git show`) against the symptom before forming any other hypothesis. Never rely on commit messages, they are often WIP commits and say nothing about what changed.
 
 ## Step 1: Capture the bug
 
-The initial report, if any was passed: $ARGUMENTS
+The initial report is the bug description in the current request.
 
 Gather as much as possible before touching anything. Ask for what is still missing, in one message:
 
@@ -47,7 +47,7 @@ Whatever you pull becomes evidence for the loop, and for a production-only bug i
 
 **Browser escalation, during any phase.** When the symptom lives in the browser (rendering, layout, client-side JS, console errors, network requests from the frontend), inspect real runtime state instead of guessing from source code alone.
 
-First choice is the `agent-skills:browser-testing-with-devtools` skill, which reaches the DOM, console, and network through Chrome DevTools MCP. That skill needs a configured chrome-devtools MCP server, so check for `mcp__chrome-devtools__` tools before relying on it. If none are reachable, use the `agent-browser:agent-browser` skill instead: `read` for the rendered DOM, `console` for console output, `network requests` and `network har start` for traffic, which also produces the HAR artifact the `diagnosing-bugs` loop asks for. Say in the summary which of the two supplied the evidence.
+First choice is the `agent-skills:browser-testing-with-devtools` skill, which reaches the DOM, console, and network through Chrome DevTools MCP. That skill needs a configured chrome-devtools MCP server, so check for `mcp__chrome-devtools__` tools before relying on it. If none are reachable, use the installed `agent-browser` skill instead: `read` for the rendered DOM, `console` for console output, `network requests` and `network har start` for traffic, which also produces the HAR artifact the `diagnosing-bugs` loop asks for. Say in the summary which of the two supplied the evidence.
 
 Same division of labor either way: `diagnosing-bugs` owns the loop, the browser skill supplies runtime evidence within a phase.
 
@@ -60,7 +60,7 @@ After the fix is verified, report:
 - Where the regression test lives, or why no correct seam exists (that finding goes to the user, it is an architectural signal)
 - Anything flagged or left open
 
-State the confirmed hypothesis in the commit message. If a PR follows, `/pr` picks this up from the conversation.
+State the confirmed hypothesis in the commit message. If a PR follows, the `pr` skill picks this up from the conversation.
 
 ## Rules
 

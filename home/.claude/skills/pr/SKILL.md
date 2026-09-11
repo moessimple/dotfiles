@@ -1,29 +1,29 @@
 ---
+name: pr
 description: Turn the current branch into a pull request whose description tells the problem and the outcome, then create it (or refresh an existing one) with gh after approval.
-argument-hint: "[optional short description of the why]"
-disable-model-invocation: true
-allowed-tools: Bash(git branch:*), Bash(git status:*), Bash(git log:*), Bash(git diff:*), Bash(gh pr view:*)
 ---
 
 # Create or refresh a Pull Request
 
 Turn the current branch into a pull request. Write the description for a reviewer who does not have your context: it carries the problem, the outcome, and, when the design is not obvious, the decision behind it. The line-by-line implementation stays in the diff; do not retell it in prose.
 
-The command has two modes, decided by whether a PR already exists for this branch:
+The skill has two modes, decided by whether a PR already exists for this branch:
 
 - **Mode A (create):** no open PR for this branch yet. Write the description and open the PR.
 - **Mode B (refresh):** an open PR already exists. Regenerate the description from the current branch and update the PR, so it never lags behind changes made after it was opened.
 
 Both modes run the same context-gathering and the same prose craft. They differ only at the human checkpoint and the final `gh` call.
 
-**REQUIRED SUB-SKILL:** Use the `outcome-writing` skill for every sentence of the title and description. It owns the prose craft (problem first, outcome over mechanism, precise terms but no code-internal names, and the self-review checklist). This command owns only the PR-specific structure and mechanics below.
+**REQUIRED SUB-SKILL:** Use the `outcome-writing` skill for every sentence of the title and description. It owns the prose craft (problem first, outcome over mechanism, precise terms but no code-internal names, and the self-review checklist). This skill owns only the PR-specific structure and mechanics below.
 
 ## Current state
 
-- Branch: !`git branch --show-current`
-- Uncommitted changes: !`git status --porcelain`
-- Recent commits: !`git log --oneline -10`
-- Existing PR: !`gh pr view --json url,state --jq '.state + " " + .url' 2>/dev/null || echo none`
+Run and inspect:
+
+- `git branch --show-current`
+- `git status --porcelain`
+- `git log --oneline -10`
+- `gh pr view --json url,state --jq '.state + " " + .url' 2>/dev/null || echo none`
 
 ## Step 1: Preflight
 
@@ -51,13 +51,13 @@ Run sequentially, each step depends on the previous:
 3. `git diff {defaultBranch}...HEAD` for all changes
 4. **Mode B only:** `gh pr view --json title,body` for the PR's current title and description. This is the text you are about to replace; you need it to show a before/after and to spot hand-written content.
 5. Read `SPEC*.md` (root, `docs/`, `docs/specs/`, or `spec/`; includes per-module `SPEC-<name>.md`), `tasks/plan.md`, and `tasks/todo.md` if they exist
-6. Check the current conversation for a `/ship` report on these changes. If one exists, it feeds the Risks and Review focus sections. If it ended NO-GO, say so in one sentence and let the user decide, do not block.
+6. Check the current conversation for a shipping report on these changes. If one exists, it feeds the Risks and Review focus sections. If it ended NO-GO, say so in one sentence and let the user decide, do not block.
 
 **Verify the artifacts match this branch before using them.** Spec and task files can be relics of earlier work. Cross-check them against the diff. Use an artifact only if it clearly describes this change. If it describes something else, ignore it, tell the user in one sentence that stale artifacts were ignored, and continue down the priority list below.
 
 The **why** comes from, in order of priority:
 
-1. Arguments passed to this command, if any: $ARGUMENTS
+1. The motivation supplied in the current request, if any
 2. The spec file, the deliberate and curated source
 3. The current conversation, if there was meaningful discussion about the motivation
 4. **Mode B:** the "Why" already in the current PR description, if it still fits the diff
@@ -77,7 +77,7 @@ Write the description for the **whole branch diff against the default branch**, 
 
 If a ship report exists, its Blockers, Recommended fixes, Acknowledged risks, and rollback trigger conditions are the primary source for the Risks and Review focus sections. Only add what the report missed. Without a report, derive them from the diff: migrations (rollback possible, data loss risk), behavior changes that could break callers, missing test coverage, changes to shared infrastructure, security implications.
 
-The Verification section comes from what was actually run or checked during the session (test commands, manual checks, a `/ship` report's test evidence), never invented after the fact. If nothing was verified beyond writing the code, say so plainly rather than omitting the section.
+The Verification section comes from what was actually run or checked during the session (test commands, manual checks, a shipping report's test evidence), never invented after the fact. If nothing was verified beyond writing the code, say so plainly rather than omitting the section.
 
 The Approach section is a deliberate exception to the `outcome-writing` skill's "outcome over mechanism" rule: keep it through the self-review checklist even though the checklist would otherwise trim it. It still uses no code-internal names.
 
@@ -132,10 +132,7 @@ Wait. Do not continue until the user explicitly approves (Rule 1). Treat hedged 
 
 ## Step 5: Create or update the PR
 
-Everything below runs after the human checkpoint in Step 4, so an `allowed-tools` grant from
-this command's frontmatter has already expired: that grant lasts one turn and clears with the
-user's next message. Pushing and the `gh` write therefore rely on the session's own permission
-settings. Expect a prompt at `gh pr create` / `gh pr edit`, which is deliberate.
+Everything below runs after the human checkpoint in Step 4. Pushing and the `gh` write rely on the session's own permission settings. Expect a permission prompt when required.
 
 **Mode A (create):**
 

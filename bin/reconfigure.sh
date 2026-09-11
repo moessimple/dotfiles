@@ -27,6 +27,9 @@ step "Creating symlinks"
 source ~/.dotfiles/support/setup/symlink-dotfiles.sh
 success "Symlinks created"
 
+# Reapply the reviewed shared-skill links without reinstalling the skills.
+source ~/.dotfiles/support/setup/codex/codex-skills.sh
+
 # Create local config files if they don't exist
 touch ~/.extra
 

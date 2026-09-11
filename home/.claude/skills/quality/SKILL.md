@@ -1,11 +1,9 @@
 ---
 name: quality
 description: Runs the project's quality gate and reports only what actually ran.
-disable-model-invocation: true
-allowed-tools: Bash(quality *) Bash(git status *) Bash(git rev-parse *)
 ---
 
-Run `quality $ARGUMENTS`. With no argument, run `quality fast`. `quality fast` already runs
+Run `quality` with the arguments from the current request. With no argument, run `quality fast`. `quality fast` already runs
 the project's test suite by default (skippable per project via CLAUDE_QUALITY_SKIP_TESTS).
 Only run `quality full` when the user explicitly requests the most thorough gate: whole-project
 Pint and Rector, not just the dirty files `fast` covers.

@@ -5,8 +5,11 @@
 # tell them apart from third-party skills below. Keep it in sync with what's actually there.
 LOCAL_SKILLS=(
     code-review-dispatch
+    debug
     outcome-writing
+    pr
     quality
+    review
 )
 
 # Third-party Claude Code skills installed via the `skills` CLI, one "owner/repo:skill" pair

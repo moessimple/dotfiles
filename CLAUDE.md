@@ -54,8 +54,11 @@ the file tracked in this repository. `support/setup/symlink-dotfiles.sh` is the 
 paths are linked and whether a given path is linked as a file (`ln -sf`) or as a directory (`ln -sfn`, used for
 `.claude/agents`, `.claude/commands`, `.claude/hooks`, `.claude/rules`, `.claude/skills`).
 
-`~/.codex/AGENTS.md` intentionally links to `~/.claude/CLAUDE.md`, so Claude Code and the lightweight Codex fallback
-share one global instruction file instead of maintaining two copies.
+`~/.codex/AGENTS.md` intentionally links to `~/.claude/CLAUDE.md`, so Claude Code and Codex share one global
+instruction file instead of maintaining two copies. `support/setup/codex/codex-skills.sh` links explicitly reviewed
+harness-neutral skills from `home/.claude/skills/` and Claude's installed plugin cache into `~/.agents/skills`.
+Claude remains the only installer and updater. Shared workflows keep their instructions in one `SKILL.md`. Skills
+with agent-specific tools, paths, or runtime behavior stay exclusive to that agent.
 
 **Entry points vs. setup logic.** `bin/install.sh`, `bin/reconfigure.sh`, and `bin/update.sh` are the only scripts a
 user runs directly; each sources scripts under `support/setup/` in a specific order (documented by comments at each
@@ -65,11 +68,14 @@ service setup, Herd/tinkerbench, and macOS defaults without touching package man
 then updates Homebrew, global Composer/npm packages, and Claude Code skills/plugins.
 
 **Declared list = desired state.** The Brewfile (`support/config/Brewfile`), global Composer/npm package lists
-(`support/setup/packages/`), and Claude Code skills/plugins (`support/setup/claude/claude-skills.sh`,
-`claude-plugins.sh`) are each treated as the full desired state. `bin/update.sh` calls a `*_cleanup` function after
-each update step that removes anything installed but not declared in that file. When adding a package or skill,
-add it to the declaration; do not install it out of band, or the next `update.sh` run removes it. `claude-skills.sh`
-documents a manual vetting checklist to run before adding any third-party skill.
+(`support/setup/packages/`), Claude Code skills/plugins (`support/setup/claude/claude-skills.sh`,
+`claude-plugins.sh`), and Codex-compatible skills (`support/setup/codex/codex-skills.sh`) are each treated as the full
+desired state. `bin/update.sh` calls a `*_cleanup` function after each package or Claude update step that removes
+anything installed but not declared in that file. When adding a package or skill, add it to the declaration; do not
+install it out of band, or the next `update.sh` run removes it. `claude-skills.sh` documents a manual vetting checklist
+to run before adding any third-party skill. Add a source to `CODEX_COMPATIBLE_SKILLS` or
+`CODEX_COMPATIBLE_CLAUDE_PLUGIN_SKILLS` only after confirming that its full directory is harness-neutral and does not
+duplicate a Codex skill.
 
 **`support/setup/clean-state.sh` clears what `ln -sf` itself cannot replace.** `symlink-dotfiles.sh` uses `ln -sf`/
 `ln -sfn` for every managed path, which already replaces an existing file or symlink on its own. The one case it
