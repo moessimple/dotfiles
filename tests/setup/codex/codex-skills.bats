@@ -86,6 +86,18 @@ run_codex_skills_setup() {
     [ -L "$skills_dir/external" ]
 }
 
+@test "plugin links are preserved when installed plugin metadata is unavailable" {
+    ln -s "$plugin_cache/addy-agent-skills/agent-skills/1.0.0/skills/plugin-workflow" "$skills_dir/plugin-workflow"
+    installed_plugins="$fixture/missing-installed-plugins.json"
+
+    run run_codex_skills_setup
+
+    assert_success
+    [ -L "$skills_dir/plugin-workflow" ]
+    [ "$(readlink "$skills_dir/plugin-workflow")" = "$plugin_cache/addy-agent-skills/agent-skills/1.0.0/skills/plugin-workflow" ]
+    assert_output_contains "Skipping Claude plugin skills, installed_plugins.json is unavailable"
+}
+
 @test "Claude-specific and duplicate skills are not linked for Codex" {
     run run_codex_skills_setup
 
@@ -104,5 +116,18 @@ run_codex_skills_setup() {
     assert_success
     [ ! -L "$skills_dir/outcome-writing" ]
     [ -f "$skills_dir/outcome-writing/keep" ]
+    [ ! -e "$skills_dir/outcome-writing/outcome-writing" ]
     assert_output_contains "Skipping outcome-writing"
+}
+
+@test "a missing reviewed skill source does not create a dangling link" {
+    source_dir="$fixture/missing-local-skills"
+    mkdir -p "$source_dir"
+
+    run run_codex_skills_setup
+
+    assert_success
+    [ ! -L "$skills_dir/debug" ]
+    assert_output_contains "Skipping debug, no SKILL.md found"
+    assert_output_does_not_contain "continue: only meaningful"
 }
