@@ -639,18 +639,18 @@ sd() {
             ;;
         load)
             if [ ! -d "$bundle" ]; then
-                hdiutil create -size 20g -type SPARSEBUNDLE -fs APFS \
-                    -volname "$volume" -encryption AES-256 -stdinpass "$bundle"
+                diskutil image create --encrypt blank --format UDSB --size 20g \
+                    --volumeName "$volume" -fs APFS "$bundle"
             fi
-            _sd_mounted "$mountpoint" && echo "$volume is already mounted." || hdiutil attach "$bundle"
+            _sd_mounted "$mountpoint" && echo "$volume is already mounted." || diskutil image attach "$bundle"
             ;;
         unload)
-            _sd_mounted "$mountpoint" && hdiutil detach "$mountpoint" || echo "$volume is not mounted."
+            _sd_mounted "$mountpoint" && diskutil eject "$mountpoint" || echo "$volume is not mounted."
             ;;
         delete)
             read -q "?Delete $volume permanently? [y/N] " || { echo; return 1; }
             echo
-            if _sd_mounted "$mountpoint" && ! hdiutil detach "$mountpoint"; then
+            if _sd_mounted "$mountpoint" && ! diskutil eject "$mountpoint"; then
                 echo "Could not unmount $volume; not deleting." >&2
                 return 1
             fi
