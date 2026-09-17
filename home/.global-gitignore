@@ -38,6 +38,8 @@ Thumbs.db
 
 # AI Coding
 .claude/settings.local.json
+**/.claude/skills/synced/
+**/.claude/skills/.trash/
 .bloom/
 
 # Virtualization
