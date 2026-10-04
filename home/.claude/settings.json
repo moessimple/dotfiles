@@ -114,6 +114,7 @@
     ],
     "defaultMode": "auto"
   },
+  "model": "opus",
   "hooks": {
     "PostToolUse": [
       {
@@ -192,7 +193,6 @@
   },
   "syntaxHighlightingDisabled": false,
   "alwaysThinkingEnabled": true,
-  "model": "opus",
   "modelSettings": {
     "claude-opus-5-5": {
       "effortLevel": "medium"
