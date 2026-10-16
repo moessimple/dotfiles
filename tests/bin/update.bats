@@ -80,7 +80,7 @@ teardown() {
     # Act
     run call_update
 
-    # Assert: the run succeeds, and each of the four custom cleanup functions was actually
+    # Assert: the run succeeds, and each of the five custom cleanup functions was actually
     # reached, not just individually correct in isolation.
     assert_success
     assert_output_contains "Update complete!"
@@ -88,4 +88,5 @@ teardown() {
     assert_output_contains "No undeclared global npm packages found"
     assert_output_contains "No undeclared Claude Code skills found"
     assert_output_contains "No undeclared Claude Code plugins or MCP servers found"
+    assert_output_contains "No undeclared Ollama models found"
 }

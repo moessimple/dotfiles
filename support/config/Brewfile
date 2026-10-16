@@ -72,6 +72,7 @@ brew "svgo"
 # === Development ===
 brew "mailpit"
 brew "mysql"
+brew "ollama"
 brew "sqlite"
 
 # === Fonts ===

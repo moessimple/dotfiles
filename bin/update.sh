@@ -100,6 +100,10 @@ claude_plugins_cleanup
 # Refresh links after Claude has updated both standalone and plugin-provided skills.
 source ~/.dotfiles/support/setup/codex/codex-skills.sh
 
+# Pull newer versions of the declared Ollama models, then remove undeclared ones
+source ~/.dotfiles/support/setup/packages/ollama-models.sh
+ollama_models_cleanup
+
 echo ""
 success "Update complete!"
 echo ""

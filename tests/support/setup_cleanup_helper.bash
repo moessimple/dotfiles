@@ -130,3 +130,27 @@ esac
 EOF
     chmod +x "$fake_bin/claude"
 }
+
+# $1: model names `ollama list` reports, one per line, printed below its header row
+given_fake_ollama_listing() {
+    local models="$1"
+    cat > "$fake_bin/ollama" <<EOF2
+#!/usr/bin/env bash
+printf '%s\n' "\$*" >> "$fake_bin/ollama.calls"
+if [ "\$*" = "list" ]; then
+    printf '%s\n' 'NAME    ID    SIZE    MODIFIED'
+    printf '%s\n' '$models' | sed '/^\$/d; s/\$/    0123456789ab    1.0 GB    2 days ago/'
+fi
+EOF2
+    chmod +x "$fake_bin/ollama"
+}
+
+given_fake_ollama_failing_to_list() {
+    cat > "$fake_bin/ollama" <<EOF2
+#!/usr/bin/env bash
+printf '%s\n' "\$*" >> "$fake_bin/ollama.calls"
+[ "\$*" = "list" ] && exit 1
+exit 0
+EOF2
+    chmod +x "$fake_bin/ollama"
+}

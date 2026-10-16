@@ -44,7 +44,7 @@ source ~/.dotfiles/support/setup/herd-debug-ini.sh
 # tinkerbench (tinkerbench.test)
 source ~/.dotfiles/support/setup/tinkerbench/tinkerbench.sh
 
-# Configure some things: starts background services like mailpit.
+# Configure some things: starts background services like mailpit and ollama.
 step "Configure some things"
 source ~/.dotfiles/support/setup/configure.sh
 success "Some things configured"
