@@ -4,11 +4,13 @@
 # memory: macOS gives the GPU roughly 10-11 GB, so anything much larger than ~9B in Q4
 # swaps once Herd and a browser are running.
 # qwen3.5:9b fits but generates only ~7 tokens/s on a base M4, too slow to iterate with.
+# The chat model is pinned to the GGUF quantization (q4_K_M): the default `qwen3.5:4b` tag pulled an
+# NVFP4 (MLX) build here, and Ollama rejects structured output (a JSON schema `format`) for it with 501.
 # Each model costs several GB of disk under ~/.ollama/models, check `df -h` before adding one.
 # Tags are explicit because ollama_models_cleanup compares them against `ollama list`,
 # which always reports a tag (`embeddinggemma` is listed as `embeddinggemma:latest`).
 OLLAMA_MODELS=(
-    qwen3.5:4b
+    qwen3.5:4b-q4_K_M
     embeddinggemma:latest
 )
 

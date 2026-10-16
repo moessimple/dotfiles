@@ -22,7 +22,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with ollama "pull qwen3.5:4b"
+    assert_binary_called_with ollama "pull qwen3.5:4b-q4_K_M"
     assert_binary_called_with ollama "pull embeddinggemma:latest"
 }
 
@@ -42,7 +42,7 @@ teardown() {
 
 @test "a pulled model not declared in ollama-models.sh is removed" {
     # Arrange
-    given_fake_ollama_listing $'qwen3.5:4b\nllama3.2:latest'
+    given_fake_ollama_listing $'qwen3.5:4b-q4_K_M\nllama3.2:latest'
 
     # Act
     run call_cleanup_function "$target" ollama_models_cleanup
@@ -50,12 +50,12 @@ teardown() {
     # Assert
     assert_success
     assert_binary_called_with ollama "rm llama3.2:latest"
-    assert_binary_not_called_with_substring ollama "rm qwen3.5:4b"
+    assert_binary_not_called_with_substring ollama "rm qwen3.5:4b-q4_K_M"
 }
 
 @test "no undeclared models reports a clean state without removing anything" {
     # Arrange
-    given_fake_ollama_listing $'qwen3.5:4b\nembeddinggemma:latest'
+    given_fake_ollama_listing $'qwen3.5:4b-q4_K_M\nembeddinggemma:latest'
 
     # Act
     run call_cleanup_function "$target" ollama_models_cleanup
