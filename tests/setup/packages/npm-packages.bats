@@ -75,3 +75,37 @@ teardown() {
     # appear, so its absence is what proves the guard fired.
     assert_output_does_not_contain "Could not read global npm packages"
 }
+
+@test "only the newest agent-browser Chrome is kept, compared by version rather than by name" {
+    # Arrange
+    test_home="$fixture/home"
+    given_fake_npm_reporting_installed '{"dependencies":{}}'
+    write_fake_binary agent-browser
+    mkdir -p "$test_home/.agent-browser/browsers/chrome-155.0.8059.9" \
+        "$test_home/.agent-browser/browsers/chrome-155.0.8059.84" \
+        "$test_home/.agent-browser/browsers/chrome-99.0.1.1"
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    [ -d "$test_home/.agent-browser/browsers/chrome-155.0.8059.84" ]
+    [ ! -e "$test_home/.agent-browser/browsers/chrome-155.0.8059.9" ]
+    [ ! -e "$test_home/.agent-browser/browsers/chrome-99.0.1.1" ]
+}
+
+@test "a missing agent-browser browsers directory is left alone" {
+    # Arrange
+    test_home="$fixture/home"
+    mkdir -p "$test_home"
+    given_fake_npm_reporting_installed '{"dependencies":{}}'
+    write_fake_binary agent-browser
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    [ ! -e "$test_home/.agent-browser" ]
+}

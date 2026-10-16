@@ -16,12 +16,31 @@ NPM_PACKAGES_KEEP=(
     npx
 )
 
+# `agent-browser install` downloads every new Chrome for Testing release (~360 MB each) next
+# to the previous ones and never removes them. It always launches the newest version, so
+# every older one is dead weight.
+agent_browser_prune_chrome() {
+    local browsers="$HOME/.agent-browser/browsers"
+    [ -d "$browsers" ] || return 0
+
+    local newest
+    newest=$(printf '%s\n' "$browsers"/chrome-* | sed 's#.*/chrome-##' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1)
+
+    local dir
+    for dir in "$browsers"/chrome-*; do
+        [ -d "$dir" ] || continue
+        [ "$dir" = "$browsers/chrome-$newest" ] && continue
+        rm -rf "$dir" || warn "Could not remove $dir"
+    done
+}
+
 # Installs each entry in NPM_PACKAGES; agent-browser's own setup runs right after.
 step "Installing global npm packages"
 for package in "${NPM_PACKAGES[@]}"; do
     npm install -g "$package" || warn "$package already installed or failed"
 done
 agent-browser install 2>/dev/null || warn "agent-browser setup skipped"
+agent_browser_prune_chrome
 success "npm packages processed"
 
 # Removes any globally installed npm package that isn't in NPM_PACKAGES or NPM_PACKAGES_KEEP.
