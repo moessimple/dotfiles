@@ -1,6 +1,7 @@
 ---
 name: review
 description: Review code across five axes plus the customer promise, then deliver the verdict in the chat. Auto-detects a PR (given, or open for the current branch) versus the local diff against the default branch. Never posts to GitHub, never edits files.
+disable-model-invocation: true
 ---
 
 # Review

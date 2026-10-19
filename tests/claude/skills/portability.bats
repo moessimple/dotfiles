@@ -33,11 +33,13 @@ setup() {
     done
 }
 
-@test "explain-changes is only invoked explicitly, in Claude and in Codex" {
-    skill_dir="$skills_dir/explain-changes"
+@test "manual-only skills are only invoked explicitly, in Claude and in Codex" {
+    for skill in explain-changes pr review; do
+        skill_dir="$skills_dir/$skill"
 
-    grep -Fqx 'disable-model-invocation: true' "$skill_dir/SKILL.md"
-    grep -Fqx '  allow_implicit_invocation: false' "$skill_dir/agents/openai.yaml"
+        grep -Fqx 'disable-model-invocation: true' "$skill_dir/SKILL.md" || return 1
+        grep -Fqx '  allow_implicit_invocation: false' "$skill_dir/agents/openai.yaml" || return 1
+    done
 }
 
 @test "shared skill instructions contain no Claude command expansion or named Claude agents" {

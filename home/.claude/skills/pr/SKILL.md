@@ -1,6 +1,7 @@
 ---
 name: pr
 description: Turn the current branch into a pull request whose description tells the problem and the outcome, then create it (or refresh an existing one) with gh after approval.
+disable-model-invocation: true
 ---
 
 # Create or refresh a Pull Request
