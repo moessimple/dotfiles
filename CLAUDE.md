@@ -41,8 +41,8 @@ until the first files clear it: the quiet start and the bursts are that queue dr
 would mean creating the stub executables once per file instead of once per test.
 
 CI (`.github/workflows/tests.yml`) runs `bin/test.sh` on `macos-latest`, matching the interpreter and userland
-(`/bin/bash` 3.2, BSD tools) the target machine actually has, with `bats-core`, `php`, and `rush-parallel`
-installed via Homebrew.
+(`/bin/bash` 3.2, BSD tools) the target machine actually has, with `bats-core`, `php`, `patchutils`, and
+`rush-parallel` installed via Homebrew.
 
 There is no separate lint/build command; shell code is not linted automatically in this repo.
 
@@ -60,18 +60,20 @@ harness-neutral skills from `home/.claude/skills/` and Claude's installed plugin
 Claude remains the only installer and updater. Shared workflows keep their instructions in one `SKILL.md`. Skills
 with agent-specific tools, paths, or runtime behavior stay exclusive to that agent.
 
-**Entry points vs. setup logic.** `bin/install.sh`, `bin/reconfigure.sh`, and `bin/update.sh` are the only scripts a
-user runs directly; each sources scripts under `support/setup/` in a specific order (documented by comments at each
+**Entry points vs. setup logic.** `bin/install.sh`, `bin/reconfigure.sh`, and `bin/update.sh` are the setup scripts a
+user runs directly (besides `bin/test.sh`); each sources scripts under `support/setup/` in a specific order (documented by comments at each
 `source` call in the entry-point scripts) rather than duplicating logic. `install.sh` does a full fresh setup
 (Homebrew, Oh My Zsh, symlinks, packages, Herd, tinkerbench, macOS defaults). `reconfigure.sh` reapplies symlinks,
-service setup, Herd/tinkerbench, and macOS defaults without touching package managers. `update.sh` pulls the repo,
-then updates Homebrew, global Composer/npm packages, Claude Code skills/plugins, and Ollama models.
+Codex skill links, service setup, Herd/tinkerbench, and macOS defaults without touching package managers. `update.sh`
+pulls the repo, then updates Homebrew, global Composer/npm packages, Claude Code skills/plugins, Codex skill links,
+and Ollama models.
 
 **Declared list = desired state.** The Brewfile (`support/config/Brewfile`), global Composer/npm package lists and Ollama
 models (`support/setup/packages/`), Claude Code skills/plugins (`support/setup/claude/claude-skills.sh`,
 `claude-plugins.sh`), and Codex-compatible skills (`support/setup/codex/codex-skills.sh`) are each treated as the full
-desired state. `bin/update.sh` calls a `*_cleanup` function after each package or Claude update step that removes
-anything installed but not declared in that file. When adding a package or skill, add it to the declaration; do not
+desired state. After each update step, `bin/update.sh` removes anything installed but not declared: Homebrew via
+`brew bundle cleanup --force`, the others via a `*_cleanup` function in the declaring file, while `codex-skills.sh`
+prunes its own stale links on every run. When adding a package or skill, add it to the declaration; do not
 install it out of band, or the next `update.sh` run removes it. `claude-skills.sh` documents a manual vetting checklist
 to run before adding any third-party skill. Add a source to `CODEX_COMPATIBLE_SKILLS` or
 `CODEX_COMPATIBLE_CLAUDE_PLUGIN_SKILLS` only after confirming that its full directory is harness-neutral and does not
@@ -121,11 +123,12 @@ that `sync` iterates and `prune` protects, and `pickaxe-diff.sh` is the diff dri
 (`upstream`, then `origin`), then the local remote-tracking cache, then a `main`/`master` probe. It is the single
 place that logic lives; callers never re-derive it. Its priority order is covered by `tests/git/default-branch.bats`.
 
-**Tests mirror source layout.** `tests/claude/hooks/*.bats` covers the quality gate hooks; `tests/claude/skills/*/*.bats` covers the bundled scripts of local skills under `home/.claude/skills/`; `tests/functions/*.bats`
+**Tests mirror source layout.** `tests/claude/hooks/*.bats` covers the quality gate hooks; `tests/claude/skills/*/*.bats` covers the bundled scripts of local skills under `home/.claude/skills/`, and
+`tests/claude/skills/portability.bats` checks the skills shared with Codex; `tests/functions/*.bats`
 covers selected functions from `home/.functions`; `tests/aliases/*.bats` covers selected aliases from
-`home/.aliases`; `tests/git/*.bats` covers the helpers from `support/git/`; `tests/setup/claude/*.bats` and
-`tests/setup/packages/*.bats` cover the setup/cleanup declarations in `support/setup/claude/` and
-`support/setup/packages/`; `tests/setup/herd/*.bats` covers `support/setup/herd-debug-ini.sh`;
+`home/.aliases`; `tests/git/*.bats` covers the helpers from `support/git/`; `tests/setup/claude/*.bats`,
+`tests/setup/codex/*.bats`, and `tests/setup/packages/*.bats` cover the setup/cleanup declarations in
+`support/setup/claude/`, `support/setup/codex/`, and `support/setup/packages/`; `tests/setup/herd/*.bats` covers `support/setup/herd-debug-ini.sh`;
 `tests/bin/update.bats` exercises a full `bin/update.sh` run across all package cleanups.
 `tests/support/test_helper.bash` provides shared fixtures (`new_dotfiles_fixture`, `call_dotfiles_function`,
 `call_dotfiles_function_in`, `call_dotfiles_alias`) for building throwaway Git repos/projects under `mktemp -d`; most

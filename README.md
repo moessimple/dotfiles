@@ -41,7 +41,8 @@ Add the copied public key at [github.com/settings/keys](https://github.com/setti
 ## Before You Install
 
 The installer replaces existing files with symlinks in place; it does not back them up. It also clears five Claude
-Code directories under `~/.claude/` (`agents`, `commands`, `hooks`, `rules`, `skills`) before linking them. Review
+Code directories under `~/.claude/` (`agents`, `commands`, `hooks`, `rules`, `skills`) before linking them, and so
+does `bin/reconfigure.sh`. Review
 [`support/setup/clean-state.sh`](support/setup/clean-state.sh) and preserve anything you need there first.
 
 If you fork the repository, adjust these personal defaults first:
@@ -50,6 +51,8 @@ If you fork the repository, adjust these personal defaults first:
 - Absolute working directory in [`home/.config/ghostty/config`](home/.config/ghostty/config)
 - Locale and time zone in
   [`support/setup/macos/osx-defaults.sh`](support/setup/macos/osx-defaults.sh), if they don't match yours
+- Absolute paths to my home directory in the lines Herd added to [`home/.zshrc`](home/.zshrc) and Docker Desktop
+  added to [`home/.zprofile`](home/.zprofile)
 
 The macOS setup enables FileVault and the application firewall, disables hibernation, changes Finder and Dock
 behavior, applies German regional settings, and configures several bundled applications. The installer asks for
@@ -75,7 +78,7 @@ gh auth login -s user:email -w
 gh auth status
 ```
 
-Choose SSH as the Git protocol during the browser flow.
+Choose SSH when `gh` asks for the Git protocol.
 
 ## What's Included
 
@@ -198,8 +201,8 @@ Run the repository's Bats tests from the root:
 bin/test.sh
 ```
 
-The suite covers the Claude Code quality hooks, selected shell functions and aliases, the Git helpers, and the
-update/setup package declarations.
+The suite covers the Claude Code quality hooks, scripts bundled with local skills, selected shell functions and
+aliases, the Git helpers, and the update and setup scripts.
 
 ## Further Documentation
 
