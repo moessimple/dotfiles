@@ -6,6 +6,7 @@
 LOCAL_SKILLS=(
     code-review-dispatch
     debug
+    explain-changes
     outcome-writing
     pr
     quality

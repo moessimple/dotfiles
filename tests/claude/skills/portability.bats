@@ -6,7 +6,7 @@ setup() {
     new_dotfiles_fixture
     commands_dir="$dotfiles_dir/home/.claude/commands"
     skills_dir="$dotfiles_dir/home/.claude/skills"
-    shared_skills=(code-review-dispatch debug outcome-writing pr quality review)
+    shared_skills=(code-review-dispatch debug explain-changes outcome-writing pr quality review)
 }
 
 @test "legacy commands are replaced by shared skills" {
@@ -23,19 +23,32 @@ setup() {
     for skill in "${shared_skills[@]}"; do
         frontmatter="$(awk 'NR == 1 && $0 == "---" { inside = 1; next } inside && $0 == "---" { exit } inside { print }' "$skills_dir/$skill/SKILL.md")"
 
-        ! grep -Eq '^(argument-hint|disable-model-invocation|disallowed-tools|user-invocable):' <<< "$frontmatter"
+        # Manual-only skills need Claude's disable-model-invocation; Codex gets the same
+        # restriction from agents/openai.yaml (see the manual-only test below).
+        if [ -f "$skills_dir/$skill/agents/openai.yaml" ]; then
+            frontmatter="$(grep -v '^disable-model-invocation: true$' <<< "$frontmatter")"
+        fi
+
+        ! grep -Eq '^(argument-hint|disable-model-invocation|disallowed-tools|user-invocable):' <<< "$frontmatter" || false
     done
 }
 
+@test "explain-changes is only invoked explicitly, in Claude and in Codex" {
+    skill_dir="$skills_dir/explain-changes"
+
+    grep -Fqx 'disable-model-invocation: true' "$skill_dir/SKILL.md"
+    grep -Fqx '  allow_implicit_invocation: false' "$skill_dir/agents/openai.yaml"
+}
+
 @test "shared skill instructions contain no Claude command expansion or named Claude agents" {
-    for skill in code-review-dispatch debug pr quality review; do
+    for skill in code-review-dispatch debug explain-changes pr quality review; do
         skill_file="$skills_dir/$skill/SKILL.md"
 
-        ! grep -Fq '$ARGUMENTS' "$skill_file"
-        ! grep -Fq '!`' "$skill_file"
-        ! grep -Fq 'agent-skills:code-reviewer' "$skill_file"
-        ! grep -Fq 'laravel:laravel-simplifier' "$skill_file"
-        ! grep -Fq 'general-purpose' "$skill_file"
+        ! grep -Fq '$ARGUMENTS' "$skill_file" || false
+        ! grep -Fq '!`' "$skill_file" || false
+        ! grep -Fq 'agent-skills:code-reviewer' "$skill_file" || false
+        ! grep -Fq 'laravel:laravel-simplifier' "$skill_file" || false
+        ! grep -Fq 'general-purpose' "$skill_file" || false
     done
 }
 

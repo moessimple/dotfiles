@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{TITLE}</title>
+<link rel="stylesheet" media="(prefers-color-scheme: light)"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<link rel="stylesheet" media="(prefers-color-scheme: dark)"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<style>
+:root {
+    --bg: #ffffff;
+    --fg: #1f2328;
+    --muted: #59636e;
+    --line: #d1d9e0;
+    --panel: #f6f8fa;
+    --accent: #0969da;
+    --finding-bg: #fff8c5;
+    --finding-line: #d4a72c;
+    --inferred-bg: #ffebe9;
+    --inferred-fg: #a40e26;
+    --src-bg: #ddf4ff;
+    --src-fg: #0550ae;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #0d1117;
+        --fg: #e6edf3;
+        --muted: #9198a1;
+        --line: #3d444d;
+        --panel: #151b23;
+        --accent: #4493f8;
+        --finding-bg: #272115;
+        --finding-line: #9e6a03;
+        --inferred-bg: #2d1214;
+        --inferred-fg: #ff9492;
+        --src-bg: #102339;
+        --src-fg: #79c0ff;
+    }
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+main { max-width: 920px; margin: 0 auto; padding: 32px 16px 80px; }
+h1 { font-size: 1.8rem; line-height: 1.25; margin: 0 0 8px; }
+h2 { font-size: 1.35rem; margin: 48px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+h3 { font-size: 1.1rem; margin: 32px 0 8px; }
+a { color: var(--accent); }
+.meta { color: var(--muted); font-size: .9rem; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: 12px 0; }
+th, td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+th { background: var(--panel); }
+code { font: .875em/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+:not(pre) > code { background: var(--panel); padding: 1px 5px; border-radius: 4px; }
+pre { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; margin: 8px 0 16px; }
+pre code.hljs { padding: 12px 14px; }
+.file { font: .85rem ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); margin-top: 20px; }
+.src {
+    display: inline-block;
+    font-size: .72rem;
+    font-weight: 600;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: var(--src-bg);
+    color: var(--src-fg);
+    vertical-align: 1px;
+    text-decoration: none;
+}
+.src[data-src="Inferred"] { background: var(--inferred-bg); color: var(--inferred-fg); }
+.found { color: var(--src-fg); }
+.missing { color: var(--inferred-fg); }
+.finding {
+    background: var(--finding-bg);
+    border-left: 4px solid var(--finding-line);
+    padding: 10px 14px;
+    margin: 12px 0;
+    border-radius: 0 6px 6px 0;
+}
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.cols > * { min-width: 0; }
+@media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
+pre.mermaid { border: none; text-align: center; background: transparent; }
+.questions { position: relative; }
+.questions pre { white-space: pre-wrap; padding: 14px; background: var(--panel); font: .9rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.questions button {
+    position: absolute; top: 8px; right: 8px;
+    font-size: .8rem; padding: 4px 10px; cursor: pointer;
+    border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg);
+}
+</style>
+</head>
+<body>
+<main>
+
+<h1>{TITLE}</h1>
+<p class="meta">{MODE: PR #N or local against the default branch} · base <code>{BASE_SHA}</code> · head <code>{HEAD_SHA}</code> · {PR LINK or "not pushed"}</p>
+
+<!--
+    Write a connected explanation in the order that makes this change understandable.
+    Choose headings as needed. Sources, history, tests, and findings belong beside
+    the behavior they explain. No fixed parts or source inventory are required.
+
+    Building blocks:
+
+    <p class="file"><a href="{permalink}">app/Models/Order.php</a></p>
+    <pre><code class="language-php">...</code></pre>
+
+    <div class="finding">...</div>
+
+    <div class="cols"><div>before</div><div>after</div></div>
+
+    <pre class="mermaid">sequenceDiagram ...</pre>
+
+    Optional source badge: <span class="src" data-src="Ticket">Ticket</span>
+    Optional linked badge: <a class="src" data-src="Issue" href="{url}">Issue #12</a>
+-->
+
+<!-- Omit the following heading and questions block if no questions needed for understanding remain. -->
+<h2>Open questions for the author</h2>
+<div class="questions">
+    <button type="button" onclick="navigator.clipboard.writeText(this.nextElementSibling.innerText).then(() => this.textContent = 'Copied')">Copy</button>
+    <pre>{One question per line, numbered}</pre>
+</div>
+
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+<script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs";
+mermaid.initialize({
+    startOnLoad: true,
+    theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "default",
+});
+</script>
+</body>
+</html>

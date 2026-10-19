@@ -8,6 +8,7 @@ CODEX_COMPATIBLE_SKILLS=(
     codebase-design
     debug
     diagnosing-bugs
+    explain-changes
     frontend-design
     laravel-best-practices
     outcome-writing
