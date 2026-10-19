@@ -19,6 +19,7 @@ CODEX_COMPATIBLE_SKILLS=(
     spatie-laravel-php
     spatie-security
     speeding-up-laravel-tests
+    teach
     working-with-legacy-code
 )
 

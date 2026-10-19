@@ -57,6 +57,7 @@ THIRD_PARTY_SKILLS=(
     "mattpocock/skills:diagnosing-bugs"
     "mattpocock/skills:improve-codebase-architecture"
     "mattpocock/skills:codebase-design"
+    "mattpocock/skills:teach"
     "laravel/boost:laravel-best-practices"
     "spatie/guidelines-skills:spatie-laravel-php"
     "spatie/guidelines-skills:spatie-security"
