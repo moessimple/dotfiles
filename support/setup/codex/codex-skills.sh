@@ -6,6 +6,7 @@ CODEX_COMPATIBLE_SKILLS=(
     bash-defensive-patterns
     code-review-dispatch
     codebase-design
+    codebase-onboarding
     debug
     diagnosing-bugs
     explain-changes

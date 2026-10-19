@@ -46,6 +46,7 @@ LOCAL_SKILLS=(
 # source for network calls, credential/keychain/cookie access, and hardcoded
 # secrets before `npx skills add` runs, so review does not rely on memory.
 THIRD_PARTY_SKILLS=(
+    "affaan-m/ecc:codebase-onboarding"
     "anthropics/skills:frontend-design"
     "anthropics/skills:pdf"
     "anthropics/skills:skill-creator"
