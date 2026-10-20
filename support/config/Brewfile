@@ -71,6 +71,7 @@ brew "svgo"
 
 # === Development ===
 brew "mailpit"
+brew "meilisearch"
 brew "mysql"
 brew "ollama"
 brew "sqlite"
