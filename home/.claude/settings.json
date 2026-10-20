@@ -203,5 +203,6 @@
   },
   "theme": "dark",
   "agentPushNotifEnabled": false,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "autoMemoryEnabled": false
 }
