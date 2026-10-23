@@ -31,6 +31,7 @@ CODEX_COMPATIBLE_SKILLS=(
 # A path may point to one skill or a directory containing multiple skills.
 CODEX_COMPATIBLE_CLAUDE_PLUGIN_SKILLS=(
     "agent-skills@addy-agent-skills:skills"
+    "web-quality-skills@addy-web-quality-skills:skills"
     "agent-browser@agent-browser:skills/agent-browser"
     "laravel@laravel:skills/starter-kit-upgrade"
 )

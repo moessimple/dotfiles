@@ -2,6 +2,7 @@
 
 CLAUDE_PLUGINS=(
     "agent-skills@addy-agent-skills"
+    "web-quality-skills@addy-web-quality-skills"
     "laravel@laravel"
     "agent-browser@agent-browser"
     "claude-md-management@claude-plugins-official"
@@ -27,6 +28,7 @@ CLAUDE_MCP_SERVERS=(
 
 if command -v claude &>/dev/null; then
     claude plugin marketplace add https://github.com/addyosmani/agent-skills 2>/dev/null || warn "addy-agent-skills marketplace already added"
+    claude plugin marketplace add https://github.com/addyosmani/web-quality-skills 2>/dev/null || warn "addy-web-quality-skills marketplace already added"
     claude plugin marketplace add https://github.com/laravel/claude-code 2>/dev/null || warn "laravel marketplace already added"
     claude plugin marketplace add https://github.com/vercel-labs/agent-browser 2>/dev/null || warn "agent-browser marketplace already added"
     claude plugin marketplace add https://github.com/anthropics/claude-plugins-official 2>/dev/null || warn "claude-plugins-official marketplace already added"
