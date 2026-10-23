@@ -208,8 +208,8 @@
       "effortLevel": "high"
     }
   },
+  "autoMemoryEnabled": false,
   "theme": "dark",
   "agentPushNotifEnabled": false,
-  "skipAutoPermissionPrompt": true,
-  "autoMemoryEnabled": false
+  "skipAutoPermissionPrompt": true
 }
