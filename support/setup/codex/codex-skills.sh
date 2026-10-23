@@ -4,6 +4,8 @@
 # harness-neutral skills from Claude's normal skill directory and plugin cache.
 CODEX_COMPATIBLE_SKILLS=(
     bash-defensive-patterns
+    break-ui
+    clarity
     code-review-dispatch
     codebase-design
     codebase-onboarding
@@ -14,6 +16,7 @@ CODEX_COMPATIBLE_SKILLS=(
     laravel-best-practices
     outcome-writing
     pr
+    prototype
     quality
     review
     spatie-javascript

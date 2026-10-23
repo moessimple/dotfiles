@@ -46,6 +46,7 @@ LOCAL_SKILLS=(
 # source for network calls, credential/keychain/cookie access, and hardcoded
 # secrets before `npx skills add` runs, so review does not rely on memory.
 THIRD_PARTY_SKILLS=(
+    "addyosmani/clarity:clarity"
     "affaan-m/ecc:codebase-onboarding"
     "anthropics/skills:frontend-design"
     "anthropics/skills:pdf"
@@ -55,6 +56,8 @@ THIRD_PARTY_SKILLS=(
     "vercel-labs/skills:find-skills"
     "freekmurze/dotfiles:speeding-up-laravel-tests"
     "benedictking/context7-auto-research:context7-auto-research"
+    "emilkowalski/skills:prototype"
+    "emilkowalski/skills:break-ui"
     "mattpocock/skills:diagnosing-bugs"
     "mattpocock/skills:improve-codebase-architecture"
     "mattpocock/skills:codebase-design"
@@ -67,6 +70,21 @@ THIRD_PARTY_SKILLS=(
     "wondelai/skills:working-with-legacy-code"
 )
 
+# Clarity's root SKILL.md makes the CLI copy its whole repository, including the
+# website. Keep only the runtime and license after every install/update.
+claude_skills_trim_clarity() {
+    local skill_dir="$HOME/.claude/skills/clarity"
+    [ -f "$skill_dir/SKILL.md" ] || return 0
+
+    find "$skill_dir/." -mindepth 1 -maxdepth 1 \
+        ! -name SKILL.md ! -name LICENSE ! -name references ! -name scripts \
+        -exec rm -rf -- {} + || return 1
+
+    [ -d "$skill_dir/scripts" ] || return 0
+    find "$skill_dir/scripts/." -mindepth 1 -maxdepth 1 \
+        ! -name strip_markdown.py ! -name prose_stats.py -exec rm -rf -- {} +
+}
+
 # Install each entry in THIRD_PARTY_SKILLS via `npx skills add`; failures are
 # downgraded to warnings so the remaining skills can still be processed.
 step "Installing Claude Code skills"
@@ -75,6 +93,7 @@ for entry in "${THIRD_PARTY_SKILLS[@]}"; do
     skill="${entry#*:}"
     npx skills add "$repo" -s "$skill" --global -y --agent claude-code 2>/dev/null || warn "$skill already installed or failed"
 done
+claude_skills_trim_clarity || warn "Could not trim Clarity's repository extras"
 success "Claude Code skills processed"
 
 # Removes any globally installed skill that isn't in THIRD_PARTY_SKILLS or LOCAL_SKILLS. This

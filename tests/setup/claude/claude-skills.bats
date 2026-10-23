@@ -16,6 +16,38 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
+@test "Clarity keeps only runtime files after installation and updates" {
+    clarity_dir="$test_home/.claude/skills/clarity"
+    mkdir -p "$clarity_dir/references" "$clarity_dir/scripts" "$test_home/.claude/skills/other"
+    touch "$clarity_dir/SKILL.md" "$clarity_dir/LICENSE" "$clarity_dir/references/edit.md"
+    touch "$clarity_dir/scripts/strip_markdown.py" "$clarity_dir/scripts/prose_stats.py"
+    touch "$test_home/.claude/skills/other/keep"
+
+    for pass in install update; do
+        mkdir -p "$clarity_dir/site" "$clarity_dir/.github" "$clarity_dir/samples"
+        touch "$clarity_dir/site/index.html" "$clarity_dir/.github/workflow.yml"
+        touch "$clarity_dir/README.md" "$clarity_dir/scripts/validate_package.py"
+
+        run run_setup_script "$target"
+
+        assert_success
+        [ "$(ls -A "$clarity_dir" | sort)" = "$(printf '%s\n' LICENSE SKILL.md references scripts | sort)" ]
+        [ "$(ls -A "$clarity_dir/scripts" | sort)" = "$(printf '%s\n' prose_stats.py strip_markdown.py | sort)" ]
+        [ -f "$clarity_dir/references/edit.md" ]
+        [ -f "$test_home/.claude/skills/other/keep" ]
+    done
+}
+
+@test "Clarity trimming leaves an incomplete installation untouched" {
+    mkdir -p "$test_home/.claude/skills/clarity/site"
+    touch "$test_home/.claude/skills/clarity/site/keep"
+
+    run run_setup_script "$target"
+
+    assert_success
+    [ -f "$test_home/.claude/skills/clarity/site/keep" ]
+}
+
 @test "an installed skill not declared in claude-skills.sh is removed" {
     # Arrange
     given_skill_lock_file '{"skills":{"quality":{},"stale-skill":{}}}'
