@@ -110,6 +110,8 @@ Before implementing:
 - No "flexibility" or "configurability" that wasn't requested.
 - No error handling for impossible scenarios.
 - If you write 200 lines and it could be 50, rewrite it.
+- A shortcut with a known limit gets a code comment: `shortcut: <the limit>, <when to upgrade>`.
+- Never cut validation at trust boundaries, error handling that prevents data loss, security, or accessibility.
 
 Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
