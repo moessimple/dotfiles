@@ -69,6 +69,66 @@ teardown() {
     assert_fzf_offered_candidate "changed-on-other.txt"
 }
 
+@test "staged changes are offered alongside committed ones" {
+    # Arrange
+    given_repository_on_feature_branch
+    given_committed_file_change changed-on-feature.txt
+    given_staged_new_file staged.txt
+    given_fzf_selects "staged.txt"
+
+    # Act
+    run call_review main
+
+    # Assert
+    assert_success
+    assert_fzf_offered_candidate "changed-on-feature.txt"
+    assert_fzf_offered_candidate "staged.txt"
+}
+
+@test "unstaged changes to tracked files are offered" {
+    # Arrange
+    given_repository_on_feature_branch
+    given_unstaged_change_to tracked.txt
+    given_fzf_selects "tracked.txt"
+
+    # Act
+    run call_review main
+
+    # Assert
+    assert_success
+    assert_fzf_offered_candidate "tracked.txt"
+}
+
+@test "untracked files are offered" {
+    # Arrange
+    given_repository_on_feature_branch
+    given_untracked_file untracked.txt
+    given_fzf_selects "untracked.txt"
+
+    # Act
+    run call_review main
+
+    # Assert
+    assert_success
+    assert_fzf_offered_candidate "untracked.txt"
+}
+
+@test "on the base branch itself only uncommitted changes are offered" {
+    # Arrange
+    given_clean_repository_on_main
+    given_committed_file_change committed-on-main.txt
+    given_unstaged_change_to tracked.txt
+    given_fzf_selects "tracked.txt"
+
+    # Act
+    run call_review main
+
+    # Assert
+    assert_success
+    assert_fzf_offered_candidate "tracked.txt"
+    assert_fzf_did_not_offer_candidate "committed-on-main.txt"
+}
+
 @test "files unchanged since the base are not offered alongside changed files" {
     # Arrange
     given_repository_on_feature_branch
