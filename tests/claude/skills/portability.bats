@@ -6,7 +6,7 @@ setup() {
     new_dotfiles_fixture
     commands_dir="$dotfiles_dir/home/.claude/commands"
     skills_dir="$dotfiles_dir/home/.claude/skills"
-    shared_skills=(code-review-dispatch debug explain-changes outcome-writing pr quality review)
+    shared_skills=(code-review-dispatch debug explain-changes outcome-writing pr quality review document-product characterize-behavior raise-quality-gate)
 }
 
 @test "legacy commands are replaced by shared skills" {
@@ -34,7 +34,7 @@ setup() {
 }
 
 @test "manual-only skills are only invoked explicitly, in Claude and in Codex" {
-    for skill in explain-changes pr review; do
+    for skill in explain-changes pr review document-product characterize-behavior raise-quality-gate; do
         skill_dir="$skills_dir/$skill"
 
         grep -Fqx 'disable-model-invocation: true' "$skill_dir/SKILL.md" || return 1
@@ -43,7 +43,7 @@ setup() {
 }
 
 @test "shared skill instructions contain no Claude command expansion or named Claude agents" {
-    for skill in code-review-dispatch debug explain-changes pr quality review; do
+    for skill in code-review-dispatch debug explain-changes pr quality review document-product characterize-behavior raise-quality-gate; do
         skill_file="$skills_dir/$skill/SKILL.md"
 
         ! grep -Fq '$ARGUMENTS' "$skill_file" || false
@@ -66,4 +66,16 @@ setup() {
     grep -Fq '`spatie-laravel-php`' "$skills_dir/code-review-dispatch/SKILL.md"
     grep -Fq '`laravel-best-practices`' "$skills_dir/code-review-dispatch/SKILL.md"
     grep -Fq '`outcome-writing`' "$skills_dir/code-review-dispatch/SKILL.md"
+}
+
+@test "product skills work without the reference projects they were modelled on" {
+    for skill in document-product characterize-behavior raise-quality-gate; do
+        ! grep -rniE 'starter.?kit|/Users/|~/Code' "$skills_dir/$skill" || false
+    done
+
+    ! grep -rnE 'PRODUCT\.md|KNOWLEDGE_BASE\.md|document-product' "$skills_dir/characterize-behavior" || false
+}
+
+@test "the golden master reference is the same in both product skills that record it" {
+    cmp "$skills_dir/characterize-behavior/references/golden-master.md" "$skills_dir/raise-quality-gate/references/golden-master.md"
 }

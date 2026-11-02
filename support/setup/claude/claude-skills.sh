@@ -4,12 +4,15 @@
 # installed through this script. This is the source of truth claude_skills_cleanup uses to
 # tell them apart from third-party skills below. Keep it in sync with what's actually there.
 LOCAL_SKILLS=(
+    characterize-behavior
     code-review-dispatch
     debug
+    document-product
     explain-changes
     outcome-writing
     pr
     quality
+    raise-quality-gate
     review
 )
 

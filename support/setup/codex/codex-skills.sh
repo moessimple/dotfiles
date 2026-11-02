@@ -5,12 +5,14 @@
 CODEX_COMPATIBLE_SKILLS=(
     bash-defensive-patterns
     break-ui
+    characterize-behavior
     clarity
     code-review-dispatch
     codebase-design
     codebase-onboarding
     debug
     diagnosing-bugs
+    document-product
     explain-changes
     frontend-design
     laravel-best-practices
@@ -18,6 +20,7 @@ CODEX_COMPATIBLE_SKILLS=(
     pr
     prototype
     quality
+    raise-quality-gate
     review
     spatie-javascript
     spatie-laravel-php

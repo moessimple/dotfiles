@@ -1,0 +1,1 @@
+../../characterize-behavior/references/golden-master.md
