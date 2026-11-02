@@ -11,6 +11,22 @@ Give the answer, and expand only when I ask for detail.
 
 Don't overuse emoji.
 
+## Output language
+
+The language of instructions, skills, examples, and templates does not determine the output language.
+
+- Follow explicit language requests for the current task.
+- Otherwise follow the repository's language rules.
+- Without explicit rules:
+  - Documentation: preserve the existing document's language; for new documents, follow comparable project
+    documentation.
+  - PRs and commits: follow recent human-written examples of the same artifact.
+  - Code identifiers and comments: follow the surrounding code.
+- Ignore bots, generated content, and unchanged starter templates when determining conventions.
+- If the convention is unclear or mixed, ask before writing.
+- Respond in the user's language independently of artifact language.
+- Preserve technical identifiers and required machine-readable syntax.
+
 ## Writing
 
 Never use em dashes (—) or en dashes (–) as punctuation. Rephrase with periods, commas, or parentheses.

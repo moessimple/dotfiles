@@ -26,7 +26,9 @@ If `PRODUCT.md` or `KNOWLEDGE_BASE.md` already exist, read them first and extend
 
 Use the formats in [references/document-format.md](references/document-format.md). Load it before writing.
 
-Write the documents in the language of the user's request.
+Determine the documentation language before drafting, following the applicable output-language rules. Translate
+human-readable headings and labels in the format templates into that language; preserve filenames, code
+identifiers, and machine-readable syntax.
 
 ## Evidence
 
