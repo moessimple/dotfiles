@@ -30,7 +30,7 @@ Two different things, often confused:
 - **Precise technical terms are welcome.** Migration, queue, endpoint, cache, N+1 query. These are the shared vocabulary of the team. Replacing them with vague paraphrases makes the text longer and less clear.
 - **Code-internal names do not belong in the story.** Class names, method names, file names, invented project shorthand a newcomer would not know. Name the feature area and the behavior, not the symbol.
 
-The exception: a section written for the reviewer (for example a "Review focus" list) may name a specific method or file, because that reader will open the code.
+The exception: text written for a reviewer who has the diff open (the sections of a PR description after its summary, a review finding) may name a class, method, or file where that shows the reader where something happens. The summary or opening that states the problem and the outcome still describes behavior, not symbols.
 
 ## Self-contained and searchable
 
@@ -72,10 +72,10 @@ This matters most for reference documentation, where there is no story to carry 
 
 Check it against this list. If any check fails, revise and check again.
 
-- Could a new team member who never opens the code understand every sentence?
+- Could a new team member who never opens the code understand every sentence? (For reviewer-facing text: at least the summary.)
 - For narrating a change: does the opening name what someone experienced, not what the code lacked?
 - Is every claim concrete? No "improves", "enhances", "optimizes" without saying what changes for whom.
-- For narrating a change: does any story sentence lean on a class, method, or file name where an outcome would do? Rewrite it. (Naming a location in a reviewer-facing section is fine.)
+- For narrating a change: does any story sentence lean on a class, method, or file name where an outcome would do? Rewrite it. (Naming a location in reviewer-facing text after the summary is fine.)
 - Did a vague paraphrase replace a precise technical term the team shares? Put the term back.
 - Is every sentence short, one thought each?
 - Is every sentence there because it adds information the reader doesn't already have? Cut restatements and filler.

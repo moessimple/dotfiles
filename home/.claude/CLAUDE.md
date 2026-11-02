@@ -28,7 +28,9 @@ Use the gh CLI for GitHub questions and operations.
 
 Never mention Claude Code in PR descriptions, PR comments, or issue comments.
 
-Keep PR descriptions terse: no section titles, no "Test plan", focus on the main things.
+Keep PR descriptions terse and focused on the main things. No generic "Test plan" checklist; concrete verification
+scenarios that actually ran are fine. When writing one without the `pr` skill, read `~/.claude/skills/pr/SKILL.md` and
+follow its workflow from gathering context through writing the description, including the independent review.
 Minimal examples are fine. Unless I ask for more detail.
 
 Don't reference planning artifacts (SPEC*.md, spec/, docs/ideas/, docs/specs/, tasks/plan.md, tasks/todo.md, or

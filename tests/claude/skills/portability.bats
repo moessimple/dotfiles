@@ -59,6 +59,7 @@ setup() {
     grep -Fq '`diagnosing-bugs`' "$skills_dir/debug/SKILL.md"
     grep -Fq 'REQUIRED SUB-SKILL' "$skills_dir/pr/SKILL.md"
     grep -Fq '`outcome-writing`' "$skills_dir/pr/SKILL.md"
+    grep -Fq '`code-review-dispatch`' "$skills_dir/pr/SKILL.md"
     grep -Fq 'REQUIRED SUB-SKILL' "$skills_dir/review/SKILL.md"
     grep -Fq '`code-review-dispatch`' "$skills_dir/review/SKILL.md"
     grep -Fq '`agent-skills:code-review-and-quality`' "$skills_dir/code-review-dispatch/SKILL.md"
