@@ -57,7 +57,8 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with_substring npx "skills remove stale-skill --global -y --agent claude-code"
+    assert_binary_called_with_substring npx "skills remove stale-skill --global -y"
+    assert_binary_not_called_with_substring npx "skills remove stale-skill --global -y --agent"
     assert_binary_not_called_with_substring npx "skills remove quality"
 }
 

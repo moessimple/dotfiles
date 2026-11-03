@@ -7,6 +7,7 @@ CLAUDE_PLUGINS=(
     "agent-browser@agent-browser"
     "claude-md-management@claude-plugins-official"
     "typescript-lsp@claude-plugins-official"
+    "impeccable@impeccable"
 )
 
 # LSP configs written directly in this repo, living in home/.claude/skills/ with their own
@@ -32,6 +33,7 @@ if command -v claude &>/dev/null; then
     claude plugin marketplace add https://github.com/laravel/claude-code 2>/dev/null || warn "laravel marketplace already added"
     claude plugin marketplace add https://github.com/vercel-labs/agent-browser 2>/dev/null || warn "agent-browser marketplace already added"
     claude plugin marketplace add https://github.com/anthropics/claude-plugins-official 2>/dev/null || warn "claude-plugins-official marketplace already added"
+    claude plugin marketplace add https://github.com/pbakaus/impeccable 2>/dev/null || warn "impeccable marketplace already added"
     for plugin in "${CLAUDE_PLUGINS[@]}"; do
         claude plugin install "$plugin" 2>/dev/null || warn "$plugin already installed"
     done

@@ -51,16 +51,12 @@ LOCAL_SKILLS=(
 THIRD_PARTY_SKILLS=(
     "addyosmani/clarity:clarity"
     "affaan-m/ecc:codebase-onboarding"
-    "anthropics/skills:frontend-design"
     "anthropics/skills:pdf"
     "anthropics/skills:skill-creator"
     "wshobson/agents:bash-defensive-patterns"
-    "vercel-labs/agent-skills:web-design-guidelines"
     "vercel-labs/skills:find-skills"
     "freekmurze/dotfiles:speeding-up-laravel-tests"
     "benedictking/context7-auto-research:context7-auto-research"
-    "emilkowalski/skills:prototype"
-    "emilkowalski/skills:break-ui"
     "mattpocock/skills:diagnosing-bugs"
     "mattpocock/skills:improve-codebase-architecture"
     "mattpocock/skills:codebase-design"
@@ -130,9 +126,9 @@ claude_skills_cleanup() {
         if ! printf '%s\n' "${declared_names[@]}" | grep -qxF "$name"; then
             found_undeclared=1
             warn "Removing undeclared skill: $name (not in claude-skills.sh)"
-            # Same -y and --agent as the install above, otherwise the CLI asks which agent to
-            # remove from and waits for an answer in the middle of an unattended update.
-            npx skills remove "$name" --global -y --agent claude-code 2>/dev/null || warn "Could not remove $name, remove it manually"
+            # No --agent: with it, the CLI removes only that agent's copy and keeps the lock
+            # entry, so the skill stays listed as installed. -y keeps the run unattended.
+            npx skills remove "$name" --global -y 2>/dev/null || warn "Could not remove $name, remove it manually"
         fi
     done <<< "$installed"
 

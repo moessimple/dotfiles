@@ -38,6 +38,9 @@ For Laravel and PHP work, always use the `spatie-laravel-php` skill.
 
 Use the agent-browser skill for browser automation.
 
+For frontend design work, use the `impeccable` skill. Fix Impeccable detector findings. Add an ignore only for one
+rule in one file, with `--reason`, and name it in the PR.
+
 ## GitHub
 
 Use the gh CLI for GitHub questions and operations.
