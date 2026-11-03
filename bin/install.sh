@@ -82,6 +82,9 @@ source ~/.dotfiles/support/setup/tinkerbench/tinkerbench.sh
 # Global npm packages
 source ~/.dotfiles/support/setup/packages/npm-packages.sh
 
+# Python packages: after the Brewfile, which installs python3 and the PDF tools they call.
+source ~/.dotfiles/support/setup/packages/python-packages.sh
+
 # Claude Code skills
 source ~/.dotfiles/support/setup/claude/claude-skills.sh
 

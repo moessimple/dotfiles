@@ -54,7 +54,7 @@ brew update
 brew upgrade
 brew bundle --file=~/.dotfiles/support/config/Brewfile
 # --force because without it this only prompts, and a prompt it cannot show makes it a no-op.
-# All five cleanups in this script remove undeclared things unattended, the declaration files
+# All cleanups in this script remove undeclared things unattended, the declaration files
 # are the only source of truth for what may be installed.
 brew bundle cleanup --force --file=~/.dotfiles/support/config/Brewfile || true
 # --prune=all: this runs weekly right after update/upgrade/bundle, so every declared
@@ -80,6 +80,13 @@ npm_packages_cleanup
 # garbage-collects unreferenced content and prunes it back toward `cache-max`, the npm
 # counterpart to `brew cleanup` above.
 npm cache verify
+
+# Install any Python packages newly added to the list, then update all
+source ~/.dotfiles/support/setup/packages/python-packages.sh
+step "Updating Python packages"
+python_pip install --user --quiet --no-warn-script-location --upgrade "${PYTHON_PACKAGES[@]}"
+success "Python packages updated"
+python_packages_cleanup
 
 # Install any Claude Code skills newly added to the list, then update all
 source ~/.dotfiles/support/setup/claude/claude-skills.sh

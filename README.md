@@ -88,7 +88,7 @@ The complete list of Homebrew formulae, applications, fonts, and Quick Look plug
 - Oh My Zsh, shell aliases, functions, paths, exports, and Git helpers
 - Laravel Herd, MySQL, Mailpit, and development applications
 - Ollama with local models listed in [`support/setup/packages/ollama-models.sh`](support/setup/packages/ollama-models.sh)
-- Global Composer and npm tools
+- Global Composer and npm tools, and the Python packages the PDF skill needs
 - Claude Code configuration, skills, plugins, and MCP servers
 - [tinkerbench](https://github.com/moessimple/tinkerbench), installed at `~/Code/tinkerbench`
 - Ghostty configuration and macOS preferences
@@ -160,7 +160,7 @@ bin/update.sh
 ```
 
 The update treats the repository's package and Claude Code declarations as the desired state. It removes undeclared
-Homebrew entries, global Composer and npm packages, Ollama models, Claude Code skills and plugins, and user-level MCP
+Homebrew entries, global Composer and npm packages, user-installed Python packages, Ollama models, Claude Code skills and plugins, and user-level MCP
 servers without asking. Project dependencies and project-level Claude Code integrations are not affected.
 
 Reapply symlinks, services, Herd and tinkerbench setup, and macOS preferences without reinstalling packages with:

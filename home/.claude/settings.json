@@ -7,7 +7,6 @@
   "permissions": {
     "allow": [
       "Skill(spatie-laravel-php:*)",
-      "Skill(context7-auto-research:*)",
       "Skill(agent-browser:*)",
       "WebSearch",
       "WebFetch",
@@ -160,7 +159,8 @@
     "laravel-lsp@skills-dir": true,
     "typescript-lsp@claude-plugins-official": true,
     "web-quality-skills@addy-web-quality-skills": true,
-    "impeccable@impeccable": true
+    "impeccable@impeccable": true,
+    "context7@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "addy-agent-skills": {

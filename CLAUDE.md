@@ -65,10 +65,10 @@ user runs directly (besides `bin/test.sh`); each sources scripts under `support/
 `source` call in the entry-point scripts) rather than duplicating logic. `install.sh` does a full fresh setup
 (Homebrew, Oh My Zsh, symlinks, packages, Herd, tinkerbench, macOS defaults). `reconfigure.sh` reapplies symlinks,
 Codex skill links, service setup, Herd/tinkerbench, and macOS defaults without touching package managers. `update.sh`
-pulls the repo, then updates Homebrew, global Composer/npm packages, Claude Code skills/plugins, Codex skill links,
+pulls the repo, then updates Homebrew, global Composer/npm packages, user-level Python packages, Claude Code skills/plugins, Codex skill links,
 and Ollama models.
 
-**Declared list = desired state.** The Brewfile (`support/config/Brewfile`), global Composer/npm package lists and Ollama
+**Declared list = desired state.** The Brewfile (`support/config/Brewfile`), global Composer/npm/Python package lists and Ollama
 models (`support/setup/packages/`), Claude Code skills/plugins (`support/setup/claude/claude-skills.sh`,
 `claude-plugins.sh`), and Codex-compatible skills (`support/setup/codex/codex-skills.sh`) are each treated as the full
 desired state. After each update step, `bin/update.sh` removes anything installed but not declared: Homebrew via

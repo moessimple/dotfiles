@@ -37,7 +37,7 @@ Tell each reviewer, inside the dispatch, to judge the change against its goal, t
 1. **Always**: dispatch a reviewer that invokes the `agent-skills:code-review-and-quality` skill against the in-scope diff. Map its Critical to Critical, Required to Important, and Optional or Nit to Suggestion.
 2. **Full level and any in-scope file is PHP**: dispatch a reviewer that invokes the `agent-skills:code-simplification` skill to identify opportunities. It reports each opportunity with `file:line` and changes no file. The `review` skill checks the branch out purely so this reviewer can read it.
 3. **Full level and any in-scope file is PHP**: dispatch a reviewer invoking the `spatie-laravel-php` skill for Spatie PHP guideline compliance.
-4. **Full level and any in-scope file is PHP**: dispatch a reviewer invoking the `laravel-best-practices` skill (routing, database performance, architecture). If it cannot be found, skip this reviewer and say so in the caller's output instead of failing.
+4. **Full level and any in-scope file is PHP**: dispatch a reviewer invoking the `laravel-best-practices` skill (routing, database performance, architecture). Laravel Boost installs it per project, so it exists only in projects that use Boost. If it cannot be found, skip this reviewer and say so in the caller's output instead of failing.
 
 ## Step 3: Aggregate
 

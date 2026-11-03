@@ -54,18 +54,14 @@ THIRD_PARTY_SKILLS=(
     "anthropics/skills:pdf"
     "anthropics/skills:skill-creator"
     "wshobson/agents:bash-defensive-patterns"
-    "vercel-labs/skills:find-skills"
     "freekmurze/dotfiles:speeding-up-laravel-tests"
-    "benedictking/context7-auto-research:context7-auto-research"
     "mattpocock/skills:diagnosing-bugs"
     "mattpocock/skills:improve-codebase-architecture"
     "mattpocock/skills:codebase-design"
     "mattpocock/skills:teach"
-    "laravel/boost:laravel-best-practices"
     "spatie/guidelines-skills:spatie-laravel-php"
     "spatie/guidelines-skills:spatie-security"
     "spatie/guidelines-skills:spatie-javascript"
-    "github/awesome-copilot:sql-optimization"
     "wondelai/skills:working-with-legacy-code"
 )
 

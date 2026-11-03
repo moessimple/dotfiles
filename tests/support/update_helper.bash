@@ -37,7 +37,7 @@ given_repository_with_real_setup_scripts() {
 }
 
 # Stands in for every external tool a full update.sh run drives (Homebrew, Composer, npm,
-# agent-browser, the `skills` CLI via npx, Claude Code, and Ollama), each reporting an empty installed
+# pip via python3, agent-browser, the `skills` CLI via npx, Claude Code, and Ollama), each reporting an empty installed
 # set so every *_cleanup function reports a clean state instead of touching real package managers.
 given_every_external_tool_update_touches_is_faked() {
     write_fake_binary brew
@@ -45,6 +45,7 @@ given_every_external_tool_update_touches_is_faked() {
     write_fake_binary agent-browser
     given_fake_composer_reporting_installed '{"installed":[]}'
     given_fake_npm_reporting_installed '{"dependencies":{}}'
+    given_fake_python_reporting_installed '[]'
     given_fake_claude '[]' ""
     given_skill_lock_file '{"skills":{}}'
     given_fake_ollama_listing ''

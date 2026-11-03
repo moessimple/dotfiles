@@ -69,6 +69,31 @@ EOF
     chmod +x "$fake_bin/npm"
 }
 
+given_fake_python_reporting_installed() {
+    local json="$1"
+    cat > "$fake_bin/python3" <<EOF
+#!/usr/bin/env bash
+printf '%s\n' "\$*" >> "$fake_bin/python3.calls"
+case "\$*" in
+    "-m pip list --user --not-required --format=json "*)
+        printf '%s\n' '$json'
+        ;;
+esac
+EOF
+    chmod +x "$fake_bin/python3"
+}
+
+given_fake_python_failing_to_report_installed() {
+    cat > "$fake_bin/python3" <<EOF
+#!/usr/bin/env bash
+printf '%s\n' "\$*" >> "$fake_bin/python3.calls"
+case "\$*" in
+    "-m pip list "*) exit 1 ;;
+esac
+EOF
+    chmod +x "$fake_bin/python3"
+}
+
 given_skill_lock_file() {
     mkdir -p "$test_home/.agents"
     printf '%s' "$1" > "$test_home/.agents/.skill-lock.json"

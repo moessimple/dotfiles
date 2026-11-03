@@ -8,6 +8,7 @@ CLAUDE_PLUGINS=(
     "claude-md-management@claude-plugins-official"
     "typescript-lsp@claude-plugins-official"
     "impeccable@impeccable"
+    "context7@claude-plugins-official"
 )
 
 # LSP configs written directly in this repo, living in home/.claude/skills/ with their own

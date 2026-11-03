@@ -13,7 +13,6 @@ CODEX_COMPATIBLE_SKILLS=(
     diagnosing-bugs
     document-product
     explain-changes
-    laravel-best-practices
     outcome-writing
     pr
     quality
