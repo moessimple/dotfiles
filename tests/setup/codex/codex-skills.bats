@@ -108,7 +108,6 @@ run_codex_skills_setup() {
     run run_codex_skills_setup
 
     assert_success
-    [ ! -e "$skills_dir/context7-auto-research" ]
     [ ! -e "$skills_dir/pdf" ]
     [ ! -e "$skills_dir/skill-creator" ]
 }

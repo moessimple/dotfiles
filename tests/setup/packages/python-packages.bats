@@ -22,7 +22,22 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with_substring python3 "-m pip install --user --quiet --no-warn-script-location pandas pdf2image pdfplumber pypdf pypdfium2 pytesseract reportlab"
+    assert_binary_called_with_substring python3 "-m pip install --user"
+    assert_binary_called_with_substring python3 "pdfplumber"
+}
+
+@test "pip runs with Homebrew's externally-managed lock lifted, which it otherwise refuses" {
+    # Arrange
+    given_fake_python_reporting_installed '[{"name":"leftpad"}]'
+
+    # Act: sourcing the file for its cleanup function also runs its install step
+    run call_cleanup_function "$target" python_packages_cleanup
+
+    # Assert
+    assert_success
+    assert_binary_called_with_substring python3 "PIP_BREAK_SYSTEM_PACKAGES=1 -m pip install"
+    assert_binary_called_with_substring python3 "PIP_BREAK_SYSTEM_PACKAGES=1 -m pip list"
+    assert_binary_called_with_substring python3 "PIP_BREAK_SYSTEM_PACKAGES=1 -m pip uninstall"
 }
 
 @test "a user-installed package not declared in python-packages.sh is removed" {

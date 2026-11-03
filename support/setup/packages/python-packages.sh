@@ -18,7 +18,8 @@ PYTHON_PACKAGES=(
 # set through the environment because `pip list` rejects it as an option. --user keeps
 # the packages in ~/Library/Python/<version>, apart from Homebrew's own site-packages. That
 # directory is per Python minor version, so after Homebrew moves to a new one the packages
-# are missing until the next install or update run installs them there again.
+# are missing until the next install or update run installs them there again, and the
+# directory of the previous version stays behind, unseen by python_packages_cleanup.
 python_pip() {
     PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip "$@" --disable-pip-version-check
 }

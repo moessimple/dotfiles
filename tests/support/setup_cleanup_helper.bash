@@ -69,11 +69,13 @@ EOF
     chmod +x "$fake_bin/npm"
 }
 
+# Each recorded call is prefixed with PIP_BREAK_SYSTEM_PACKAGES=<value>, because Homebrew's
+# real pip refuses to install or uninstall without it and the fake cannot refuse on its own.
 given_fake_python_reporting_installed() {
     local json="$1"
     cat > "$fake_bin/python3" <<EOF
 #!/usr/bin/env bash
-printf '%s\n' "\$*" >> "$fake_bin/python3.calls"
+printf '%s\n' "PIP_BREAK_SYSTEM_PACKAGES=\${PIP_BREAK_SYSTEM_PACKAGES:-} \$*" >> "$fake_bin/python3.calls"
 case "\$*" in
     "-m pip list --user --not-required --format=json "*)
         printf '%s\n' '$json'
