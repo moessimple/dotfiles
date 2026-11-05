@@ -171,6 +171,15 @@ sudo pmset -a hibernatemode 0
 sudo pmset -a sms 0
 
 ###############################################################################
+# Power management                                                            #
+###############################################################################
+
+# Never sleep the system, so it stays reachable over the network. "Wake for
+# network access" only wakes it for Bonjour and Wake on LAN, not for regular
+# traffic. The display still sleeps. Costs about 2 W more than sleep.
+sudo pmset -a sleep 0
+
+###############################################################################
 # Screen                                                                      #
 ###############################################################################
 
