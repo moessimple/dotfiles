@@ -1,28 +1,20 @@
 #!/usr/bin/env zsh
 
-# Add directories to PATH without adding duplicates when the shell reloads.
-add_to_path() {
-    if [[ -d "$1" ]] && [[ ":$PATH:" != *":$1:"* ]]; then
-        export PATH="$1:$PATH"
-    fi
-}
+# zsh keeps only the first occurrence of each PATH entry, including entries that brew shellenv
+# or Herd add later, so the shell reloads without growing PATH.
+typeset -U path PATH
 
-# === Dotfiles ===
-add_to_path "$DOTFILES_DIR/bin"
+# Each directory is put in front of PATH when it exists; (N-/) drops one that does not.
+path=($DOTFILES_DIR/bin(N-/) $path)
+path=(~/.composer/vendor/bin(N-/) $path)
+path=(~/.gem/bin(N-/) $path)
 
-# === Composer ===
-add_to_path ~/.composer/vendor/bin
-
-# === Ruby ===
-add_to_path ~/.gem/bin
-
-# === Homebrew ===
 if command -v brew &>/dev/null; then
     BREW_PREFIX="$(brew --prefix)"
-    add_to_path "$BREW_PREFIX/bin"
-    add_to_path "$BREW_PREFIX/sbin"
-    add_to_path "$BREW_PREFIX/opt/coreutils/libexec/gnubin"
-    add_to_path "$BREW_PREFIX/opt/libxml2/bin"
-    add_to_path "$BREW_PREFIX/opt/ruby/bin"
+    path=($BREW_PREFIX/bin(N-/) $path)
+    path=($BREW_PREFIX/sbin(N-/) $path)
+    path=($BREW_PREFIX/opt/coreutils/libexec/gnubin(N-/) $path)
+    path=($BREW_PREFIX/opt/libxml2/bin(N-/) $path)
+    path=($BREW_PREFIX/opt/ruby/bin(N-/) $path)
     unset BREW_PREFIX
 fi
