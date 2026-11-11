@@ -15,10 +15,10 @@ function compare() {
         --sort=-authordate \
         --format='%(refname:short)' \
         refs/heads \
-        | grep -v "^${base}$" \
-        | fzf \
+        | grep -v -x -F -- "$base" \
+        | BASE="$base" fzf \
             --no-sort \
-            --preview "git diff --color=always ${base}...{}" \
+            --preview 'git diff --color=always "$BASE"...{}' \
             --preview-window=right:65%:wrap \
             --height=90% \
             --header="compare vs ${base} — Enter: full diff"

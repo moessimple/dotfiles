@@ -18,13 +18,13 @@ function review() {
         git diff --name-only --merge-base "$base"
         git ls-files --others --exclude-standard
     } \
-        | fzf \
+        | BASE="$base" fzf \
             --no-sort \
-            --preview "if [ -n \"\$(git ls-files --others --exclude-standard -- {})\" ]; then \
-                    git diff --color=always --no-index /dev/null {}; \
-                else \
-                    git diff --color=always --merge-base ${base} -- {}; \
-                fi" \
+            --preview 'if [ -n "$(git ls-files --others --exclude-standard -- {})" ]; then
+                    git diff --color=always --no-index /dev/null {}
+                else
+                    git diff --color=always --merge-base "$BASE" -- {}
+                fi' \
             --preview-window=right:65%:wrap \
             --height=90% \
             --header="changed files vs ${base}, including uncommitted — Enter: open in editor" \

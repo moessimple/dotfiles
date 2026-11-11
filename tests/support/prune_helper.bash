@@ -3,18 +3,20 @@ call_prune() {
         zsh "$dotfiles_dir/support/git/prune.sh" "$repository" "$@"
 }
 
-given_repository_with_origin_on_main() {
+given_repository_with_origin_on() {
+    default_branch="$1"
     given_clean_repository_on_main
+    git -C "$repository" branch -m "$default_branch"
     given_bare_origin_remote
-    git -C "$repository" push -q origin main
-    git --git-dir="$origin" symbolic-ref HEAD refs/heads/main
+    git -C "$repository" push -q origin "$default_branch"
+    git --git-dir="$origin" symbolic-ref HEAD "refs/heads/$default_branch"
 }
 
 given_merged_branch_pushed_to_origin() {
     local branch="$1"
     git -C "$repository" switch -qc "$branch"
     git -C "$repository" push -qu origin "$branch"
-    git -C "$repository" switch -q main
+    git -C "$repository" switch -q "$default_branch"
 }
 
 given_unmerged_branch_pushed_to_origin() {
@@ -23,7 +25,7 @@ given_unmerged_branch_pushed_to_origin() {
     printf 'unmerged change\n' > "$repository/tracked.txt"
     git -C "$repository" commit -qam "change on $branch"
     git -C "$repository" push -qu origin "$branch"
-    git -C "$repository" switch -q main
+    git -C "$repository" switch -q "$default_branch"
 }
 
 given_origin_became_unreachable() {

@@ -13,7 +13,7 @@ teardown() {
 
 @test "help describes prune without deleting anything" {
     # Arrange
-    given_repository_with_origin_on_main
+    given_repository_with_origin_on main
     given_merged_branch_pushed_to_origin merged
 
     # Act
@@ -27,7 +27,7 @@ teardown() {
 
 @test "a local branch merged into the default branch is deleted" {
     # Arrange
-    given_repository_with_origin_on_main
+    given_repository_with_origin_on main
     given_merged_branch_pushed_to_origin merged
 
     # Act
@@ -40,7 +40,7 @@ teardown() {
 
 @test "the remote counterpart of a merged branch is deleted" {
     # Arrange
-    given_repository_with_origin_on_main
+    given_repository_with_origin_on main
     given_merged_branch_pushed_to_origin merged
 
     # Act
@@ -53,7 +53,7 @@ teardown() {
 
 @test "a local branch with an unreachable upstream is deleted" {
     # Arrange
-    given_repository_with_origin_on_main
+    given_repository_with_origin_on main
     given_branch_with_gone_upstream stale
 
     # Act
@@ -66,7 +66,7 @@ teardown() {
 
 @test "the default branch is never deleted" {
     # Arrange
-    given_repository_with_origin_on_main
+    given_repository_with_origin_on main
 
     # Act
     run call_prune
@@ -76,9 +76,23 @@ teardown() {
     assert_branch_exists main
 }
 
+@test "a default branch outside the protected names is never deleted" {
+    # Arrange
+    given_repository_with_origin_on trunk
+    given_unmerged_branch_pushed_to_origin unmerged
+    git -C "$repository" switch -q unmerged
+
+    # Act
+    run call_prune
+
+    # Assert
+    assert_success
+    assert_branch_exists trunk
+}
+
 @test "a merged branch with a protected name other than the default branch is kept" {
     # Arrange
-    given_repository_with_origin_on_main
+    given_repository_with_origin_on main
     given_merged_branch_pushed_to_origin develop
 
     # Act
@@ -89,9 +103,9 @@ teardown() {
     assert_branch_exists develop
 }
 
-@test "the currently checked out branch keeps its local copy but loses its remote copy when not protected by name" {
+@test "the currently checked out branch keeps its local and its remote copy" {
     # Arrange
-    given_repository_with_origin_on_main
+    given_repository_with_origin_on main
     given_merged_branch_pushed_to_origin current-work
     git -C "$repository" switch -q current-work
 
@@ -99,16 +113,14 @@ teardown() {
     run call_prune
 
     # Assert
-    # The "*" current-branch marker that protects local branches has no equivalent in the
-    # remote-tracking branch listing, so only the local copy survives.
-    assert_failure
+    assert_success
     assert_branch_exists current-work
-    assert_remote_branch_does_not_exist current-work
+    assert_remote_branch_exists current-work
 }
 
 @test "a failed fetch aborts prune before any branch is deleted" {
     # Arrange
-    given_repository_with_origin_on_main
+    given_repository_with_origin_on main
     given_merged_branch_pushed_to_origin merged
     git -C "$repository" fetch -q origin
     given_origin_became_unreachable
@@ -123,7 +135,7 @@ teardown() {
 
 @test "an unmerged branch is kept" {
     # Arrange
-    given_repository_with_origin_on_main
+    given_repository_with_origin_on main
     given_unmerged_branch_pushed_to_origin unmerged
 
     # Act

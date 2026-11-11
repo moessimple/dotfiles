@@ -69,6 +69,22 @@ teardown() {
     assert_fzf_did_not_offer_candidate "main"
 }
 
+@test "only the exact base branch name is excluded from the selectable branches" {
+    # Arrange
+    given_repository_on_feature_branch
+    git -C "$repository" branch release-1.0
+    git -C "$repository" branch release-1x0
+    given_fzf_selects "release-1x0"
+
+    # Act
+    run call_compare release-1.0
+
+    # Assert
+    assert_success
+    assert_fzf_offered_candidate "release-1x0"
+    assert_fzf_did_not_offer_candidate "release-1.0"
+}
+
 @test "selecting no branch shows no diff and fails" {
     # Arrange
     given_repository_on_feature_branch

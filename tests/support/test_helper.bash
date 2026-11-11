@@ -216,6 +216,10 @@ assert_branch_tracks() {
     [ "$(git -C "$repository" rev-parse --abbrev-ref '@{upstream}')" = "$1" ]
 }
 
+assert_remote_branch_exists() {
+    git --git-dir="$origin" show-ref --verify --quiet "refs/heads/$1"
+}
+
 assert_remote_branch_does_not_exist() {
     ! git --git-dir="$origin" show-ref --verify --quiet "refs/heads/$1" || false
 }
