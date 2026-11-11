@@ -11,6 +11,20 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
+@test "help describes pull without pulling" {
+    # Arrange
+    given_repository_on_feature_branch
+    given_origin_commit_missing_from_local_branch from-origin.txt "from origin"
+
+    # Act
+    run call_pull --help
+
+    # Assert
+    assert_success
+    assert_output_contains "Usage: pull [git pull options]"
+    assert_path_does_not_exist "$repository/from-origin.txt"
+}
+
 @test "pulling with a detached HEAD is rejected" {
     # Arrange
     given_repository_on_feature_branch

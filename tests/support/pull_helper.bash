@@ -1,6 +1,6 @@
 call_pull() {
-    zsh -c 'source "$1"; cd "$2"; pull' \
-        zsh "$dotfiles_dir/support/git/pull.sh" "$repository"
+    zsh -c 'source "$1"; cd "$2"; pull "${@:3}"' \
+        zsh "$dotfiles_dir/support/git/pull.sh" "$repository" "$@"
 }
 
 given_origin_commit_missing_from_local_branch() {

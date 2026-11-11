@@ -4,6 +4,12 @@ source "${0:A:h}/support/stash-guard.sh"
 
 # Pull the current branch from origin while preserving uncommitted changes
 function pull() {
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo "Usage: pull [git pull options]"
+        echo "  Pulls the current branch from origin, keeping uncommitted changes in a stash meanwhile."
+        return 0
+    fi
+
     local current_branch
     current_branch=$(git symbolic-ref --quiet --short HEAD) || {
         echo "Cannot pull while HEAD is detached." >&2
