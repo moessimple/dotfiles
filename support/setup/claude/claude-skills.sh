@@ -31,7 +31,7 @@
 # TODO: this checklist is manual today and depends on remembering to run it.
 # Investigate automating it, e.g. a pre-install check that scans a skill's
 # source for network calls, credential/keychain/cookie access, and hardcoded
-# secrets before `npx skills add` runs, so review does not rely on memory.
+# secrets before `skills_cli add` runs, so review does not rely on memory.
 THIRD_PARTY_SKILLS=(
     "addyosmani/clarity:clarity"
     "affaan-m/ecc:codebase-onboarding"
@@ -49,6 +49,16 @@ THIRD_PARTY_SKILLS=(
     "wondelai/skills:working-with-legacy-code"
 )
 
+# The skills CLI installs, updates and removes the skills below with full user rights. It is pinned,
+# and it runs through Homebrew's npx with a 7-day release-age cooldown, because it loads
+# dependencies with version ranges that the pin alone does not fix. Herd's bundled npm 10 ignores
+# --min-release-age. A raised version must itself be at least 7 days old, or npx refuses it.
+SKILLS_CLI_VERSION="1.7.6"
+
+skills_cli() {
+    "${HOMEBREW_PREFIX:-/opt/homebrew}/bin/npx" --min-release-age=7 --yes "skills@$SKILLS_CLI_VERSION" "$@"
+}
+
 # Clarity's root SKILL.md makes the CLI copy its whole repository, including the
 # website. Keep only the runtime and license after every install/update.
 claude_skills_trim_clarity() {
@@ -64,13 +74,13 @@ claude_skills_trim_clarity() {
         ! -name strip_markdown.py ! -name prose_stats.py -exec rm -rf -- {} +
 }
 
-# Install each entry in THIRD_PARTY_SKILLS via `npx skills add`; failures are
+# Install each entry in THIRD_PARTY_SKILLS via `skills_cli add`; failures are
 # downgraded to warnings so the remaining skills can still be processed.
 step "Installing Claude Code skills"
 for entry in "${THIRD_PARTY_SKILLS[@]}"; do
     repo="${entry%%:*}"
     skill="${entry#*:}"
-    npx skills add "$repo" -s "$skill" --global -y --agent claude-code 2>/dev/null || warn "$skill already installed or failed"
+    skills_cli add "$repo" -s "$skill" --global -y --agent claude-code 2>/dev/null || warn "$skill already installed or failed"
 done
 claude_skills_trim_clarity || warn "Could not trim Clarity's repository extras"
 success "Claude Code skills processed"
@@ -107,7 +117,7 @@ claude_skills_cleanup() {
             warn "Removing undeclared skill: $name (not in claude-skills.sh)"
             # No --agent: with it, the CLI removes only that agent's copy and keeps the lock
             # entry, so the skill stays listed as installed. -y keeps the run unattended.
-            npx skills remove "$name" --global -y 2>/dev/null || warn "Could not remove $name, remove it manually"
+            skills_cli remove "$name" --global -y 2>/dev/null || warn "Could not remove $name, remove it manually"
         fi
     done <<< "$installed"
 

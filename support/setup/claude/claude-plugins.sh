@@ -27,6 +27,10 @@ CLAUDE_MCP_SERVERS=(
     chrome-devtools
 )
 
+# Pinned because npx runs the package with full user rights on every server start. The package
+# has no runtime dependencies, so this pin fixes all code that runs. Raise it deliberately.
+CHROME_DEVTOOLS_MCP_VERSION="1.12.0"
+
 step "Installing Claude Code plugins and MCP servers"
 if command -v claude &>/dev/null; then
     claude plugin marketplace add https://github.com/addyosmani/agent-skills 2>/dev/null || warn "addy-agent-skills marketplace already added"
@@ -38,7 +42,15 @@ if command -v claude &>/dev/null; then
     for plugin in "${CLAUDE_PLUGINS[@]}"; do
         claude plugin install "$plugin" 2>/dev/null || warn "$plugin already installed"
     done
-    claude mcp add chrome-devtools --scope user -- npx -y chrome-devtools-mcp@latest --isolated 2>/dev/null || warn "chrome-devtools MCP server already configured"
+    # `claude mcp add` refuses an existing name, so a registration with another version is
+    # removed first; that is how a raised version takes effect.
+    registered_mcp=$(claude mcp get chrome-devtools 2>/dev/null)
+    if [[ "$registered_mcp" != *"chrome-devtools-mcp@$CHROME_DEVTOOLS_MCP_VERSION "* ]]; then
+        if [ -n "$registered_mcp" ]; then
+            claude mcp remove chrome-devtools -s user >/dev/null 2>&1 || true
+        fi
+        claude mcp add chrome-devtools --scope user -- npx -y "chrome-devtools-mcp@$CHROME_DEVTOOLS_MCP_VERSION" --isolated 2>/dev/null || warn "Could not configure the chrome-devtools MCP server"
+    fi
     success "Claude Code plugins and MCP servers installed"
 else
     warn "claude CLI not found — install Claude Code first, then run: claude plugin install ${CLAUDE_PLUGINS[*]}"

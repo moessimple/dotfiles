@@ -91,18 +91,65 @@ python_packages_cleanup
 # Install any Claude Code skills newly added to the list, then update all
 source ~/.dotfiles/support/setup/claude/claude-skills.sh
 step "Updating Claude Code skills"
-npx skills update -g
+skills_cli update -g
 claude_skills_trim_clarity || warn "Could not trim Clarity's repository extras"
 success "Claude Code skills updated"
 claude_skills_cleanup
 
-# Install any Claude Code plugins/MCP servers newly added to the list, then update all
+# Install any Claude Code plugins/MCP servers newly added to the list, update the official ones
 source ~/.dotfiles/support/setup/claude/claude-plugins.sh
+# Plugins run with full user rights and are not committed, so a third-party plugin's changes are
+# not pulled in unseen. Only Anthropic's official marketplace updates automatically. For every
+# other plugin whose installed commit differs from its marketplace's GitHub HEAD, a link to the
+# changes and the command to apply them are printed, to run after a review. The installed commit
+# comes from Claude Code's install record; the marketplace checkout is not used, because Claude
+# Code can refresh it without updating the plugins.
+report_plugin_changes() {
+    local install_record="$HOME/.claude/plugins/installed_plugins.json"
+    local marketplaces
+    marketplaces=$(claude plugin marketplace list --json 2>/dev/null \
+        | jq -r '.[] | select(.name != "claude-plugins-official" and .url != null) | [.name, .url] | @tsv') || return 0
+
+    local name url upstream plugin installed slug
+    while IFS=$'\t' read -r name url; do
+        [ -n "$name" ] || continue
+        if ! upstream=$(git ls-remote "$url" HEAD 2>/dev/null | cut -f1) || [ -z "$upstream" ]; then
+            warn "Could not check the $name marketplace for changes"
+            continue
+        fi
+
+        for plugin in "${CLAUDE_PLUGINS[@]}"; do
+            [ "${plugin#*@}" = "$name" ] || continue
+            installed=$(jq -r --arg id "$plugin" '.plugins[$id][0].gitCommitSha // empty' "$install_record" 2>/dev/null)
+            if [ -z "$installed" ]; then
+                warn "Could not read the installed commit of $plugin, check it with: claude plugin details $plugin"
+                continue
+            fi
+            [ "$installed" = "$upstream" ] && continue
+
+            case "$url" in
+                https://github.com/*)
+                    slug=${url#https://github.com/}
+                    slug=${slug%.git}
+                    warn "$plugin has changes: https://github.com/$slug/compare/$installed...$upstream"
+                    ;;
+                *)
+                    warn "$plugin has changes from ${installed:0:7} to ${upstream:0:7} at $url"
+                    ;;
+            esac
+            echo "  After review: claude plugin marketplace update $name && claude plugin update $plugin"
+        done
+    done <<< "$marketplaces"
+}
+
 step "Updating Claude Code plugins"
 for plugin in "${CLAUDE_PLUGINS[@]}"; do
-    claude plugin update "$plugin" || true
+    if [ "${plugin#*@}" = "claude-plugins-official" ]; then
+        claude plugin update "$plugin" || true
+    fi
 done
-success "Claude Code plugins updated"
+success "Official Claude Code plugins updated"
+report_plugin_changes
 claude_plugins_cleanup
 
 # Refresh links after Claude has updated both standalone and plugin-provided skills.
@@ -111,6 +158,35 @@ source ~/.dotfiles/support/setup/codex/codex-skills.sh
 # Pull newer versions of the declared Ollama models, then remove undeclared ones
 source ~/.dotfiles/support/setup/packages/ollama-models.sh
 ollama_models_cleanup
+
+# Raises a pinned npm package to its newest stable release that is at least 7 days old, the same
+# cooldown its npx call enforces. The raised pin is an uncommitted change in this repository and
+# takes effect on the next run, which refuses a dirty worktree, so it is committed first.
+raise_npm_pin() {
+    local package="$1" file="$2" variable="$3"
+    local current newest
+    current=$(sed -n "s/^$variable=\"\(.*\)\"$/\1/p" "$file")
+    # pipefail, so a failed npm lookup is reported instead of reading as "no newer release".
+    if ! newest=$(set -o pipefail; "${HOMEBREW_PREFIX:-/opt/homebrew}/bin/npm" view "$package" time --json 2>/dev/null \
+        | jq -r --arg current "$current" '
+            def numbers: split(".") | map(tonumber);
+            to_entries
+            | map(select(.key | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")))
+            | map(select((.value | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601) <= now - 7 * 86400))
+            | map(select((.key | numbers) > ($current | numbers)))
+            | max_by(.key | numbers) | .key // empty'); then
+        warn "Could not check $package for a newer release"
+        return 0
+    fi
+    [ -n "$newest" ] || return 0
+
+    sed -i '' "s/^$variable=\"$current\"$/$variable=\"$newest\"/" "$file"
+    warn "Raised $package from $current to $newest in ${file#"$HOME/"}. Release notes: https://www.npmjs.com/package/$package/v/$newest. Commit the change before the next update."
+}
+
+step "Checking pinned npm packages"
+raise_npm_pin chrome-devtools-mcp ~/.dotfiles/support/setup/claude/claude-plugins.sh CHROME_DEVTOOLS_MCP_VERSION
+raise_npm_pin skills ~/.dotfiles/support/setup/claude/claude-skills.sh SKILLS_CLI_VERSION
 
 echo ""
 success "Update complete!"

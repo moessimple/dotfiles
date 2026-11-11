@@ -13,6 +13,50 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
+@test "a chrome-devtools MCP server on another version is registered again with the pinned version" {
+    # Arrange
+    given_fake_claude '[]' "chrome-devtools: npx -y chrome-devtools-mcp@latest --isolated" \
+        chrome-devtools "Scope: User config
+  Args: -y chrome-devtools-mcp@latest --isolated"
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_binary_called_with_substring claude "mcp remove chrome-devtools -s user"
+    assert_binary_called_with_substring claude "mcp add chrome-devtools --scope user -- npx -y chrome-devtools-mcp@1.12.0 --isolated"
+    assert_binary_not_called_with_substring claude "chrome-devtools-mcp@latest"
+}
+
+@test "a chrome-devtools MCP server already on the pinned version is left as it is" {
+    # Arrange
+    given_fake_claude '[]' "chrome-devtools: npx -y chrome-devtools-mcp@1.12.0 --isolated" \
+        chrome-devtools "Scope: User config
+  Args: -y chrome-devtools-mcp@1.12.0 --isolated"
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_binary_not_called_with_substring claude "mcp remove chrome-devtools"
+    assert_binary_not_called_with_substring claude "mcp add chrome-devtools"
+}
+
+@test "a missing chrome-devtools MCP server is registered with the pinned version" {
+    # Arrange
+    given_fake_claude '[]' ""
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_binary_not_called_with_substring claude "mcp remove chrome-devtools"
+    assert_binary_called_with_substring claude "mcp add chrome-devtools --scope user -- npx -y chrome-devtools-mcp@1.12.0 --isolated"
+}
+
 @test "installing plugins announces its own step" {
     # Arrange
     given_fake_claude '[]' ""
@@ -84,9 +128,10 @@ teardown() {
 @test "a configured user-scope MCP server not declared in claude-plugins.sh is removed" {
     # Arrange
     given_fake_claude '[]' \
-        "chrome-devtools: npx -y chrome-devtools-mcp@latest --isolated
+        "chrome-devtools: npx -y chrome-devtools-mcp@1.12.0 --isolated
 undeclared-server: some-mcp-command" \
-        chrome-devtools "Scope: User config" \
+        chrome-devtools "Scope: User config
+  Args: -y chrome-devtools-mcp@1.12.0 --isolated" \
         undeclared-server "Scope: User config"
 
     # Act
@@ -116,8 +161,9 @@ undeclared-server: some-mcp-command" \
     # Arrange
     given_fake_claude \
         '[{"id":"agent-skills@addy-agent-skills","scope":"user"}]' \
-        "chrome-devtools: npx -y chrome-devtools-mcp@latest --isolated" \
-        chrome-devtools "Scope: User config"
+        "chrome-devtools: npx -y chrome-devtools-mcp@1.12.0 --isolated" \
+        chrome-devtools "Scope: User config
+  Args: -y chrome-devtools-mcp@1.12.0 --isolated"
 
     # Act
     run call_cleanup_function "$target" claude_plugins_cleanup

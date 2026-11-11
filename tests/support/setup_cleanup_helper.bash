@@ -1,10 +1,12 @@
 # Sources one support/setup/**/*.sh file with step/warn/success stubbed (the real
 # definitions live in bin/install.sh and bin/update.sh, the files' actual callers), then
 # invokes the named cleanup function it declares. PATH and HOME are inherited from the
-# calling test so given_fake_bin_on_path fakes and a fixture HOME take effect.
+# calling test so given_fake_bin_on_path fakes and a fixture HOME take effect. HOMEBREW_PREFIX
+# points at the fixture, so a call through $HOMEBREW_PREFIX/bin reaches those fakes too and
+# never the real Homebrew binaries.
 call_cleanup_function() {
     local file="$1" function_name="$2"
-    HOME="${test_home:-$HOME}" bash -c '
+    HOME="${test_home:-$HOME}" HOMEBREW_PREFIX="$fixture" bash -c '
         step() { :; }
         warn() { echo "WARN: $*"; }
         success() { echo "SUCCESS: $*"; }
@@ -17,7 +19,7 @@ call_cleanup_function() {
 # its top-level body (no cleanup function). For asserting on what the install step does.
 run_setup_script() {
     local file="$1"
-    HOME="${test_home:-$HOME}" bash -c '
+    HOME="${test_home:-$HOME}" HOMEBREW_PREFIX="$fixture" bash -c '
         step() { echo "STEP: $*"; }
         warn() { echo "WARN: $*"; }
         success() { echo "SUCCESS: $*"; }

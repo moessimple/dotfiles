@@ -48,6 +48,15 @@ teardown() {
     [ -f "$test_home/.claude/skills/clarity/site/keep" ]
 }
 
+@test "skills are installed through the pinned skills CLI with a release-age cooldown" {
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_binary_called_with_substring npx "--min-release-age=7 --yes skills@1.7.6 add"
+}
+
 @test "an installed skill not declared in claude-skills.sh is removed" {
     # Arrange
     given_skill_lock_file '{"skills":{"codebase-design":{},"stale-skill":{}}}'
@@ -57,9 +66,9 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with_substring npx "skills remove stale-skill --global -y"
-    assert_binary_not_called_with_substring npx "skills remove stale-skill --global -y --agent"
-    assert_binary_not_called_with_substring npx "skills remove codebase-design"
+    assert_binary_called_with_substring npx "remove stale-skill --global -y"
+    assert_binary_not_called_with_substring npx "remove stale-skill --global -y --agent"
+    assert_binary_not_called_with_substring npx "remove codebase-design"
 }
 
 @test "no undeclared skills reports a clean state without removing anything" {
@@ -72,7 +81,7 @@ teardown() {
     # Assert
     assert_success
     assert_output_contains "No undeclared Claude Code skills found"
-    assert_binary_not_called_with_substring npx "skills remove"
+    assert_binary_not_called_with_substring npx " remove "
 }
 
 @test "an unreadable lock file skips cleanup instead of removing everything" {
@@ -85,7 +94,7 @@ teardown() {
     # Assert
     assert_success
     assert_output_contains "Could not read"
-    assert_binary_not_called_with_substring npx "skills remove"
+    assert_binary_not_called_with_substring npx " remove "
 }
 
 @test "cleanup is skipped entirely when no lock file exists yet" {
