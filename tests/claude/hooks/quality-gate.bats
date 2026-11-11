@@ -267,6 +267,18 @@ teardown() {
     assert_record_exit_is_failure "$record"
 }
 
+@test "checks run with a 2G memory limit unless PHP_MEMORY_LIMIT sets another" {
+    # Arrange
+    given_project_with_tools composer phpstan
+
+    # Act
+    PHP_MEMORY_LIMIT= run run_gate full
+
+    # Assert
+    assert_success
+    assert_tool_ran_with_argument phpstan "--memory-limit=2G"
+}
+
 @test "a project without quality tools reports nothing to check and clears its marker" {
     # Arrange
     empty_project="$fixture/empty-project"

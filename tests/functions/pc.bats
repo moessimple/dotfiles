@@ -24,7 +24,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with herd "coverage -d memory_limit=8192M ./vendor/bin/pest --testdox --coverage"
+    assert_binary_called_with herd "coverage -d memory_limit=2G ./vendor/bin/pest --testdox --coverage"
 }
 
 @test "pc runs PHPUnit with HTML coverage through Herd when Pest is not installed" {
@@ -36,5 +36,5 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with herd "coverage -d memory_limit=8192M ./vendor/bin/phpunit --testdox --coverage-html build/coverage"
+    assert_binary_called_with herd "coverage -d memory_limit=2G ./vendor/bin/phpunit --testdox --coverage-html build/coverage"
 }

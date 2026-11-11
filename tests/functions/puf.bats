@@ -50,7 +50,7 @@ teardown() {
     assert_output_contains "❌ Failed after 3 run(s)"
     assert_binary_call_count php 3
     assert_binary_called_with php \
-        "-d memory_limit=8192M ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure tests/Unit/ExampleTest.php"
+        "-d memory_limit=2G ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure tests/Unit/ExampleTest.php"
 }
 
 @test "puf reruns with Pest when Pest is installed" {
@@ -64,5 +64,5 @@ teardown() {
     # Assert
     assert_failure
     assert_binary_called_with php \
-        "-d memory_limit=8192M ./vendor/bin/pest --no-coverage --stop-on-error --stop-on-failure tests/Unit/ExampleTest.php"
+        "-d memory_limit=2G ./vendor/bin/pest --no-coverage --stop-on-error --stop-on-failure tests/Unit/ExampleTest.php"
 }

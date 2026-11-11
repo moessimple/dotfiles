@@ -20,5 +20,5 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with php "-d memory_limit=8192M ./vendor/bin/phpstan -vvv app config"
+    assert_binary_called_with php "-d memory_limit=2G ./vendor/bin/phpstan -vvv app config"
 }

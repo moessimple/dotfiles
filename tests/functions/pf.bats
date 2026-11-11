@@ -35,7 +35,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with php "-d memory_limit=8192M ./vendor/bin/pest --testdox --filter it computes the total"
+    assert_binary_called_with php "-d memory_limit=2G ./vendor/bin/pest --testdox --filter it computes the total"
 }
 
 @test "pf filters PHPUnit tests by name when Pest is not installed" {
@@ -47,5 +47,5 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with php "-d memory_limit=8192M ./vendor/bin/phpunit --testdox --filter it computes the total"
+    assert_binary_called_with php "-d memory_limit=2G ./vendor/bin/phpunit --testdox --filter it computes the total"
 }

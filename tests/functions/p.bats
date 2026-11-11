@@ -25,7 +25,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with php "-d memory_limit=8192M ./vendor/bin/pest --testdox"
+    assert_binary_called_with php "-d memory_limit=2G ./vendor/bin/pest --testdox"
 }
 
 @test "p runs Pest through Herd, so the project's own PHP version applies" {
@@ -37,7 +37,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with herd "php -d memory_limit=8192M ./vendor/bin/pest --testdox"
+    assert_binary_called_with herd "php -d memory_limit=2G ./vendor/bin/pest --testdox"
 }
 
 @test "p falls back to PHPUnit with testdox when Pest is not installed" {
@@ -49,7 +49,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with php "-d memory_limit=8192M ./vendor/bin/phpunit --testdox"
+    assert_binary_called_with php "-d memory_limit=2G ./vendor/bin/phpunit --testdox"
 }
 
 @test "p forwards extra arguments to the test runner" {
@@ -61,5 +61,5 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with php "-d memory_limit=8192M ./vendor/bin/pest --testdox --group=slow"
+    assert_binary_called_with php "-d memory_limit=2G ./vendor/bin/pest --testdox --group=slow"
 }

@@ -49,7 +49,7 @@ teardown() {
     assert_output_contains "❌ Failed after 2 run(s)"
     assert_binary_call_count php 2
     assert_binary_called_with php \
-        "-d memory_limit=8192M ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure --filter it computes the total"
+        "-d memory_limit=2G ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure --filter it computes the total"
 }
 
 @test "puff reruns with Pest when Pest is installed" {
@@ -63,7 +63,7 @@ teardown() {
     # Assert
     assert_failure
     assert_binary_called_with php \
-        "-d memory_limit=8192M ./vendor/bin/pest --no-coverage --stop-on-error --stop-on-failure --filter it computes the total"
+        "-d memory_limit=2G ./vendor/bin/pest --no-coverage --stop-on-error --stop-on-failure --filter it computes the total"
 }
 
 @test "puff reruns through Herd, so the project's own PHP version applies" {
@@ -75,5 +75,5 @@ teardown() {
 
     # Assert
     assert_failure
-    assert_binary_called_with_substring herd "php -d memory_limit=8192M ./vendor/bin/phpunit"
+    assert_binary_called_with_substring herd "php -d memory_limit=2G ./vendor/bin/phpunit"
 }

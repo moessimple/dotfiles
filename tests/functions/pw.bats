@@ -22,7 +22,7 @@ teardown() {
     # Assert
     assert_success
     assert_binary_called_with_substring php "watch --testdox"
-    assert_binary_called_with php "PHP_OPTIONS=-d memory_limit=8192M"
+    assert_binary_called_with php "PHP_OPTIONS=-d memory_limit=2G"
 }
 
 @test "pw forwards extra arguments to phpunit-watcher" {

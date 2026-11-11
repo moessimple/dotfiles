@@ -46,5 +46,5 @@ teardown() {
     assert_output_contains "❌ Failed after 2 run(s)"
     assert_binary_call_count php 2
     assert_binary_called_with php \
-        "artisan test --parallel --passthru-php '-d' 'memory_limit=8192M' --no-coverage --stop-on-error --stop-on-failure tests/Feature"
+        "artisan test --parallel --passthru-php '-d' 'memory_limit=2G' --no-coverage --stop-on-error --stop-on-failure tests/Feature"
 }

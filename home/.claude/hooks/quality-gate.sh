@@ -216,7 +216,7 @@ status=0
 # PHP's default 128M is too little for PHPStan or a test run, and PHP does not
 # read PHP_MEMORY_LIMIT on its own, so the limit is passed explicitly to
 # PHPStan, Rector and the PHP test runners.
-memory_limit="${PHP_MEMORY_LIMIT:-8192M}"
+memory_limit="${PHP_MEMORY_LIMIT:-2G}"
 
 case "$mode" in
     file)

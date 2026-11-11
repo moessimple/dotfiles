@@ -213,7 +213,7 @@ commit() {
 
 # Run PHPStan static analysis with an increased memory limit
 phpstan() {
-    herd php -d memory_limit=8192M ./vendor/bin/phpstan -vvv "$@"
+    herd php -d memory_limit=2G ./vendor/bin/phpstan -vvv "$@"
 }
 
 # Run Rector, preferring the local vendor binary over a global installation
@@ -228,9 +228,9 @@ rector() {
 # Run tests (Pest or PHPUnit) with testdox output
 p() {
     if [ -f vendor/bin/pest ]; then
-        herd php -d memory_limit=8192M ./vendor/bin/pest --testdox "$@"
+        herd php -d memory_limit=2G ./vendor/bin/pest --testdox "$@"
     else
-        herd php -d memory_limit=8192M ./vendor/bin/phpunit --testdox "$@"
+        herd php -d memory_limit=2G ./vendor/bin/phpunit --testdox "$@"
     fi
 }
 
@@ -243,33 +243,33 @@ pf() {
     fi
 
     if [ -f vendor/bin/pest ]; then
-        herd php -d memory_limit=8192M ./vendor/bin/pest --testdox --filter "$@"
+        herd php -d memory_limit=2G ./vendor/bin/pest --testdox --filter "$@"
     else
-        herd php -d memory_limit=8192M ./vendor/bin/phpunit --testdox --filter "$@"
+        herd php -d memory_limit=2G ./vendor/bin/phpunit --testdox --filter "$@"
     fi
 }
 
 # Run tests with code coverage
 pc() {
     if [ -f vendor/bin/pest ]; then
-        herd coverage -d memory_limit=8192M ./vendor/bin/pest --testdox --coverage "$@"
+        herd coverage -d memory_limit=2G ./vendor/bin/pest --testdox --coverage "$@"
     else
-        herd coverage -d memory_limit=8192M ./vendor/bin/phpunit --testdox --coverage-html build/coverage "$@"
+        herd coverage -d memory_limit=2G ./vendor/bin/phpunit --testdox --coverage-html build/coverage "$@"
     fi
 }
 
 # Run tests in parallel
 pp() {
     if [ -f vendor/bin/pest ]; then
-        herd php -d memory_limit=8192M ./vendor/bin/pest --parallel "$@"
+        herd php -d memory_limit=2G ./vendor/bin/pest --parallel "$@"
     else
-        herd php -d memory_limit=8192M artisan test --parallel --passthru-php "'-d' 'memory_limit=8192M'" --no-coverage "$@"
+        herd php -d memory_limit=2G artisan test --parallel --passthru-php "'-d' 'memory_limit=2G'" --no-coverage "$@"
     fi
 }
 
 # Watch for file changes and re-run tests automatically
-pw()  { PHP_OPTIONS="-d memory_limit=8192M" herd php "$(which phpunit-watcher)" watch --testdox "$@"; }
-pwf() { PHP_OPTIONS="-d memory_limit=8192M" herd php "$(which phpunit-watcher)" watch --testdox --filter "$@"; }
+pw()  { PHP_OPTIONS="-d memory_limit=2G" herd php "$(which phpunit-watcher)" watch --testdox "$@"; }
+pwf() { PHP_OPTIONS="-d memory_limit=2G" herd php "$(which phpunit-watcher)" watch --testdox --filter "$@"; }
 
 _run_until_fail() {
     local count=0
@@ -294,9 +294,9 @@ puff() {
     [ -z "$1" ] && { echo "test case required" 1>&2; return 1; }
 
     if [ -f vendor/bin/pest ]; then
-        _run_until_fail herd php -d memory_limit=8192M ./vendor/bin/pest --no-coverage --stop-on-error --stop-on-failure --filter "$1"
+        _run_until_fail herd php -d memory_limit=2G ./vendor/bin/pest --no-coverage --stop-on-error --stop-on-failure --filter "$1"
     else
-        _run_until_fail herd php -d memory_limit=8192M ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure --filter "$1"
+        _run_until_fail herd php -d memory_limit=2G ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure --filter "$1"
     fi
 }
 
@@ -309,7 +309,7 @@ ppuff() {
     fi
 
     [ -z "$1" ] && { echo "test case required" 1>&2; return 1; }
-    _run_until_fail herd php artisan test --parallel --passthru-php "'-d' 'memory_limit=8192M'" --no-coverage --stop-on-error --stop-on-failure --filter "$1"
+    _run_until_fail herd php artisan test --parallel --passthru-php "'-d' 'memory_limit=2G'" --no-coverage --stop-on-error --stop-on-failure --filter "$1"
 }
 
 # Reproduce a flaky test by running a test file or directory in a loop until it fails (sequential)
@@ -323,9 +323,9 @@ puf() {
     [ -z "$1" ] && { echo "file or directory required" 1>&2; return 1; }
 
     if [ -f vendor/bin/pest ]; then
-        _run_until_fail herd php -d memory_limit=8192M ./vendor/bin/pest --no-coverage --stop-on-error --stop-on-failure "$1"
+        _run_until_fail herd php -d memory_limit=2G ./vendor/bin/pest --no-coverage --stop-on-error --stop-on-failure "$1"
     else
-        _run_until_fail herd php -d memory_limit=8192M ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure "$1"
+        _run_until_fail herd php -d memory_limit=2G ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure "$1"
     fi
 }
 
@@ -338,7 +338,7 @@ ppuf() {
     fi
 
     [ -z "$1" ] && { echo "file or directory required" 1>&2; return 1; }
-    _run_until_fail herd php artisan test --parallel --passthru-php "'-d' 'memory_limit=8192M'" --no-coverage --stop-on-error --stop-on-failure "$1"
+    _run_until_fail herd php artisan test --parallel --passthru-php "'-d' 'memory_limit=2G'" --no-coverage --stop-on-error --stop-on-failure "$1"
 }
 
 # Run the project's quality gate using the available PHP and Laravel tooling.

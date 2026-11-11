@@ -25,7 +25,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with php "-d memory_limit=8192M ./vendor/bin/pest --parallel"
+    assert_binary_called_with php "-d memory_limit=2G ./vendor/bin/pest --parallel"
 }
 
 @test "pp runs artisan test in parallel when Pest is not installed" {
@@ -38,5 +38,5 @@ teardown() {
     # Assert
     assert_success
     assert_binary_called_with php \
-        "-d memory_limit=8192M artisan test --parallel --passthru-php '-d' 'memory_limit=8192M' --no-coverage"
+        "-d memory_limit=2G artisan test --parallel --passthru-php '-d' 'memory_limit=2G' --no-coverage"
 }

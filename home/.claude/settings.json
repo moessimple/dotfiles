@@ -1,7 +1,7 @@
 {
   "env": {
     "CLAUDE_CODE_NO_FLICKER": "1",
-    "PHP_MEMORY_LIMIT": "512M",
+    "PHP_MEMORY_LIMIT": "2G",
     "IMPECCABLE_NO_TELEMETRY": "1"
   },
   "permissions": {

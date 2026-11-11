@@ -22,5 +22,5 @@ teardown() {
     # Assert
     assert_success
     assert_binary_called_with_substring php "watch --testdox --filter it computes the total"
-    assert_binary_called_with php "PHP_OPTIONS=-d memory_limit=8192M"
+    assert_binary_called_with php "PHP_OPTIONS=-d memory_limit=2G"
 }
