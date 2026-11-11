@@ -191,7 +191,7 @@ teardown() {
     assert_commit_count 1
 }
 
-@test "generating a message does not leak clean_it or spinner_pid into the shell" {
+@test "generating a message leaves no spinner or Ctrl-C state in the shell" {
     # Arrange
     given_repository_with_modified_tracked_file
     write_successful_claude "Describe the tracked change"
@@ -202,5 +202,5 @@ teardown() {
 
     # Assert
     assert_success
-    assert_output_equals "no-clean_it spinner_pid=[<unset>]"
+    assert_output_equals "spinner_pid=[<unset>] interrupted=[<unset>] int_trap=[]"
 }

@@ -14,7 +14,9 @@ function prune() {
     fi
 
     # Whole-name match only, so "feature/domain-model" or "premaster" don't count.
-    local protected_pattern="(^\*|(^|[[:space:]/])(${(j:|:)long_lived_branches})\$)"
+    # `git branch` marks the checked-out branch with * and a branch checked out in
+    # another worktree with +; neither may lose its local or its remote copy.
+    local protected_pattern="(^[*+]|(^|[[:space:]/])(${(j:|:)long_lived_branches})\$)"
     local default_branch
     # Both preconditions are guarded: prune deletes local and remote branches, so a
     # failed default-branch resolution or a failed fetch must stop it rather than let

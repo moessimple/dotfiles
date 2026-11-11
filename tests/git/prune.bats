@@ -147,6 +147,21 @@ teardown() {
     assert_remote_branch_exists current-work
 }
 
+@test "a branch checked out in another worktree keeps its local and its remote copy" {
+    # Arrange
+    given_repository_with_origin_on main
+    given_merged_branch_pushed_to_origin worktree-work
+    git -C "$repository" worktree add -q "$BATS_TEST_TMPDIR/worktree" worktree-work
+
+    # Act
+    run call_prune
+
+    # Assert
+    assert_success
+    assert_branch_exists worktree-work
+    assert_remote_branch_exists worktree-work
+}
+
 @test "a failed fetch aborts prune before any branch is deleted" {
     # Arrange
     given_repository_with_origin_on main

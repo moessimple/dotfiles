@@ -97,8 +97,12 @@ source ~/.dotfiles/support/setup/claude/claude-plugins.sh
 report_plugin_changes() {
     local install_record="$HOME/.claude/plugins/installed_plugins.json"
     local marketplaces
-    marketplaces=$(claude plugin marketplace list --json 2>/dev/null \
-        | jq -r '.[] | select(.name != "claude-plugins-official" and .url != null) | [.name, .url] | @tsv') || return 0
+    # pipefail, so a failed listing is reported instead of reading as "no marketplaces to check".
+    if ! marketplaces=$(set -o pipefail; claude plugin marketplace list --json 2>/dev/null \
+        | jq -r '.[] | select(.name != "claude-plugins-official" and .url != null) | [.name, .url] | @tsv'); then
+        warn "Could not list the plugin marketplaces, check third-party plugins for changes by hand"
+        return 0
+    fi
 
     local name url upstream plugin installed slug
     while IFS=$'\t' read -r name url; do
@@ -110,7 +114,7 @@ report_plugin_changes() {
 
         for plugin in "${CLAUDE_PLUGINS[@]}"; do
             [ "${plugin#*@}" = "$name" ] || continue
-            installed=$(jq -r --arg id "$plugin" '.plugins[$id][0].gitCommitSha // empty' "$install_record" 2>/dev/null)
+            installed=$(jq -r --arg id "$plugin" '.plugins[$id][0].gitCommitSha // empty' "$install_record" 2>/dev/null) || installed=""
             if [ -z "$installed" ]; then
                 warn "Could not read the installed commit of $plugin, check it with: claude plugin details $plugin"
                 continue

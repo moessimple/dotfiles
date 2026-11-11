@@ -249,3 +249,38 @@ teardown() {
     assert_binary_not_called_with_substring claude "plugin update laravel@laravel"
     assert_output_contains "Could not read the installed commit of laravel@laravel"
 }
+
+@test "a missing plugin install record is reported and the update still completes" {
+    # Arrange
+    given_clean_repository_on_main
+    given_repository_with_real_setup_scripts
+    given_bare_origin_remote
+    git -C "$repository" push -q origin main
+    given_every_external_tool_update_touches_is_faked
+    given_laravel_marketplace no-record
+
+    # Act
+    run call_update
+
+    # Assert
+    assert_success
+    assert_output_contains "Could not read the installed commit of laravel@laravel"
+    assert_output_contains "Update complete!"
+}
+
+@test "a failed marketplace listing is reported instead of skipping the plugin check silently" {
+    # Arrange
+    given_clean_repository_on_main
+    given_repository_with_real_setup_scripts
+    given_bare_origin_remote
+    git -C "$repository" push -q origin main
+    given_every_external_tool_update_touches_is_faked
+    given_marketplace_listing_fails
+
+    # Act
+    run call_update
+
+    # Assert
+    assert_success
+    assert_output_contains "Could not list the plugin marketplaces"
+}

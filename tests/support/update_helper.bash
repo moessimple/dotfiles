@@ -74,7 +74,7 @@ given_npm_releases() {
     for release in "$@"; do
         version="${release%%:*}"
         days="${release#*:}"
-        published=$(date -u -v-"${days}"d +%Y-%m-%dT%H:%M:%S.000Z)
+        published=$(/bin/date -u -v-"${days}"d +%Y-%m-%dT%H:%M:%S.000Z)
         entries="$entries\"$version\":\"$published\","
     done
     write_fake_binary npm "case \"\$*\" in
@@ -98,7 +98,8 @@ assert_pinned_version() {
 # A third-party marketplace named laravel whose GitHub repository is a local bare repository: the
 # test HOME's git config redirects https://github.com/ to it, so `git ls-remote` stays offline.
 # The laravel@laravel plugin is recorded as installed from the first commit. With "ahead",
-# upstream has one more commit; with "unrecorded", the install record lacks the plugin.
+# upstream has one more commit; with "unrecorded", the install record lacks the plugin; with
+# "no-record", the install record file does not exist.
 # A fake claude lists the marketplace and records every call.
 given_laravel_marketplace() {
     local state="$1"
@@ -124,7 +125,7 @@ given_laravel_marketplace() {
     mkdir -p "$test_home/.claude/plugins"
     if [ "$state" = unrecorded ]; then
         printf '%s\n' '{"version":2,"plugins":{}}' > "$test_home/.claude/plugins/installed_plugins.json"
-    else
+    elif [ "$state" != no-record ]; then
         printf '%s\n' "{\"version\":2,\"plugins\":{\"laravel@laravel\":[{\"gitCommitSha\":\"$installed_commit\"}]}}" \
             > "$test_home/.claude/plugins/installed_plugins.json"
     fi
@@ -132,5 +133,12 @@ given_laravel_marketplace() {
     write_fake_binary claude "case \"\$*\" in
     'plugin list --json') printf '%s\n' '[]' ;;
     'plugin marketplace list --json') printf '%s\n' '[{\"name\":\"laravel\",\"source\":\"git\",\"url\":\"https://github.com/laravel/claude-code.git\"},{\"name\":\"claude-plugins-official\",\"source\":\"git\"}]' ;;
+esac"
+}
+
+given_marketplace_listing_fails() {
+    write_fake_binary claude "case \"\$*\" in
+    'plugin list --json') printf '%s\n' '[]' ;;
+    'plugin marketplace list --json') exit 1 ;;
 esac"
 }

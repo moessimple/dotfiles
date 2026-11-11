@@ -12,11 +12,11 @@ call_commit_with_input() {
     call_commit <<< "$1"
 }
 
-# Runs commit, then reports whether its spinner internals stayed in the shell.
+# Runs commit, then reports whether its spinner and Ctrl-C internals stayed in the shell.
 call_commit_then_report_leaked_state() {
     zsh -c 'source "$1"; cd "$2"; commit >/dev/null 2>&1;
-        typeset -f clean_it >/dev/null && printf "clean_it " || printf "no-clean_it "
-        printf "spinner_pid=[%s]" "${spinner_pid-<unset>}"' \
+        printf "spinner_pid=[%s] interrupted=[%s] int_trap=[" "${spinner_pid-<unset>}" "${interrupted-<unset>}"
+        trap | grep INT; printf "]"' \
         zsh "$functions_file" "$working_directory"
 }
 
