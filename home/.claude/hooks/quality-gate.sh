@@ -92,24 +92,17 @@ run_rector_dirty() {
 # `artisan test` both take --parallel directly, but plain PHPUnit has no such
 # flag of its own, so paratest replaces vendor/bin/phpunit outright instead.
 run_test_suite() {
+    local parallel=""
+    $has_paratest && parallel="--parallel"
+
     if $has_pest; then
-        if $has_paratest; then
-            php -d memory_limit="$memory_limit" vendor/bin/pest --parallel
-        else
-            php -d memory_limit="$memory_limit" vendor/bin/pest
-        fi
+        php -d memory_limit="$memory_limit" vendor/bin/pest ${parallel:+"$parallel"}
+    elif $has_phpunit && $has_paratest; then
+        php -d memory_limit="$memory_limit" vendor/bin/paratest
     elif $has_phpunit; then
-        if $has_paratest; then
-            php -d memory_limit="$memory_limit" vendor/bin/paratest
-        else
-            php -d memory_limit="$memory_limit" vendor/bin/phpunit
-        fi
+        php -d memory_limit="$memory_limit" vendor/bin/phpunit
     elif $has_artisan; then
-        if $has_paratest; then
-            php -d memory_limit="$memory_limit" artisan test --parallel
-        else
-            php -d memory_limit="$memory_limit" artisan test
-        fi
+        php -d memory_limit="$memory_limit" artisan test ${parallel:+"$parallel"}
     fi
 }
 
