@@ -155,9 +155,9 @@ commit() {
         } &!
         local spinner_pid=$!
 
-        # A return inside the trap would not end commit while a command
-        # substitution is running, so the trap only records the Ctrl-C and the
-        # flag is checked once the running provider call has finished.
+        # zsh cannot end commit from a trap while a command substitution runs,
+        # so the trap only records the Ctrl-C and commit checks the flag after
+        # the provider call returns.
         local interrupted=0
         trap 'interrupted=1' INT
 
@@ -519,9 +519,8 @@ _env_val() {
     print -r -- "$value"
 }
 
-# Guards every helper that drops, migrates, or imports into databases. It runs before any
-# mysql or artisan call because artisan reads DB_HOST from .env on its own, so a
-# guard inside _mysql_cmd alone would still migrate a remote database.
+# Guards every helper that drops, migrates, or imports into databases. Callers run it
+# before their first mysql or artisan call, because artisan reads DB_HOST from .env itself.
 _require_local_database() {
     local host; host=$(_env_val DB_HOST)
     case "$host" in

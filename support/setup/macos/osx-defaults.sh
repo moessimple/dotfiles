@@ -164,20 +164,19 @@ sudo systemsetup -settimezone "Europe/Berlin" > /dev/null 2>&1
 # SSD-specific tweaks                                                         #
 ###############################################################################
 
-# Disable hibernation (speeds up entering sleep mode)
-sudo pmset -a hibernatemode 0
-
-# Disable the sudden motion sensor as it’s not useful for SSDs
-sudo pmset -a sms 0
+# Disable hibernation on Macs without a battery (speeds up entering sleep mode). A Mac with a
+# battery keeps the macOS default, which also writes memory to disk, so a battery that runs
+# empty during sleep does not lose open work.
+if ! pmset -g batt | grep -q InternalBattery; then
+    sudo pmset -a hibernatemode 0
+fi
 
 ###############################################################################
 # Power management                                                            #
 ###############################################################################
 
-# Never sleep the system, so it stays reachable over the network. "Wake for
-# network access" only wakes it for Bonjour and Wake on LAN, not for regular
-# traffic. The display still sleeps. Costs about 2 W more than sleep.
-sudo pmset -a sleep 0
+# Sleep the system after one minute without activity.
+sudo pmset -a sleep 1
 
 ###############################################################################
 # Screen                                                                      #
@@ -289,7 +288,7 @@ defaults write com.apple.finder FXInfoPanesExpanded -dict \
 	Privileges -bool true
 
 ###############################################################################
-# Dock, Dashboard, and hot corners                                            #
+# Dock and hot corners                                                        #
 ###############################################################################
 
 # Enable highlight hover effect for the grid view of a stack (Dock)
@@ -301,14 +300,8 @@ defaults write com.apple.dock no-bouncing -bool true
 # Set the icon size of Dock items to 80 pixels
 defaults write com.apple.dock tilesize -int 80
 
-# Hide indicator lights for open applications in the Dock
+# Show indicator lights for open applications in the Dock
 defaults write com.apple.dock show-process-indicators -bool true
-
-# Disable Dashboard
-defaults write com.apple.dashboard mcx-disabled -bool true
-
-# Don’t show Dashboard as a Space
-defaults write com.apple.dock dashboard-in-overlay -bool true
 
 # Don’t automatically rearrange Spaces based on most recent use
 defaults write com.apple.dock mru-spaces -bool false
@@ -355,7 +348,7 @@ defaults write com.apple.mail DisableInlineAttachmentViewing -bool true
 defaults write com.apple.mail SpellCheckingBehavior -string "NoSpellCheckingEnabled"
 
 ###############################################################################
-# Terminal & iTerm 2                                                          #
+# Terminal                                                                    #
 ###############################################################################
 
 # Only use UTF-8 in Terminal.app
@@ -367,9 +360,6 @@ defaults write com.apple.terminal SecureKeyboardEntry -bool true
 
 # Disable the annoying line marks
 defaults write com.apple.Terminal ShowLineMarks -int 0
-
-# Don’t display the annoying prompt when quitting iTerm
-defaults write com.googlecode.iterm2 PromptOnQuit -bool false
 
 ###############################################################################
 # Time Machine                                                                #
@@ -396,7 +386,7 @@ defaults write com.apple.ActivityMonitor SortColumn -string "CPUUsage"
 defaults write com.apple.ActivityMonitor SortDirection -int 0
 
 ###############################################################################
-# Address Book, Dashboard, iCal, TextEdit, and Disk Utility                   #
+# TextEdit and Calendar                                                       #
 ###############################################################################
 
 # Use plain text mode for new TextEdit documents
@@ -465,19 +455,17 @@ defaults write com.apple.messageshelper.MessageController SOInputLineSettings -d
 defaults write com.apple.messageshelper.MessageController SOInputLineSettings -dict-add "continuousSpellCheckingEnabled" -bool false
 
 ###############################################################################
-# Google Chrome & Google Chrome Canary                                        #
+# Google Chrome                                                               #
 ###############################################################################
 
 # Expand the print dialog by default
 defaults write com.google.Chrome PMPrintingExpandedStateForPrint2 -bool true
-defaults write com.google.Chrome.canary PMPrintingExpandedStateForPrint2 -bool true
 
 ###############################################################################
 # Kill affected applications                                                  #
 ###############################################################################
 
 for app in "Activity Monitor" \
-    "Address Book" \
     "Calendar" \
     "cfprefsd" \
     "Contacts" \
@@ -489,8 +477,7 @@ for app in "Activity Monitor" \
     "Photos" \
     "Safari" \
     "SystemUIServer" \
-    "Terminal" \
-    "iCal"; do
+    "Terminal"; do
     killall "${app}" &> /dev/null || true
 done
 

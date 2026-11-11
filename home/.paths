@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env zsh
 
 # Add directories to PATH without adding duplicates when the shell reloads.
 add_to_path() {

@@ -42,3 +42,17 @@ given_every_external_tool_update_touches_is_faked() {
     given_skill_lock_file '{"skills":{}}'
     given_fake_ollama_listing ''
 }
+
+# The skills CLI reinstalls Clarity's whole repository on `npx skills update -g`,
+# so this fake brings the repository extras back the same way.
+given_skills_update_restoring_clarity_extras() {
+    write_fake_binary npx 'if [ "$*" = "skills update -g" ]; then
+    clarity="$HOME/.claude/skills/clarity"
+    mkdir -p "$clarity/references" "$clarity/scripts" "$clarity/website"
+    touch "$clarity/SKILL.md" "$clarity/LICENSE" "$clarity/README.md"
+fi'
+}
+
+assert_clarity_keeps_only_its_runtime_files() {
+    [ "$(ls -A "$test_home/.claude/skills/clarity" | LC_ALL=C sort | tr '\n' ' ')" = "LICENSE SKILL.md references scripts " ]
+}

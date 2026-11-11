@@ -1,21 +1,5 @@
 #!/bin/bash
 
-# Skills written directly in this repo, living in home/.claude/skills/ rather than being
-# installed through this script. This is the source of truth claude_skills_cleanup uses to
-# tell them apart from third-party skills below. Keep it in sync with what's actually there.
-LOCAL_SKILLS=(
-    characterize-behavior
-    code-review-dispatch
-    debug
-    document-product
-    explain-changes
-    outcome-writing
-    pr
-    quality
-    raise-quality-gate
-    review
-)
-
 # Third-party Claude Code skills installed via the `skills` CLI, one "owner/repo:skill" pair
 # per entry (Bash 3.2, the /bin/bash shipped on macOS, has no associative arrays).
 #
@@ -91,7 +75,7 @@ done
 claude_skills_trim_clarity || warn "Could not trim Clarity's repository extras"
 success "Claude Code skills processed"
 
-# Removes any globally installed skill that isn't in THIRD_PARTY_SKILLS or LOCAL_SKILLS. This
+# Removes any globally installed skill that isn't in THIRD_PARTY_SKILLS. This
 # is the Claude Code equivalent of `brew bundle cleanup --force`: it catches skills added by
 # hand with `npx skills add` (or by Claude on request) and never recorded here, such as the
 # mvanhorn/last30days-skill install that lingered in ~/.agents/.skill-lock.json after its
@@ -106,7 +90,6 @@ claude_skills_cleanup() {
     for entry in "${THIRD_PARTY_SKILLS[@]}"; do
         declared_names+=("${entry#*:}")
     done
-    declared_names+=("${LOCAL_SKILLS[@]}")
 
     # The assignment is kept out of `local` so a missing jq or an unreadable lock file surfaces
     # instead of looking like an empty list and reporting a green run over a broken one.

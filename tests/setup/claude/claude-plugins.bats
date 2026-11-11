@@ -13,6 +13,18 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
+@test "installing plugins announces its own step" {
+    # Arrange
+    given_fake_claude '[]' ""
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_output_contains "STEP: Installing Claude Code plugins and MCP servers"
+}
+
 @test "an installed user-scope plugin not declared in claude-plugins.sh is uninstalled" {
     # Arrange
     given_fake_claude \

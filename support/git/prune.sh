@@ -29,8 +29,8 @@ function prune() {
     # List all local branches merged fully into the default branch, then delete them.
     # Merged against origin/$default_branch, not the local branch, so a stale local
     # default branch doesn't leave branches merged upstream undetected.
-    # The default branch is compared literally, not added to protected_pattern,
-    # because a branch name may contain regex characters.
+    # The default branch is compared literally, because a branch name may contain
+    # regex characters.
     git branch --merged origin/$default_branch \
         | grep -E -v "${protected_pattern}" \
         | awk -v branch="$default_branch" '$NF != branch' \

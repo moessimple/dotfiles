@@ -16,8 +16,8 @@ error() { echo -e "${RED}✗${NC} $1"; exit 1; }
 
 sudo -v  # Request the administrator password up front
 
-# Prepare clean state: removes stale files/symlinks so the steps below start from a known
-# state, not leftovers from a previous install.
+# Prepare clean state: creates the directories later steps write into and removes the five
+# ~/.claude/ directories linked next, because `ln -sfn` cannot replace a real directory.
 step "Prepare clean state"
 source ~/.dotfiles/support/setup/clean-state.sh
 success "Clean state prepared"

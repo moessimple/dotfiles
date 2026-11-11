@@ -28,7 +28,7 @@ teardown() {
 
 @test "a package kept for the Node toolchain itself is not removed" {
     # Arrange
-    given_fake_npm_reporting_installed '{"dependencies":{"npm":{},"corepack":{},"npx":{}}}'
+    given_fake_npm_reporting_installed '{"dependencies":{"npm":{},"corepack":{}}}'
 
     # Act
     run call_cleanup_function "$target" npm_packages_cleanup

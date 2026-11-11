@@ -33,24 +33,30 @@ fi
 echo ""
 sudo -v
 
-# Prepare clean state: removes stale files/symlinks so the steps below start from a known
-# state, not leftovers from a previous install.
+# Prepare clean state: creates the directories later steps write into and removes the five
+# ~/.claude/ directories linked next, because `ln -sfn` cannot replace a real directory.
 step "Prepare clean state"
 source ~/.dotfiles/support/setup/clean-state.sh
 success "Clean state prepared"
 
 # Oh My Zsh: guarded so a re-run doesn't reinstall over an existing checkout.
 step "Installing Oh My Zsh"
-if [ ! -d ~/.oh-my-zsh ]; then
-    curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh -s -- --unattended || warn "Oh My Zsh installation failed"
+# The directory check also catches a failed download, which leaves sh with empty input and
+# a zero exit status.
+if [ -d ~/.oh-my-zsh ]; then
+    success "Oh My Zsh already installed"
+elif curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh -s -- --unattended \
+    && [ -d ~/.oh-my-zsh ]; then
+    success "Oh My Zsh installed"
+else
+    warn "Oh My Zsh installation failed"
 fi
-success "Oh My Zsh installed"
 
-# Homebrew: also wires it into .zprofile, so it's on PATH before anything below calls it.
+# Homebrew: put on PATH for the rest of this run; later shells get it from the symlinked
+# home/.zprofile.
 step "Installing Homebrew"
 if ! command -v brew &>/dev/null; then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    grep -qF 'brew shellenv' ~/.zprofile 2>/dev/null || echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
     eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 success "Homebrew installed"
@@ -63,8 +69,11 @@ success "Symlinks created"
 # Brewfile: already-installed packages are skipped; any remaining bundle failure is
 # downgraded to a warning so the installation can continue.
 step "Installing packages from Brewfile"
-brew bundle --file=~/.dotfiles/support/config/Brewfile || warn "Some packages failed (likely already installed)"
-success "Brewfile processed"
+if brew bundle --file=~/.dotfiles/support/config/Brewfile; then
+    success "Brewfile processed"
+else
+    warn "Some Brewfile packages failed to install, see the output above"
+fi
 
 # Global Composer packages
 source ~/.dotfiles/support/setup/packages/composer-packages.sh
@@ -90,7 +99,6 @@ source ~/.dotfiles/support/setup/claude/claude-skills.sh
 
 # Claude Code plugins: adds each marketplace, each plugin from CLAUDE_PLUGINS and the
 # declared MCP servers; commands that fail are reported as warnings by claude-plugins.sh.
-step "Installing Claude Code plugins and MCP servers"
 source ~/.dotfiles/support/setup/claude/claude-plugins.sh
 
 # Share reviewed standalone and plugin-provided skills with Codex after Claude installs them.

@@ -107,9 +107,5 @@ cask "whatsapp"
 
 # === QuickLook Plugins ===
 cask "betterzip"
-cask "qlcolorcode"
 cask "qlmarkdown"
-cask "qlprettypatch"
-cask "qlstephen"
-cask "quicklook-csv"
 cask "suspicious-package"

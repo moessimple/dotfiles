@@ -89,3 +89,20 @@ teardown() {
     assert_output_contains "No undeclared Claude Code plugins or MCP servers found"
     assert_output_contains "No undeclared Ollama models found"
 }
+
+@test "Clarity is trimmed again after the skills are updated" {
+    # Arrange
+    given_clean_repository_on_main
+    given_repository_with_real_setup_scripts
+    given_bare_origin_remote
+    git -C "$repository" push -q origin main
+    given_every_external_tool_update_touches_is_faked
+    given_skills_update_restoring_clarity_extras
+
+    # Act
+    run call_update
+
+    # Assert
+    assert_success
+    assert_clarity_keeps_only_its_runtime_files
+}

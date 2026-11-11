@@ -92,6 +92,7 @@ python_packages_cleanup
 source ~/.dotfiles/support/setup/claude/claude-skills.sh
 step "Updating Claude Code skills"
 npx skills update -g
+claude_skills_trim_clarity || warn "Could not trim Clarity's repository extras"
 success "Claude Code skills updated"
 claude_skills_cleanup
 

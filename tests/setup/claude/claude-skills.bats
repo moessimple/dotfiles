@@ -50,7 +50,7 @@ teardown() {
 
 @test "an installed skill not declared in claude-skills.sh is removed" {
     # Arrange
-    given_skill_lock_file '{"skills":{"quality":{},"stale-skill":{}}}'
+    given_skill_lock_file '{"skills":{"codebase-design":{},"stale-skill":{}}}'
 
     # Act
     run call_cleanup_function "$target" claude_skills_cleanup
@@ -59,19 +59,7 @@ teardown() {
     assert_success
     assert_binary_called_with_substring npx "skills remove stale-skill --global -y"
     assert_binary_not_called_with_substring npx "skills remove stale-skill --global -y --agent"
-    assert_binary_not_called_with_substring npx "skills remove quality"
-}
-
-@test "a locally authored skill is not removed" {
-    # Arrange
-    given_skill_lock_file '{"skills":{"code-review-dispatch":{},"debug":{},"outcome-writing":{},"pr":{},"quality":{},"review":{}}}'
-
-    # Act
-    run call_cleanup_function "$target" claude_skills_cleanup
-
-    # Assert
-    assert_success
-    assert_binary_not_called_with_substring npx "skills remove"
+    assert_binary_not_called_with_substring npx "skills remove codebase-design"
 }
 
 @test "no undeclared skills reports a clean state without removing anything" {

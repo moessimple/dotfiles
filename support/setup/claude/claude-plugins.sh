@@ -14,9 +14,8 @@ CLAUDE_PLUGINS=(
 # LSP configs written directly in this repo, living in home/.claude/skills/ with their own
 # .claude-plugin/plugin.json, rather than installed via `claude plugin install`. Claude Code
 # auto-detects them from that directory (id suffix @skills-dir) and lists them as user-scope
-# plugins, so claude_plugins_cleanup needs to recognize them as intentional the same way
-# LOCAL_SKILLS in claude-skills.sh does for locally-written skills. `claude plugin uninstall`
-# always fails on them anyway, since skills-dir plugins have no marketplace backing.
+# plugins, so claude_plugins_cleanup needs to recognize them as intentional. `claude plugin
+# uninstall` always fails on them anyway, since skills-dir plugins have no marketplace backing.
 LOCAL_PLUGINS=(
     "laravel-lsp@skills-dir"
     "php-lsp-herd@skills-dir"
@@ -28,6 +27,7 @@ CLAUDE_MCP_SERVERS=(
     chrome-devtools
 )
 
+step "Installing Claude Code plugins and MCP servers"
 if command -v claude &>/dev/null; then
     claude plugin marketplace add https://github.com/addyosmani/agent-skills 2>/dev/null || warn "addy-agent-skills marketplace already added"
     claude plugin marketplace add https://github.com/addyosmani/web-quality-skills 2>/dev/null || warn "addy-web-quality-skills marketplace already added"

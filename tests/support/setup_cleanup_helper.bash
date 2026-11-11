@@ -18,7 +18,7 @@ call_cleanup_function() {
 run_setup_script() {
     local file="$1"
     HOME="${test_home:-$HOME}" bash -c '
-        step() { :; }
+        step() { echo "STEP: $*"; }
         warn() { echo "WARN: $*"; }
         success() { echo "SUCCESS: $*"; }
         source "$1"

@@ -7,13 +7,12 @@ NPM_PACKAGES=(
     typescript-language-server
     typescript
 )
-# npm, npx and corepack are managed as part of the Node toolchain rather than by
-# this file, so npm_packages_cleanup keeps them even though they aren't declared
-# in NPM_PACKAGES.
+# npm and corepack are managed as part of the Node toolchain rather than by this
+# file, so npm_packages_cleanup keeps them even though they aren't declared in
+# NPM_PACKAGES.
 NPM_PACKAGES_KEEP=(
     npm
     corepack
-    npx
 )
 
 # `agent-browser install` downloads every new Chrome for Testing release (~360 MB each) next
