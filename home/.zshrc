@@ -21,7 +21,7 @@ add-zsh-hook precmd _fix_tty
 _fix_tty() { stty sane 2>/dev/null }
 
 # Load the shell dotfiles
-for _dotfile in ~/.dotfiles/home/.{exports,paths,aliases,functions}; do
+for _dotfile in ~/.{exports,paths,aliases,functions}; do
     [ -r "$_dotfile" ] && [ -f "$_dotfile" ] && source "$_dotfile"
 done
 unset _dotfile
