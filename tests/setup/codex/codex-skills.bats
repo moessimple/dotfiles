@@ -117,8 +117,8 @@ run_codex_skills_setup() {
 
     # Assert
     assert_success
-    [ ! -e "$skills_dir/pdf" ]
-    [ ! -e "$skills_dir/skill-creator" ]
+    assert_path_does_not_exist "$skills_dir/pdf"
+    assert_path_does_not_exist "$skills_dir/skill-creator"
 }
 
 @test "an existing skill directory is preserved" {
@@ -132,8 +132,8 @@ run_codex_skills_setup() {
     # Assert
     assert_success
     [ ! -L "$skills_dir/outcome-writing" ]
-    [ -f "$skills_dir/outcome-writing/keep" ]
-    [ ! -e "$skills_dir/outcome-writing/outcome-writing" ]
+    assert_file_exists "$skills_dir/outcome-writing/keep"
+    assert_path_does_not_exist "$skills_dir/outcome-writing/outcome-writing"
     assert_output_contains "WARN: Skipping outcome-writing"
 }
 

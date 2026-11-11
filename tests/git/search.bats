@@ -113,7 +113,7 @@ teardown() {
 
     # Assert
     assert_success
-    [ "$output" = "<unset>" ]
+    assert_output_equals "<unset>"
 }
 
 @test "changes to baseline files are excluded even when they contain the term" {

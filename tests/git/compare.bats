@@ -95,5 +95,5 @@ teardown() {
 
     # Assert
     assert_failure
-    [ -z "$output" ]
+    assert_output_equals ""
 }

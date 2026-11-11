@@ -88,7 +88,7 @@ teardown() {
     assert_output_contains "Could not stash local changes."
     assert_current_branch feature
     assert_local_changes_are_present
-    [ ! -f "$repository/from-main.txt" ]
+    assert_path_does_not_exist "$repository/from-main.txt"
 }
 
 @test "merge brings changes from the selected branch into the current branch" {

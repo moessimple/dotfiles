@@ -11,12 +11,12 @@ setup() {
 
 @test "legacy commands are replaced by shared skills" {
     # Assert
-    [ ! -e "$commands_dir/debug.md" ]
-    [ ! -e "$commands_dir/pr.md" ]
-    [ ! -e "$commands_dir/review.md" ]
+    assert_path_does_not_exist "$commands_dir/debug.md"
+    assert_path_does_not_exist "$commands_dir/pr.md"
+    assert_path_does_not_exist "$commands_dir/review.md"
 
     for skill in debug pr review; do
-        [ -f "$skills_dir/$skill/SKILL.md" ]
+        assert_file_exists "$skills_dir/$skill/SKILL.md"
     done
 }
 

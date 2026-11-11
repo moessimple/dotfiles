@@ -36,8 +36,8 @@ teardown() {
         assert_success
         [ "$(ls -A "$clarity_dir" | sort)" = "$(printf '%s\n' LICENSE SKILL.md references scripts | sort)" ]
         [ "$(ls -A "$clarity_dir/scripts" | sort)" = "$(printf '%s\n' prose_stats.py strip_markdown.py | sort)" ]
-        [ -f "$clarity_dir/references/edit.md" ]
-        [ -f "$test_home/.claude/skills/other/keep" ]
+        assert_file_exists "$clarity_dir/references/edit.md"
+        assert_file_exists "$test_home/.claude/skills/other/keep"
     done
 }
 
@@ -51,7 +51,7 @@ teardown() {
 
     # Assert
     assert_success
-    [ -f "$test_home/.claude/skills/clarity/site/keep" ]
+    assert_file_exists "$test_home/.claude/skills/clarity/site/keep"
 }
 
 @test "skills are installed through the pinned skills CLI with a release-age cooldown" {

@@ -120,8 +120,8 @@ teardown() {
     # Assert
     assert_success
     [ -d "$test_home/.agent-browser/browsers/chrome-155.0.8059.84" ]
-    [ ! -e "$test_home/.agent-browser/browsers/chrome-155.0.8059.9" ]
-    [ ! -e "$test_home/.agent-browser/browsers/chrome-99.0.1.1" ]
+    assert_path_does_not_exist "$test_home/.agent-browser/browsers/chrome-155.0.8059.9"
+    assert_path_does_not_exist "$test_home/.agent-browser/browsers/chrome-99.0.1.1"
 }
 
 @test "a missing agent-browser browsers directory is left alone" {
@@ -136,5 +136,5 @@ teardown() {
 
     # Assert
     assert_success
-    [ ! -e "$test_home/.agent-browser" ]
+    assert_path_does_not_exist "$test_home/.agent-browser"
 }

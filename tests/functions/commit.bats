@@ -202,5 +202,5 @@ teardown() {
 
     # Assert
     assert_success
-    [ "$output" = "no-clean_it spinner_pid=[<unset>]" ]
+    assert_output_equals "no-clean_it spinner_pid=[<unset>]"
 }
