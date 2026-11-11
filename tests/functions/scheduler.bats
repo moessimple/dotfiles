@@ -6,6 +6,7 @@ load ../support/scheduler_helper
 setup() {
     new_dotfiles_fixture
     given_fake_bin_on_path
+    given_herd_forwarding_php_and_composer
     write_fake_binary php
     given_sleep_stops_the_loop_after_two_iterations
 }

@@ -8,6 +8,7 @@ setup() {
     working_directory="$fixture/project"
     mkdir -p "$working_directory"
     given_fake_bin_on_path
+    given_herd_forwarding_php_and_composer
     write_fake_binary mysql
     write_fake_binary nproc "printf '1\n'"
     given_env_file DB_DATABASE=maindb

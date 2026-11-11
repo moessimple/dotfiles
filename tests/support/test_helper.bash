@@ -70,6 +70,15 @@ given_fake_bin_on_path() {
 
 # Writes a fake executable that records its arguments (one call per line, in
 # "$fake_bin/<name>.calls") and then runs the given body, if any.
+# Fake herd that hands `herd php` and `herd composer` to the php and composer on PATH, the way the
+# real Herd runs the project's PHP version. Tests keep asserting on the php and composer fakes;
+# herd's own calls show that a function went through Herd.
+given_herd_forwarding_php_and_composer() {
+    write_fake_binary herd 'case "$1" in
+    php|composer) tool="$1"; shift; exec "$tool" "$@" ;;
+esac'
+}
+
 write_fake_binary() {
     local name="$1" body="${2:-}"
     cat > "$fake_bin/$name" <<SCRIPT

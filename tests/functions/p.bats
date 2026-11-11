@@ -8,6 +8,7 @@ setup() {
     working_directory="$fixture/project"
     mkdir -p "$working_directory"
     given_fake_bin_on_path
+    given_herd_forwarding_php_and_composer
     write_fake_binary php
 }
 
@@ -25,6 +26,18 @@ teardown() {
     # Assert
     assert_success
     assert_binary_called_with php "-d memory_limit=8192M ./vendor/bin/pest --testdox"
+}
+
+@test "p runs Pest through Herd, so the project's own PHP version applies" {
+    # Arrange
+    given_pest_installed
+
+    # Act
+    run call_p
+
+    # Assert
+    assert_success
+    assert_binary_called_with herd "php -d memory_limit=8192M ./vendor/bin/pest --testdox"
 }
 
 @test "p falls back to PHPUnit with testdox when Pest is not installed" {

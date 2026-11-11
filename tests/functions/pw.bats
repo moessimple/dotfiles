@@ -6,6 +6,7 @@ load ../support/pw_helper
 setup() {
     new_dotfiles_fixture
     given_fake_bin_on_path
+    given_herd_forwarding_php_and_composer
     given_phpunit_watcher_on_path
     write_fake_binary php "printf 'PHP_OPTIONS=%s\n' \"\$PHP_OPTIONS\" >> \"$fake_bin/php.calls\""
 }

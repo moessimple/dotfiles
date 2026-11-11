@@ -6,6 +6,7 @@ load ../support/run_until_fail_helper
 setup() {
     new_dotfiles_fixture
     given_fake_bin_on_path
+    given_herd_forwarding_php_and_composer
 }
 
 teardown() {

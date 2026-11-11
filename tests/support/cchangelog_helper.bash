@@ -15,6 +15,7 @@ given_only_direct_dependency_changes() {
 create_fake_cchangelog_tools() {
     fake_bin="$fixture/bin"
     mkdir -p "$fake_bin"
+    given_herd_forwarding_php_and_composer
 
     cat > "$fake_bin/git" <<'GIT'
 #!/usr/bin/env bash

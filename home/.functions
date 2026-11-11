@@ -213,13 +213,13 @@ commit() {
 
 # Run PHPStan static analysis with an increased memory limit
 phpstan() {
-    php -d memory_limit=8192M ./vendor/bin/phpstan -vvv "$@"
+    herd php -d memory_limit=8192M ./vendor/bin/phpstan -vvv "$@"
 }
 
 # Run Rector, preferring the local vendor binary over a global installation
 rector() {
     if [ -f ./vendor/bin/rector ]; then
-        php ./vendor/bin/rector "$@"
+        herd php ./vendor/bin/rector "$@"
     else
         command rector "$@"
     fi
@@ -228,9 +228,9 @@ rector() {
 # Run tests (Pest or PHPUnit) with testdox output
 p() {
     if [ -f vendor/bin/pest ]; then
-        php -d memory_limit=8192M ./vendor/bin/pest --testdox "$@"
+        herd php -d memory_limit=8192M ./vendor/bin/pest --testdox "$@"
     else
-        php -d memory_limit=8192M ./vendor/bin/phpunit --testdox "$@"
+        herd php -d memory_limit=8192M ./vendor/bin/phpunit --testdox "$@"
     fi
 }
 
@@ -243,9 +243,9 @@ pf() {
     fi
 
     if [ -f vendor/bin/pest ]; then
-        php -d memory_limit=8192M ./vendor/bin/pest --testdox --filter "$@"
+        herd php -d memory_limit=8192M ./vendor/bin/pest --testdox --filter "$@"
     else
-        php -d memory_limit=8192M ./vendor/bin/phpunit --testdox --filter "$@"
+        herd php -d memory_limit=8192M ./vendor/bin/phpunit --testdox --filter "$@"
     fi
 }
 
@@ -261,15 +261,15 @@ pc() {
 # Run tests in parallel
 pp() {
     if [ -f vendor/bin/pest ]; then
-        php -d memory_limit=8192M ./vendor/bin/pest --parallel "$@"
+        herd php -d memory_limit=8192M ./vendor/bin/pest --parallel "$@"
     else
-        php -d memory_limit=8192M artisan test --parallel --passthru-php "'-d' 'memory_limit=8192M'" --no-coverage "$@"
+        herd php -d memory_limit=8192M artisan test --parallel --passthru-php "'-d' 'memory_limit=8192M'" --no-coverage "$@"
     fi
 }
 
 # Watch for file changes and re-run tests automatically
-pw()  { PHP_OPTIONS="-d memory_limit=8192M" php "$(which phpunit-watcher)" watch --testdox "$@"; }
-pwf() { PHP_OPTIONS="-d memory_limit=8192M" php "$(which phpunit-watcher)" watch --testdox --filter "$@"; }
+pw()  { PHP_OPTIONS="-d memory_limit=8192M" herd php "$(which phpunit-watcher)" watch --testdox "$@"; }
+pwf() { PHP_OPTIONS="-d memory_limit=8192M" herd php "$(which phpunit-watcher)" watch --testdox --filter "$@"; }
 
 _run_until_fail() {
     local count=0
@@ -294,9 +294,9 @@ puff() {
     [ -z "$1" ] && { echo "test case required" 1>&2; return 1; }
 
     if [ -f vendor/bin/pest ]; then
-        _run_until_fail php -d memory_limit=8192M ./vendor/bin/pest --no-coverage --stop-on-error --stop-on-failure --filter "$1"
+        _run_until_fail herd php -d memory_limit=8192M ./vendor/bin/pest --no-coverage --stop-on-error --stop-on-failure --filter "$1"
     else
-        _run_until_fail php -d memory_limit=8192M ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure --filter "$1"
+        _run_until_fail herd php -d memory_limit=8192M ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure --filter "$1"
     fi
 }
 
@@ -309,7 +309,7 @@ ppuff() {
     fi
 
     [ -z "$1" ] && { echo "test case required" 1>&2; return 1; }
-    _run_until_fail php artisan test --parallel --passthru-php "'-d' 'memory_limit=8192M'" --no-coverage --stop-on-error --stop-on-failure --filter "$1"
+    _run_until_fail herd php artisan test --parallel --passthru-php "'-d' 'memory_limit=8192M'" --no-coverage --stop-on-error --stop-on-failure --filter "$1"
 }
 
 # Reproduce a flaky test by running a test file or directory in a loop until it fails (sequential)
@@ -323,9 +323,9 @@ puf() {
     [ -z "$1" ] && { echo "file or directory required" 1>&2; return 1; }
 
     if [ -f vendor/bin/pest ]; then
-        _run_until_fail php -d memory_limit=8192M ./vendor/bin/pest --no-coverage --stop-on-error --stop-on-failure "$1"
+        _run_until_fail herd php -d memory_limit=8192M ./vendor/bin/pest --no-coverage --stop-on-error --stop-on-failure "$1"
     else
-        _run_until_fail php -d memory_limit=8192M ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure "$1"
+        _run_until_fail herd php -d memory_limit=8192M ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure "$1"
     fi
 }
 
@@ -338,7 +338,7 @@ ppuf() {
     fi
 
     [ -z "$1" ] && { echo "file or directory required" 1>&2; return 1; }
-    _run_until_fail php artisan test --parallel --passthru-php "'-d' 'memory_limit=8192M'" --no-coverage --stop-on-error --stop-on-failure "$1"
+    _run_until_fail herd php artisan test --parallel --passthru-php "'-d' 'memory_limit=8192M'" --no-coverage --stop-on-error --stop-on-failure "$1"
 }
 
 # Run the project's quality gate using the available PHP and Laravel tooling.
@@ -399,16 +399,16 @@ tinker() {
     fi
 
     if [ -z "$1" ]; then
-        php artisan tinker
+        herd php artisan tinker
     else
-        php artisan tinker --execute="dd($1);"
+        herd php artisan tinker --execute="dd($1);"
     fi
 }
 
 # Run the Laravel scheduler repeatedly, waiting 60 seconds after each run
 scheduler() {
     while :; do
-        php artisan schedule:run
+        herd php artisan schedule:run
         echo "Sleeping 60 seconds..."
         sleep 60
     done
@@ -449,14 +449,14 @@ cchangelog() {
 
     case "$mode" in
         direct)
-            composer diff "${branch}:composer.lock" --with-links --with-platform --direct
+            herd composer diff "${branch}:composer.lock" --with-links --with-platform --direct
             ;;
         indirect)
             local all_diff direct_diff indirect_output package
             local -a indirect_packages filter_options
 
-            all_diff=$(composer diff "${branch}:composer.lock" --with-platform --format=json --no-ansi) || return
-            direct_diff=$(composer diff "${branch}:composer.lock" --with-platform --direct --format=json --no-ansi) || return
+            all_diff=$(herd composer diff "${branch}:composer.lock" --with-platform --format=json --no-ansi) || return
+            direct_diff=$(herd composer diff "${branch}:composer.lock" --with-platform --direct --format=json --no-ansi) || return
             indirect_output=$(jq -nr --argjson all "$all_diff" --argjson direct "$direct_diff" '
                 (($direct.packages // {}) + ($direct["packages-dev"] // {})) as $direct_packages
                 | (($all.packages // {}) + ($all["packages-dev"] // {}))
@@ -474,10 +474,10 @@ cchangelog() {
                 filter_options+=(--filter "$package")
             done
 
-            composer diff "${branch}:composer.lock" --with-links --with-platform "${filter_options[@]}"
+            herd composer diff "${branch}:composer.lock" --with-links --with-platform "${filter_options[@]}"
             ;;
         all)
-            composer diff "${branch}:composer.lock" --with-links --with-platform
+            herd composer diff "${branch}:composer.lock" --with-links --with-platform
             ;;
     esac
 }
@@ -588,9 +588,9 @@ _migrate_databases() {
     for db in "${databases[@]}"; do
         _mysql_cmd -e "DROP DATABASE IF EXISTS \`$db\`; CREATE DATABASE \`$db\`;" || failed=1
         if [ -d "database/skeema" ]; then
-            DB_DATABASE=$db php artisan skeema:push --allow-unsafe --force --skip-lint --env=local || failed=1
+            DB_DATABASE=$db herd php artisan skeema:push --allow-unsafe --force --skip-lint --env=local || failed=1
         else
-            DB_DATABASE=$db php artisan migrate || failed=1
+            DB_DATABASE=$db herd php artisan migrate || failed=1
         fi
     done
     return "$failed"
@@ -633,11 +633,11 @@ dropdbs() {
 # Fresh migrate the main database
 mf()   { _migrate_databases "$(_env_val DB_DATABASE)"; }
 # Fresh migrate the main database and seed
-mfs()  { mf && php artisan db:seed; }
+mfs()  { mf && herd php artisan db:seed; }
 # Fresh migrate all databases (main + all test databases)
 mfa()  { _migrate_databases $(_all_databases); }
 # Fresh migrate all databases, then seed the main database
-mfsa() { mfa && php artisan db:seed; }
+mfsa() { mfa && herd php artisan db:seed; }
 
 # Open the current project's database in a GUI client using credentials from .env
 opendb() {

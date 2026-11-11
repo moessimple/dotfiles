@@ -8,6 +8,7 @@ setup() {
     working_directory="$fixture/project"
     mkdir -p "$working_directory"
     given_fake_bin_on_path
+    given_herd_forwarding_php_and_composer
     write_fake_binary mysql
     write_fake_binary php "printf 'DB_DATABASE=%s\n' \"\$DB_DATABASE\" >> \"$fake_bin/php.calls\""
     given_env_file DB_DATABASE=maindb
@@ -26,6 +27,15 @@ teardown() {
     assert_binary_called_with mysql '-h127.0.0.1 -P3306 -uroot -e DROP DATABASE IF EXISTS `maindb`; CREATE DATABASE `maindb`;'
     assert_binary_called_with php "artisan migrate"
     assert_binary_called_with php "DB_DATABASE=maindb"
+}
+
+@test "mf migrates through Herd, so the project's own PHP version applies" {
+    # Act
+    run call_mf
+
+    # Assert
+    assert_success
+    assert_binary_called_with herd "php artisan migrate"
 }
 
 @test "mf pushes the schema via skeema instead of migrating when database/skeema exists" {

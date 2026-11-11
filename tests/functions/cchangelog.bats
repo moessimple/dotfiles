@@ -58,3 +58,15 @@ teardown() {
     assert_success
     assert_output_equals $'vendor/direct\nvendor/transitive'
 }
+
+@test "cchangelog reads dependency changes through Herd's Composer" {
+    # Arrange
+    given_direct_and_transitive_dependency_changes
+
+    # Act
+    run call_cchangelog --indirect main
+
+    # Assert
+    assert_success
+    assert_binary_called_with_substring herd "composer diff main:composer.lock"
+}

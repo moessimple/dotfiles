@@ -9,6 +9,7 @@ setup() {
     working_directory="$fixture/project"
     mkdir -p "$working_directory"
     given_fake_bin_on_path
+    given_herd_forwarding_php_and_composer
 }
 
 teardown() {
@@ -63,4 +64,16 @@ teardown() {
     assert_failure
     assert_binary_called_with php \
         "-d memory_limit=8192M ./vendor/bin/pest --no-coverage --stop-on-error --stop-on-failure --filter it computes the total"
+}
+
+@test "puff reruns through Herd, so the project's own PHP version applies" {
+    # Arrange
+    given_php_fails_on_run 1
+
+    # Act
+    run call_puff "it computes the total"
+
+    # Assert
+    assert_failure
+    assert_binary_called_with_substring herd "php -d memory_limit=8192M ./vendor/bin/phpunit"
 }
