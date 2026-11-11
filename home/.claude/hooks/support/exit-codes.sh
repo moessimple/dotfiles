@@ -6,5 +6,4 @@
 
 exit_nothing_to_check=3   # no Composer project or no supported tooling; a pass, not a failure
 exit_usage=64             # bad mode argument or unusable path argument
-exit_unsafe_path=65       # path escapes the project or points inside .git
 exit_internal=66          # could not enter the resolved project directory

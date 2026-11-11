@@ -19,30 +19,6 @@
 
 set -u
 
-# A `vendor/bin/*` binary resolves `php` via its own shebang, and the php
-# invocations below call it directly. Both only see PATH, never the
-# interactive `php='herd php'` shell alias, so a project isolated to a
-# non-global Herd PHP version would otherwise run every check here against
-# the wrong interpreter. Resolved once via Herd's own `which-php` and
-# exposed as a plain symlink ahead of PATH, so every invocation below stays
-# unchanged and still resolves the right interpreter through it. No-op when
-# Herd is not installed, as on the CI runner.
-#
-# Herd only reaches PATH through interactive .zshrc, but this runs from a
-# non-interactive Stop hook, so `command -v herd` misses it. Fall back to
-# Herd's default install location before giving up.
-herd_bin="$(command -v herd || true)"
-if [[ -z "$herd_bin" && -x "$HOME/Library/Application Support/Herd/bin/herd" ]]; then
-    herd_bin="$HOME/Library/Application Support/Herd/bin/herd"
-fi
-php_bin="$([[ -n "$herd_bin" ]] && "$herd_bin" which-php 2>/dev/null)"
-if [[ -x "$php_bin" ]]; then
-    php_shim_dir="$(mktemp -d)"
-    trap 'rm -rf "$php_shim_dir"' EXIT
-    ln -s "$php_bin" "$php_shim_dir/php"
-    PATH="$php_shim_dir:$PATH"
-fi
-
 source "$(dirname -- "${BASH_SOURCE[0]}")/support/project-root.sh"
 source "$(dirname -- "${BASH_SOURCE[0]}")/support/exit-codes.sh"
 
@@ -163,7 +139,7 @@ if [[ "$mode" == "file" ]]; then
     canonical="$(
         cd "$(dirname -- "$file")" >/dev/null 2>&1 &&
         printf '%s/%s' "$(pwd -P)" "$(basename -- "$file")"
-    )" || exit "$exit_unsafe_path"
+    )" || exit "$exit_usage"
 
     # Resolved from the file's own directory, not $PWD/CLAUDE_PROJECT_DIR: a
     # repo can nest more than one Composer project, and running `quality file
@@ -180,22 +156,6 @@ resolve_project_root "$start_dir" git_root root || {
 }
 
 if [[ "$mode" == "file" ]]; then
-    # .git is checked before the general containment check, because a path
-    # inside .git would otherwise pass as "inside the project". Checked against
-    # git_root (the whole repo), not root (the nearest project), since a repo
-    # can legitimately nest more than one project below the same .git.
-    case "$canonical" in
-        "$git_root"/.git/*)
-            echo "Refusing a path inside .git: $canonical" >&2
-            exit "$exit_unsafe_path"
-            ;;
-        "$git_root"/*) ;;
-        *)
-            echo "Path is outside the project: $canonical" >&2
-            exit "$exit_unsafe_path"
-            ;;
-    esac
-
     # Nothing to check for anything but a PHP file or composer.json; exit
     # before touching any tool.
     if [[ "$canonical" != *.php ]] && [[ "$(basename -- "$canonical")" != "composer.json" ]]; then
@@ -204,6 +164,31 @@ if [[ "$mode" == "file" ]]; then
 fi
 
 cd "$root" || exit "$exit_internal"
+
+# A `vendor/bin/*` binary resolves `php` via its own shebang, and the php
+# invocations below call it directly. Both only see PATH, never the
+# interactive `php='herd php'` shell alias, so a project isolated to a
+# non-global Herd PHP version would otherwise run every check here against
+# the wrong interpreter. Resolved once via Herd's own `which-php` and
+# exposed as a plain symlink ahead of PATH, so every invocation below stays
+# unchanged and still resolves the right interpreter through it. Runs after the
+# cd into the project, because `herd which-php` answers for the site in the
+# current directory. No-op when Herd is not installed, as on the CI runner.
+#
+# Herd only reaches PATH through interactive .zshrc, but this runs from a
+# non-interactive Stop hook, so `command -v herd` misses it. Fall back to
+# Herd's default install location before giving up.
+herd_bin="$(command -v herd || true)"
+if [[ -z "$herd_bin" && -x "$HOME/Library/Application Support/Herd/bin/herd" ]]; then
+    herd_bin="$HOME/Library/Application Support/Herd/bin/herd"
+fi
+php_bin="$([[ -n "$herd_bin" ]] && "$herd_bin" which-php 2>/dev/null)"
+if [[ -x "$php_bin" ]]; then
+    php_shim_dir="$(mktemp -d)"
+    trap 'rm -rf "$php_shim_dir"' EXIT
+    ln -s "$php_bin" "$php_shim_dir/php"
+    PATH="$php_shim_dir:$PATH"
+fi
 
 config_home="${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality"
 

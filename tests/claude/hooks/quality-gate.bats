@@ -299,6 +299,33 @@ teardown() {
     assert_tool_ran artisan
 }
 
+@test "a file inside .git is not checked" {
+    # Arrange
+    given_project_with_tools pint
+
+    # Act
+    run run_gate file "$git_root/.git/config"
+
+    # Assert
+    assert_status 3
+    assert_file_is_empty "$log"
+}
+
+@test "a file outside every repository is not checked" {
+    # Arrange
+    given_project_with_tools pint
+    outside_file="$fixture/outside/Example.php"
+    mkdir -p "$(dirname -- "$outside_file")"
+    printf '<?php\n' > "$outside_file"
+
+    # Act
+    run run_gate file "$outside_file"
+
+    # Assert
+    assert_status 3
+    assert_file_is_empty "$log"
+}
+
 @test "a directory without a Composer project reports nothing to check" {
     # Arrange
     empty_dir="$fixture/no-project"
@@ -547,6 +574,21 @@ teardown() {
     assert_success
     assert_tool_ran herd-php
     assert_tool_ran pest
+}
+
+@test "Herd resolves PHP for the project of the checked file, not the starting directory" {
+    # Arrange
+    given_project_with_tools pint
+    given_herd_resolving_to_system_php
+    starting_directory="$fixture/elsewhere"
+    mkdir -p "$starting_directory"
+
+    # Act
+    run run_gate_from "$starting_directory" file "$project/src/Example.php"
+
+    # Assert
+    assert_success
+    assert_herd_resolved_php_in "$project"
 }
 
 @test "the Herd PHP shim directory is removed after the gate runs" {

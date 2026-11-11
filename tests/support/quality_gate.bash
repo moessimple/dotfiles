@@ -157,6 +157,12 @@ run_gate() {
         "$gate" "$@"
 }
 
+run_gate_from() {
+    local starting_directory="$1"
+    shift
+    (cd "$starting_directory" && run_gate "$@")
+}
+
 run_gate_for_project() {
     local selected_project="$1"
     shift
@@ -235,13 +241,17 @@ path_without_composer() {
     printf '%s' "$dir"
 }
 
+# herd which-php resolves the PHP version of the site in the current directory,
+# so the fake records that directory for assert_herd_resolved_php_in.
 given_herd_resolving_to_system_php() {
     local system_php
     system_php="$(command -v php)"
+    herd_which_php_directory_log="$fixture/herd-which-php-directory"
 
     cat > "$fake_bin/herd" <<HERD
 #!/usr/bin/env bash
 if [[ "\$1" == "which-php" ]]; then
+    pwd -P > "$herd_which_php_directory_log"
     echo "$system_php"
     exit 0
 fi
@@ -384,4 +394,8 @@ assert_record_exit_is_failure() {
 assert_output_json_value() {
     local key="$1" expected="$2"
     [ "$(printf '%s' "$output" | jq -r ".$key")" = "$expected" ]
+}
+
+assert_herd_resolved_php_in() {
+    [ "$(cat "$herd_which_php_directory_log")" = "$(cd "$1" && pwd -P)" ]
 }
