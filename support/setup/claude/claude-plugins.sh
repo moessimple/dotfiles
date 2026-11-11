@@ -1,5 +1,14 @@
 #!/bin/bash
 
+CLAUDE_PLUGIN_MARKETPLACES=(
+    https://github.com/addyosmani/agent-skills
+    https://github.com/addyosmani/web-quality-skills
+    https://github.com/laravel/claude-code
+    https://github.com/vercel-labs/agent-browser
+    https://github.com/anthropics/claude-plugins-official
+    https://github.com/pbakaus/impeccable
+)
+
 CLAUDE_PLUGINS=(
     "agent-skills@addy-agent-skills"
     "web-quality-skills@addy-web-quality-skills"
@@ -33,12 +42,9 @@ CHROME_DEVTOOLS_MCP_VERSION="1.12.0"
 
 step "Installing Claude Code plugins and MCP servers"
 if command -v claude &>/dev/null; then
-    claude plugin marketplace add https://github.com/addyosmani/agent-skills 2>/dev/null || warn "addy-agent-skills marketplace already added"
-    claude plugin marketplace add https://github.com/addyosmani/web-quality-skills 2>/dev/null || warn "addy-web-quality-skills marketplace already added"
-    claude plugin marketplace add https://github.com/laravel/claude-code 2>/dev/null || warn "laravel marketplace already added"
-    claude plugin marketplace add https://github.com/vercel-labs/agent-browser 2>/dev/null || warn "agent-browser marketplace already added"
-    claude plugin marketplace add https://github.com/anthropics/claude-plugins-official 2>/dev/null || warn "claude-plugins-official marketplace already added"
-    claude plugin marketplace add https://github.com/pbakaus/impeccable 2>/dev/null || warn "impeccable marketplace already added"
+    for marketplace in "${CLAUDE_PLUGIN_MARKETPLACES[@]}"; do
+        claude plugin marketplace add "$marketplace" 2>/dev/null || warn "$marketplace already added"
+    done
     for plugin in "${CLAUDE_PLUGINS[@]}"; do
         claude plugin install "$plugin" 2>/dev/null || warn "$plugin already installed"
     done

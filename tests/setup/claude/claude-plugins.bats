@@ -57,6 +57,23 @@ teardown() {
     assert_binary_called_with_substring claude "mcp add chrome-devtools --scope user -- npx -y chrome-devtools-mcp@1.12.0 --isolated"
 }
 
+@test "every plugin marketplace is added before the plugins are installed" {
+    # Arrange
+    given_fake_claude '[]' ""
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_binary_called_with claude "plugin marketplace add https://github.com/addyosmani/agent-skills"
+    assert_binary_called_with claude "plugin marketplace add https://github.com/addyosmani/web-quality-skills"
+    assert_binary_called_with claude "plugin marketplace add https://github.com/laravel/claude-code"
+    assert_binary_called_with claude "plugin marketplace add https://github.com/vercel-labs/agent-browser"
+    assert_binary_called_with claude "plugin marketplace add https://github.com/anthropics/claude-plugins-official"
+    assert_binary_called_with claude "plugin marketplace add https://github.com/pbakaus/impeccable"
+}
+
 @test "installing plugins announces its own step" {
     # Arrange
     given_fake_claude '[]' ""
