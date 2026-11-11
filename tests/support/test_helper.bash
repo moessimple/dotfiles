@@ -7,7 +7,9 @@ new_dotfiles_fixture() {
 }
 
 teardown_dotfiles_fixture() {
-    rm -rf -- "$fixture"
+    # A plain `rm` would resolve to a test's fake rm in $fake_bin and stay hashed
+    # in this shell after the fixture is gone, so Bats' own cleanup `rm` then fails.
+    /bin/rm -rf -- "$fixture"
 }
 
 # Sources home/.functions in a fresh zsh process and calls the named function
