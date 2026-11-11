@@ -161,10 +161,12 @@ raise_npm_pin() {
     local current newest
     current=$(sed -n "s/^$variable=\"\(.*\)\"$/\1/p" "$file")
     # pipefail, so a failed npm lookup is reported instead of reading as "no newer release".
+    # npm 12 wraps `npm view --json` output in an array, hence the leading .[0].
     if ! newest=$(set -o pipefail; "${HOMEBREW_PREFIX:-/opt/homebrew}/bin/npm" view "$package" time --json 2>/dev/null \
         | jq -r --arg current "$current" '
             def numbers: split(".") | map(tonumber);
-            to_entries
+            .[0]
+            | to_entries
             | map(select(.key | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")))
             | map(select((.value | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601) <= now - 3 * 86400))
             | map(select((.key | numbers) > ($current | numbers)))

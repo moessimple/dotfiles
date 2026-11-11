@@ -66,7 +66,7 @@ given_pinned_version() {
 }
 
 # Fake npm that reports no global packages and answers `npm view <package> time --json` with the
-# given releases, each written as <version>:<days ago>.
+# given releases, each written as <version>:<days ago>, wrapped in a one-element array as npm 12 does.
 given_npm_releases() {
     local package="$1"
     shift
@@ -79,7 +79,7 @@ given_npm_releases() {
     done
     write_fake_binary npm "case \"\$*\" in
     'ls -g --depth=0 --json') printf '%s\n' '{\"dependencies\":{}}' ;;
-    'view $package time --json') printf '%s\n' '{${entries%,}}' ;;
+    'view $package time --json') printf '%s\n' '[{${entries%,}}]' ;;
 esac"
 }
 
