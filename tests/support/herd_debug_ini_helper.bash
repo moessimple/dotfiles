@@ -72,17 +72,10 @@ given_existing_ini_file() {
     printf '%s\n' "$contents" > "$absolute_path"
 }
 
-# Sources herd-debug-ini.sh the way bin/reconfigure.sh does: step/warn/success/error
-# defined by the caller, WARN:/ERROR: prefixes make those lines assertable. Call it
-# through `run` from the test body.
+# Sources herd-debug-ini.sh the way bin/reconfigure.sh does. Call it through `run` from
+# the test body.
 run_herd_debug_ini_setup() {
-    HOME="$test_home" HERD_RESOURCES_DIR="$herd_resources" bash -c '
-        step() { :; }
-        warn() { echo "WARN: $*"; }
-        success() { echo "SUCCESS: $*"; }
-        error() { echo "ERROR: $*"; exit 1; }
-        source "$1"
-    ' bash "$target"
+    HERD_RESOURCES_DIR="$herd_resources" run_setup_script "$target"
 }
 
 ini_path() {

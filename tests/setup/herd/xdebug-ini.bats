@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 
 load ../../support/test_helper
+load ../../support/setup_cleanup_helper
 load ../../support/herd_debug_ini_helper
 
 setup() {

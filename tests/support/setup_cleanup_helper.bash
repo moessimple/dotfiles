@@ -1,5 +1,5 @@
 # Sources one support/setup/**/*.sh file with step/warn/success stubbed (the real
-# definitions live in bin/install.sh and bin/update.sh, the files' actual callers), then
+# definitions live in support/setup/output.sh, which the entry points in bin/ source), then
 # invokes the named cleanup function it declares. PATH and HOME are inherited from the
 # calling test so given_fake_bin_on_path fakes and a fixture HOME take effect. HOMEBREW_PREFIX
 # points at the fixture, so a call through $HOMEBREW_PREFIX/bin reaches those fakes too and
@@ -15,14 +15,17 @@ call_cleanup_function() {
     ' bash "$file" "$function_name"
 }
 
-# Sources one support/setup/**/*.sh file with step/warn/success stubbed, running only
+# Sources one support/setup/**/*.sh file with the output helpers stubbed, running only
 # its top-level body (no cleanup function). For asserting on what the install step does.
+# The STEP:/WARN:/SUCCESS:/ERROR: prefixes make each helper's lines assertable; error exits
+# like the real one. Other environment variables pass through from the caller.
 run_setup_script() {
     local file="$1"
     HOME="${test_home:-$HOME}" HOMEBREW_PREFIX="$fixture" bash -c '
         step() { echo "STEP: $*"; }
         warn() { echo "WARN: $*"; }
         success() { echo "SUCCESS: $*"; }
+        error() { echo "ERROR: $*"; exit 1; }
         source "$1"
     ' bash "$file"
 }

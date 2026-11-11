@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 
 load ../../support/test_helper
+load ../../support/setup_cleanup_helper
 
 setup() {
     new_dotfiles_fixture
@@ -32,12 +33,7 @@ teardown() {
 
 run_codex_skills_setup() {
     CODEX_SKILLS_SOURCE="$source_dir" CODEX_SKILLS_TARGET="$skills_dir" \
-        CLAUDE_PLUGIN_CACHE="$plugin_cache" CLAUDE_INSTALLED_PLUGINS="$installed_plugins" bash -c '
-        step() { :; }
-        success() { echo "$1"; }
-        warn() { echo "$1"; }
-        source "$1"
-    ' bash "$target"
+        CLAUDE_PLUGIN_CACHE="$plugin_cache" CLAUDE_INSTALLED_PLUGINS="$installed_plugins" run_setup_script "$target"
 }
 
 @test "reviewed harness-neutral skills are linked for Codex" {
@@ -101,7 +97,7 @@ run_codex_skills_setup() {
     assert_success
     [ -L "$skills_dir/plugin-workflow" ]
     [ "$(readlink "$skills_dir/plugin-workflow")" = "$plugin_cache/addy-agent-skills/agent-skills/1.0.0/skills/plugin-workflow" ]
-    assert_output_contains "Skipping Claude plugin skills, installed_plugins.json is unavailable"
+    assert_output_contains "WARN: Skipping Claude plugin skills, installed_plugins.json is unavailable"
 }
 
 @test "Claude-specific and duplicate skills are not linked for Codex" {
@@ -122,7 +118,7 @@ run_codex_skills_setup() {
     [ ! -L "$skills_dir/outcome-writing" ]
     [ -f "$skills_dir/outcome-writing/keep" ]
     [ ! -e "$skills_dir/outcome-writing/outcome-writing" ]
-    assert_output_contains "Skipping outcome-writing"
+    assert_output_contains "WARN: Skipping outcome-writing"
 }
 
 @test "a missing reviewed skill source does not create a dangling link" {
@@ -133,6 +129,6 @@ run_codex_skills_setup() {
 
     assert_success
     [ ! -L "$skills_dir/debug" ]
-    assert_output_contains "Skipping debug, no SKILL.md found"
+    assert_output_contains "WARN: Skipping debug, no SKILL.md found"
     assert_output_does_not_contain "continue: only meaningful"
 }
