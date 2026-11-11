@@ -51,6 +51,16 @@ teardown() {
     assert_binary_called_with php "DB_DATABASE=maindb"
 }
 
+@test "mf does not migrate or seed when recreating the database fails" {
+    write_fake_binary mysql 'exit 1'
+
+    run call_mfs
+
+    assert_failure
+    assert_binary_call_count mysql 1
+    assert_binary_not_called php
+}
+
 @test "mf refuses a database host that is not local" {
     # Arrange
     given_env_file DB_HOST=db.example.com DB_DATABASE=maindb

@@ -56,6 +56,21 @@ teardown() {
     assert_binary_call_count mysql 4
 }
 
+@test "dropdbs uses the local PHPUnit configuration instead of its distribution template" {
+    given_env_file DB_DATABASE=maindb
+    printf '<php><env name="DB_DATABASE" value="local_test"/></php>\n' > "$working_directory/phpunit.xml"
+    printf '<php><env name="DB_DATABASE" value="template_test"/></php>\n' > "$working_directory/phpunit.xml.dist"
+    write_fake_binary mysql
+    write_fake_binary nproc "printf '1\n'"
+
+    run call_dropdbs
+
+    assert_success
+    assert_output_contains "Dropped: local_test"
+    assert_output_does_not_contain "template_test"
+    assert_binary_call_count mysql 3
+}
+
 @test "dropdbs skips a database that fails to drop and continues with the rest" {
     # Arrange
     given_env_file DB_DATABASE=maindb

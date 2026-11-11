@@ -166,16 +166,16 @@ commit() {
         local claude_result=""
 
         if command -v claude &>/dev/null \
-            && claude_result=$(echo "$diff_input" | claude -p --no-session-persistence --output-format json "$prompt" 2>/dev/null); then
-            commitMessage=$(echo "$claude_result" | jq -er 'select(.type == "result" and .is_error == false) | .result | select(type == "string" and test("\\S"))') || commitMessage=""
+            && claude_result=$(printf '%s\n' "$diff_input" | claude -p --no-session-persistence --output-format json "$prompt" 2>/dev/null); then
+            commitMessage=$(printf '%s\n' "$claude_result" | jq -er 'select(.type == "result" and .is_error == false) | .result | select(type == "string" and test("\\S"))') || commitMessage=""
         fi
 
         if [[ -z "${commitMessage//[[:space:]]/}" ]] && (( ! interrupted )); then
             local codex_result=""
 
             if command -v codex &>/dev/null \
-                && codex_result=$(echo "$diff_input" | codex exec --json --ephemeral --sandbox read-only "$prompt" 2>/dev/null); then
-                commitMessage=$(echo "$codex_result" | jq -ser '
+                && codex_result=$(printf '%s\n' "$diff_input" | codex exec --json --ephemeral --sandbox read-only "$prompt" 2>/dev/null); then
+                commitMessage=$(printf '%s\n' "$codex_result" | jq -ser '
                     if any(.[]; .type == "turn.completed") and all(.[]; .type != "turn.failed" and .type != "error") then
                         [.[] | select(.type == "item.completed" and .item.type == "agent_message") | .item.text]
                         | last
@@ -561,6 +561,7 @@ db() {
             _mysql_cmd -e "drop database \`$2\`; create database \`$2\`"
             ;;
         create)
+            _require_local_database || return
             _mysql_cmd -e "create database \`$2\`"
             ;;
         drop)
@@ -585,7 +586,7 @@ _migrate_databases() {
     local failed=0
     local db
     for db in "${databases[@]}"; do
-        _mysql_cmd -e "DROP DATABASE IF EXISTS \`$db\`; CREATE DATABASE \`$db\`;" || failed=1
+        _mysql_cmd -e "DROP DATABASE IF EXISTS \`$db\`; CREATE DATABASE \`$db\`;" || return
         if [ -d "database/skeema" ]; then
             DB_DATABASE=$db herd php artisan skeema:push --allow-unsafe --force --skip-lint --env=local || failed=1
         else
@@ -598,7 +599,9 @@ _migrate_databases() {
 # Resolve all databases (main + test + parallel shards) from .env and phpunit.xml
 _all_databases() {
     local main_db; main_db=$(_env_val DB_DATABASE)
-    local test_db; test_db=$(grep -o 'name="DB_DATABASE" value="[^"]*' phpunit.xml phpunit.xml.dist 2>/dev/null | sed 's/.*value="//' | tail -n1)
+    local phpunit_config="phpunit.xml"
+    [[ -f "$phpunit_config" ]] || phpunit_config="phpunit.xml.dist"
+    local test_db; test_db=$(grep -o 'name="DB_DATABASE" value="[^"]*' "$phpunit_config" 2>/dev/null | sed 's/.*value="//' | tail -n1)
 
     local databases=("$main_db")
     if [ -n "$test_db" ]; then

@@ -89,7 +89,7 @@ teardown() {
 
 @test "db uses host, user, and password from .env when present" {
     # Arrange
-    given_env_file DB_HOST=dbhost DB_USERNAME=dbuser DB_PASSWORD=dbpass
+    given_env_file DB_HOST=::1 DB_USERNAME=dbuser DB_PASSWORD=dbpass
     write_fake_binary mysql
 
     # Act
@@ -97,7 +97,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with mysql '-hdbhost -P3306 -udbuser -e create database `mydb` -pdbpass'
+    assert_binary_called_with mysql '-h::1 -P3306 -udbuser -e create database `mydb` -pdbpass'
 }
 
 @test "db removes quotes around .env values" {
@@ -182,4 +182,15 @@ teardown() {
     assert_output_contains "db.example.com is not a local database host"
     assert_binary_not_called mysql
     assert_binary_not_called php
+}
+
+@test "db create refuses a database host that is not local" {
+    given_env_file DB_HOST=db.example.com
+    write_fake_binary mysql
+
+    run call_db create mydb
+
+    assert_failure
+    assert_output_contains "db.example.com is not a local database host"
+    assert_binary_not_called mysql
 }
