@@ -34,3 +34,10 @@ given_secure_data_not_mounted() {
 given_bundle_exists() {
     mkdir -p "$fake_home/SecureData.sparsebundle"
 }
+
+# Only the bundle deletion fails; every other rm, such as the fixture teardown,
+# still reaches the real binary.
+given_bundle_deletion_fails() {
+    write_fake_binary rm 'case "$*" in *SecureData.sparsebundle*) exit 1 ;; esac
+exec /bin/rm "$@"'
+}

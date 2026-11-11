@@ -97,6 +97,19 @@ teardown() {
     assert_binary_not_called hdiutil
 }
 
+@test "sd unload reports a failed eject instead of an unmounted volume" {
+    # Arrange
+    given_secure_data_mounted
+    write_fake_binary diskutil 'case "$1" in eject) exit 1 ;; esac'
+
+    # Act
+    run call_sd unload
+
+    # Assert
+    assert_failure
+    assert_output_does_not_contain "SecureData is not mounted."
+}
+
 @test "sd status reports a mounted volume" {
     # Arrange
     given_secure_data_mounted
@@ -165,6 +178,21 @@ teardown() {
     assert_output_contains "Could not unmount SecureData; not deleting."
     assert_path_exists "$fake_home/SecureData.sparsebundle"
     assert_binary_not_called hdiutil
+}
+
+@test "sd delete reports a failed deletion instead of a missing bundle" {
+    # Arrange
+    given_secure_data_not_mounted
+    given_bundle_exists
+    given_bundle_deletion_fails
+
+    # Act
+    run call_sd_delete_confirmed_with "y"
+
+    # Assert
+    assert_failure
+    assert_output_does_not_contain "SecureData does not exist."
+    assert_path_exists "$fake_home/SecureData.sparsebundle"
 }
 
 @test "sd delete reports when the bundle does not exist" {

@@ -73,7 +73,7 @@ removehost() {
 # Show a weather forecast for a city (defaults to Castrop-Rauxel)
 weather() {
     local city="${1:-Castrop-Rauxel}"
-    curl http://wttr.in/${city// /+}\?F
+    curl https://wttr.in/${city// /+}\?F
 }
 
 # Run a command N times in parallel to reproduce race conditions
@@ -93,7 +93,7 @@ cmdp() {
     local n="$1"
     shift
 
-    if [[ -z "$n" || "$n" != <-> || "$n" -lt 1 ]]; then
+    if [[ "$n" != <-> || "$n" -lt 1 ]]; then
         echo "cmdp: n must be a positive integer" >&2
         return 1
     fi
@@ -155,13 +155,11 @@ commit() {
         } &!
         local spinner_pid=$!
 
-        clean_it() {
-            { kill $spinner_pid; wait $spinner_pid; } 2>/dev/null
-            printf "\r\033[K"
-            trap - INT
-            return 1
-        }
-        trap clean_it INT
+        # A return inside the trap would not end commit while a command
+        # substitution is running, so the trap only records the Ctrl-C and the
+        # flag is checked once the running provider call has finished.
+        local interrupted=0
+        trap 'interrupted=1' INT
 
         local diff_input=$(echo "=== Summary ===" && git diff --cached --stat && echo -e "\n=== Diff (truncated if large) ===" && git diff --cached | head -c 50000)
 
@@ -170,11 +168,9 @@ commit() {
         if command -v claude &>/dev/null \
             && claude_result=$(echo "$diff_input" | claude -p --no-session-persistence --output-format json "$prompt" 2>/dev/null); then
             commitMessage=$(echo "$claude_result" | jq -er 'select(.type == "result" and .is_error == false) | .result | select(type == "string" and test("\\S"))') || commitMessage=""
-        else
-            commitMessage=""
         fi
 
-        if [[ -z "${commitMessage//[[:space:]]/}" ]]; then
+        if [[ -z "${commitMessage//[[:space:]]/}" ]] && (( ! interrupted )); then
             local codex_result=""
 
             if command -v codex &>/dev/null \
@@ -192,9 +188,13 @@ commit() {
         fi
 
         trap - INT
-        unfunction clean_it 2>/dev/null
         { kill $spinner_pid; wait $spinner_pid; } 2>/dev/null
         printf "\r\033[K"
+
+        if (( interrupted )); then
+            echo "Commit cancelled."
+            return 130
+        fi
 
         if [[ -z "${commitMessage//[[:space:]]/}" ]]; then
             read -r "commitMessage?Claude and Codex were unavailable. Commit message: "
@@ -292,7 +292,12 @@ puff() {
     fi
 
     [ -z "$1" ] && { echo "test case required" 1>&2; return 1; }
-    _run_until_fail php -d memory_limit=8192M ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure --filter "$1"
+
+    if [ -f vendor/bin/pest ]; then
+        _run_until_fail php -d memory_limit=8192M ./vendor/bin/pest --no-coverage --stop-on-error --stop-on-failure --filter "$1"
+    else
+        _run_until_fail php -d memory_limit=8192M ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure --filter "$1"
+    fi
 }
 
 # Reproduce a flaky test by running a single test case in a loop until it fails (parallel)
@@ -316,7 +321,12 @@ puf() {
     fi
 
     [ -z "$1" ] && { echo "file or directory required" 1>&2; return 1; }
-    _run_until_fail php -d memory_limit=8192M ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure "$1"
+
+    if [ -f vendor/bin/pest ]; then
+        _run_until_fail php -d memory_limit=8192M ./vendor/bin/pest --no-coverage --stop-on-error --stop-on-failure "$1"
+    else
+        _run_until_fail php -d memory_limit=8192M ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure "$1"
+    fi
 }
 
 # Reproduce a flaky test by running a test file or directory in a loop until it fails (parallel)
@@ -486,6 +496,7 @@ importdump() {
     local db="${1:?database name required}"
     shift
     [[ $# -eq 0 ]] && { echo "No SQL files provided." 1>&2; return 1; }
+    _require_local_database || return
 
     # pipefail so an unreadable dump (pv fails) is not masked by mysql exiting 0 on
     # empty input; failed aggregates so one bad import in a list is reported.
@@ -499,13 +510,36 @@ importdump() {
     return "$failed"
 }
 
-_env_val() { grep "^$1=" .env 2>/dev/null | tail -n1 | cut -d= -f2- | tr -d '\r'; }
+_env_val() {
+    local value
+    value=$(grep "^$1=" .env 2>/dev/null | tail -n1 | cut -d= -f2- | tr -d '\r')
+    if [[ "$value" == \"*\" || "$value" == \'*\' ]]; then
+        value=${value:1:-1}
+    fi
+    print -r -- "$value"
+}
+
+# Guards every helper that drops, migrates, or imports into databases. It runs before any
+# mysql or artisan call because artisan reads DB_HOST from .env on its own, so a
+# guard inside _mysql_cmd alone would still migrate a remote database.
+_require_local_database() {
+    local host; host=$(_env_val DB_HOST)
+    case "$host" in
+        ""|127.0.0.1|::1|localhost) return 0 ;;
+    esac
+    echo "$host is not a local database host; refusing to change databases there." >&2
+    return 1
+}
 
 _mysql_cmd() {
     local host; host=$(_env_val DB_HOST)
+    local port; port=$(_env_val DB_PORT)
     local user; user=$(_env_val DB_USERNAME)
     local pass; pass=$(_env_val DB_PASSWORD)
-    local cmd=(mysql -h"${host:-127.0.0.1}" -u"${user:-root}" "$@")
+    # For localhost the mysql client connects over the Unix socket and ignores -P,
+    # which would reach whichever server owns the socket instead of DB_PORT.
+    [[ -z "$host" || "$host" == localhost ]] && host=127.0.0.1
+    local cmd=(mysql -h"$host" -P"${port:-3306}" -u"${user:-root}" "$@")
     [[ -n "$pass" ]] && cmd+=(-p"$pass")
     "${cmd[@]}"
 }
@@ -523,6 +557,7 @@ db() {
             ;;
         refresh)
             [ -n "$2" ] || { echo "db: '$1' requires a database name" >&2; echo "Run 'db --help' for usage." >&2; return 1; }
+            _require_local_database || return
             _mysql_cmd -e "drop database \`$2\`; create database \`$2\`"
             ;;
         create)
@@ -531,6 +566,7 @@ db() {
             ;;
         drop)
             [ -n "$2" ] || { echo "db: '$1' requires a database name" >&2; echo "Run 'db --help' for usage." >&2; return 1; }
+            _require_local_database || return
             _mysql_cmd -e "drop database \`$2\`"
             ;;
         list)
@@ -546,8 +582,10 @@ db() {
 
 # Drop and recreate each given database, then run skeema or Laravel migrations
 _migrate_databases() {
+    _require_local_database || return
     local databases=("$@")
     local failed=0
+    local db
     for db in "${databases[@]}"; do
         _mysql_cmd -e "DROP DATABASE IF EXISTS \`$db\`; CREATE DATABASE \`$db\`;" || failed=1
         if [ -d "database/skeema" ]; then
@@ -567,6 +605,7 @@ _all_databases() {
     local databases=("$main_db")
     if [ -n "$test_db" ]; then
         databases+=("$test_db")
+        local i
         for ((i=1; i<=$(nproc); i++)); do
             databases+=("${test_db}_test_$i")
         done
@@ -578,6 +617,7 @@ _all_databases() {
 # Drop all project databases: main, test, and all parallel test shards
 dropdbs() {
     [ ! -f .env ] && { echo "No .env file found."; return 1; }
+    _require_local_database || return
 
     local -a dbs
     dbs=($(_all_databases))
@@ -611,6 +651,7 @@ opendb() {
     local DB_USERNAME=$(_env_val DB_USERNAME)
     local DB_PASSWORD=$(_env_val DB_PASSWORD)
 
+    local var
     for var in DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME; do
         [[ -z "${(P)var}" ]] && { echo "$var not found in .env file."; return 1; }
     done
@@ -642,10 +683,18 @@ sd() {
                 diskutil image create --encrypt blank --format UDSB --size 20g \
                     --volumeName "$volume" -fs APFS "$bundle"
             fi
-            _sd_mounted "$mountpoint" && echo "$volume is already mounted." || diskutil image attach "$bundle"
+            if _sd_mounted "$mountpoint"; then
+                echo "$volume is already mounted."
+            else
+                diskutil image attach "$bundle"
+            fi
             ;;
         unload)
-            _sd_mounted "$mountpoint" && diskutil eject "$mountpoint" || echo "$volume is not mounted."
+            if _sd_mounted "$mountpoint"; then
+                diskutil eject "$mountpoint"
+            else
+                echo "$volume is not mounted."
+            fi
             ;;
         delete)
             read -q "?Delete $volume permanently? [y/N] " || { echo; return 1; }
@@ -654,12 +703,18 @@ sd() {
                 echo "Could not unmount $volume; not deleting." >&2
                 return 1
             fi
-            [ -d "$bundle" ] && rm -rf "$bundle" || echo "$volume does not exist."
+            if [ -d "$bundle" ]; then
+                rm -rf "$bundle"
+            else
+                echo "$volume does not exist."
+            fi
             ;;
         status)
-            _sd_mounted "$mountpoint" \
-                && echo "$volume is mounted at $mountpoint." \
-                || echo "$volume is not mounted."
+            if _sd_mounted "$mountpoint"; then
+                echo "$volume is mounted at $mountpoint."
+            else
+                echo "$volume is not mounted."
+            fi
             ;;
         *)
             echo "sd: unknown command '$1'" >&2

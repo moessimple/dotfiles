@@ -20,6 +20,19 @@ call_commit_then_report_leaked_state() {
         zsh "$functions_file" "$working_directory"
 }
 
+# Runs commit in a zsh that exports its own PID, so a fake provider can send it
+# the INT that Ctrl-C delivers to the foreground shell.
+call_commit_exposing_shell_pid() {
+    zsh -c 'export COMMIT_SHELL_PID=$$; source "$1"; cd "$2"; commit "${@:3}"' \
+        zsh "$functions_file" "$working_directory" "$@"
+}
+
+write_claude_interrupted_by_ctrl_c() {
+    write_fake_binary claude 'cat > /dev/null
+kill -INT "$COMMIT_SHELL_PID"
+exit 1'
+}
+
 write_successful_claude() {
     local message="$1"
 

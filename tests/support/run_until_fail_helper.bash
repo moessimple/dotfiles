@@ -1,5 +1,5 @@
-call_puf()   { call_dotfiles_function puf "$@"; }
-call_puff()  { call_dotfiles_function puff "$@"; }
+call_puf()   { call_dotfiles_function_in "$working_directory" puf "$@"; }
+call_puff()  { call_dotfiles_function_in "$working_directory" puff "$@"; }
 call_ppuf()  { call_dotfiles_function ppuf "$@"; }
 call_ppuff() { call_dotfiles_function ppuff "$@"; }
 

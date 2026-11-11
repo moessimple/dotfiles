@@ -23,7 +23,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with mysql '-h127.0.0.1 -uroot -e DROP DATABASE IF EXISTS `maindb`; CREATE DATABASE `maindb`;'
+    assert_binary_called_with mysql '-h127.0.0.1 -P3306 -uroot -e DROP DATABASE IF EXISTS `maindb`; CREATE DATABASE `maindb`;'
     assert_binary_called_with php "artisan migrate"
     assert_binary_called_with php "DB_DATABASE=maindb"
 }
@@ -39,4 +39,32 @@ teardown() {
     assert_success
     assert_binary_called_with php "artisan skeema:push --allow-unsafe --force --skip-lint --env=local"
     assert_binary_called_with php "DB_DATABASE=maindb"
+}
+
+@test "mf refuses a database host that is not local" {
+    # Arrange
+    given_env_file DB_HOST=db.example.com DB_DATABASE=maindb
+
+    # Act
+    run call_mf
+
+    # Assert
+    assert_failure
+    assert_output_contains "db.example.com is not a local database host"
+    assert_binary_not_called mysql
+    assert_binary_not_called php
+}
+
+@test "mfs refuses a database host that is not local" {
+    # Arrange
+    given_env_file DB_HOST=db.example.com DB_DATABASE=maindb
+
+    # Act
+    run call_mfs
+
+    # Assert
+    assert_failure
+    assert_output_contains "db.example.com is not a local database host"
+    assert_binary_not_called mysql
+    assert_binary_not_called php
 }

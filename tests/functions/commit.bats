@@ -175,6 +175,22 @@ teardown() {
     assert_changes_are_staged
 }
 
+@test "Ctrl-C while a message is generated cancels the commit" {
+    # Arrange
+    given_repository_with_modified_tracked_file
+    write_claude_interrupted_by_ctrl_c
+    write_provider_that_must_not_run codex
+
+    # Act
+    run call_commit_exposing_shell_pid
+
+    # Assert
+    assert_status 130
+    assert_provider_was_not_called
+    assert_output_does_not_contain "Commit cancelled: no message provided."
+    assert_commit_count 1
+}
+
 @test "generating a message does not leak clean_it or spinner_pid into the shell" {
     # Arrange
     given_repository_with_modified_tracked_file

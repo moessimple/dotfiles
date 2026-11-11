@@ -63,3 +63,17 @@ teardown() {
     assert_success
     assert_binary_called_with open "mysql://root:@127.0.0.1:3306/mydb"
 }
+
+@test "opendb removes quotes around .env values" {
+    # Arrange
+    given_env_file \
+        DB_CONNECTION=mysql DB_HOST=127.0.0.1 DB_PORT=3306 \
+        DB_DATABASE=mydb DB_USERNAME=root 'DB_PASSWORD="secret"'
+
+    # Act
+    run call_opendb
+
+    # Assert
+    assert_success
+    assert_binary_called_with open "mysql://root:secret@127.0.0.1:3306/mydb"
+}

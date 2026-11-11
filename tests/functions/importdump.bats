@@ -54,19 +54,33 @@ teardown() {
     # Assert
     assert_success
     assert_output_contains "Importing: dump.sql"
-    assert_binary_called_with mysql "-h127.0.0.1 -uroot --force --binary-mode mydb"
+    assert_binary_called_with mysql "-h127.0.0.1 -P3306 -uroot --force --binary-mode mydb"
 }
 
 @test "importdump uses host, user, and password from .env when present" {
     # Arrange
-    given_env_file DB_HOST=dbhost DB_USERNAME=dbuser DB_PASSWORD=dbpass
+    given_env_file DB_HOST=::1 DB_USERNAME=dbuser DB_PASSWORD=dbpass
 
     # Act
     run call_importdump mydb dump.sql
 
     # Assert
     assert_success
-    assert_binary_called_with mysql "-hdbhost -udbuser --force --binary-mode mydb -pdbpass"
+    assert_binary_called_with mysql "-h::1 -P3306 -udbuser --force --binary-mode mydb -pdbpass"
+}
+
+@test "importdump refuses a database host that is not local" {
+    # Arrange
+    given_env_file DB_HOST=db.example.com
+
+    # Act
+    run call_importdump mydb dump.sql
+
+    # Assert
+    assert_failure
+    assert_output_contains "db.example.com is not a local database host"
+    assert_binary_not_called pv
+    assert_binary_not_called mysql
 }
 
 @test "importdump imports every given file" {

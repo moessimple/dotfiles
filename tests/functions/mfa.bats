@@ -27,9 +27,9 @@ teardown() {
     assert_success
     assert_binary_call_count mysql 3
     assert_binary_call_count php 3
-    assert_binary_called_with mysql '-h127.0.0.1 -uroot -e DROP DATABASE IF EXISTS `maindb`; CREATE DATABASE `maindb`;'
-    assert_binary_called_with mysql '-h127.0.0.1 -uroot -e DROP DATABASE IF EXISTS `testdb`; CREATE DATABASE `testdb`;'
-    assert_binary_called_with mysql '-h127.0.0.1 -uroot -e DROP DATABASE IF EXISTS `testdb_test_1`; CREATE DATABASE `testdb_test_1`;'
+    assert_binary_called_with mysql '-h127.0.0.1 -P3306 -uroot -e DROP DATABASE IF EXISTS `maindb`; CREATE DATABASE `maindb`;'
+    assert_binary_called_with mysql '-h127.0.0.1 -P3306 -uroot -e DROP DATABASE IF EXISTS `testdb`; CREATE DATABASE `testdb`;'
+    assert_binary_called_with mysql '-h127.0.0.1 -P3306 -uroot -e DROP DATABASE IF EXISTS `testdb_test_1`; CREATE DATABASE `testdb_test_1`;'
 }
 
 @test "mfa still migrates every database when one fails, but reports overall failure" {
@@ -44,4 +44,18 @@ teardown() {
     assert_failure
     assert_binary_call_count mysql 3
     assert_binary_call_count php 3
+}
+
+@test "mfa refuses a database host that is not local" {
+    # Arrange
+    given_env_file DB_HOST=db.example.com DB_DATABASE=maindb
+
+    # Act
+    run call_mfa
+
+    # Assert
+    assert_failure
+    assert_output_contains "db.example.com is not a local database host"
+    assert_binary_not_called mysql
+    assert_binary_not_called php
 }

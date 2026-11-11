@@ -46,7 +46,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with mysql '-h127.0.0.1 -uroot -e drop database `mydb`; create database `mydb`'
+    assert_binary_called_with mysql '-h127.0.0.1 -P3306 -uroot -e drop database `mydb`; create database `mydb`'
 }
 
 @test "db create creates a new database" {
@@ -58,7 +58,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with mysql '-h127.0.0.1 -uroot -e create database `mydb`'
+    assert_binary_called_with mysql '-h127.0.0.1 -P3306 -uroot -e create database `mydb`'
 }
 
 @test "db drop drops the given database" {
@@ -70,7 +70,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with mysql '-h127.0.0.1 -uroot -e drop database `mydb`'
+    assert_binary_called_with mysql '-h127.0.0.1 -P3306 -uroot -e drop database `mydb`'
 }
 
 @test "db list shows every database, stripped of table formatting" {
@@ -82,7 +82,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with mysql "-h127.0.0.1 -uroot -e show databases"
+    assert_binary_called_with mysql "-h127.0.0.1 -P3306 -uroot -e show databases"
     assert_output_equals $'Database\nmydb'
 }
 
@@ -96,7 +96,46 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with mysql '-hdbhost -udbuser -e create database `mydb` -pdbpass'
+    assert_binary_called_with mysql '-hdbhost -P3306 -udbuser -e create database `mydb` -pdbpass'
+}
+
+@test "db removes quotes around .env values" {
+    # Arrange
+    given_env_file 'DB_USERNAME="dbuser"' "DB_PASSWORD='secret word'"
+    write_fake_binary mysql
+
+    # Act
+    run call_db create mydb
+
+    # Assert
+    assert_success
+    assert_binary_called_with mysql '-h127.0.0.1 -P3306 -udbuser -e create database `mydb` -psecret word'
+}
+
+@test "db connects to the port from .env" {
+    # Arrange
+    given_env_file DB_PORT=3307
+    write_fake_binary mysql
+
+    # Act
+    run call_db create mydb
+
+    # Assert
+    assert_success
+    assert_binary_called_with mysql '-h127.0.0.1 -P3307 -uroot -e create database `mydb`'
+}
+
+@test "db connects to localhost over TCP so the port from .env applies" {
+    # Arrange
+    given_env_file DB_HOST=localhost DB_PORT=3307
+    write_fake_binary mysql
+
+    # Act
+    run call_db create mydb
+
+    # Assert
+    assert_success
+    assert_binary_called_with mysql '-h127.0.0.1 -P3307 -uroot -e create database `mydb`'
 }
 
 @test "an unknown db command is rejected" {
@@ -110,4 +149,36 @@ teardown() {
     assert_failure
     assert_output_contains "db: unknown command 'bogus'"
     assert_binary_not_called mysql
+}
+
+@test "db refresh refuses a database host that is not local" {
+    # Arrange
+    given_env_file DB_HOST=db.example.com DB_DATABASE=maindb
+    write_fake_binary mysql
+    write_fake_binary php
+
+    # Act
+    run call_db refresh maindb
+
+    # Assert
+    assert_failure
+    assert_output_contains "db.example.com is not a local database host"
+    assert_binary_not_called mysql
+    assert_binary_not_called php
+}
+
+@test "db drop refuses a database host that is not local" {
+    # Arrange
+    given_env_file DB_HOST=db.example.com DB_DATABASE=maindb
+    write_fake_binary mysql
+    write_fake_binary php
+
+    # Act
+    run call_db drop maindb
+
+    # Assert
+    assert_failure
+    assert_output_contains "db.example.com is not a local database host"
+    assert_binary_not_called mysql
+    assert_binary_not_called php
 }

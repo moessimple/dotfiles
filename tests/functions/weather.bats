@@ -19,7 +19,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with curl "http://wttr.in/Castrop-Rauxel?F"
+    assert_binary_called_with curl "https://wttr.in/Castrop-Rauxel?F"
 }
 
 @test "weather looks up a given city, replacing spaces with plus signs" {
@@ -28,5 +28,5 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with curl "http://wttr.in/New+York?F"
+    assert_binary_called_with curl "https://wttr.in/New+York?F"
 }

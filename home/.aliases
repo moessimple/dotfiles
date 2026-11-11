@@ -114,7 +114,7 @@ alias reload="omz reload"
 
 # === Network ===
 
-alias ip="curl ifconfig.me/ip ; echo"
+alias ip="curl https://ifconfig.me/ip ; echo"
 alias localip="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
 alias speedtest="speedtest-cli"
 alias flushdns="sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder"

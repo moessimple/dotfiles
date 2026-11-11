@@ -36,7 +36,7 @@ teardown() {
     assert_success
     assert_output_equals "Dropped: maindb"
     assert_binary_call_count mysql 1
-    assert_binary_called_with mysql '-h127.0.0.1 -uroot -e DROP DATABASE IF EXISTS `maindb`;'
+    assert_binary_called_with mysql '-h127.0.0.1 -P3306 -uroot -e DROP DATABASE IF EXISTS `maindb`;'
 }
 
 @test "dropdbs also drops the test database and one shard per CPU when phpunit.xml declares one" {
@@ -72,4 +72,20 @@ esac"
     assert_output_does_not_contain "Dropped: maindb"
     assert_output_contains "Dropped: testdb"
     assert_output_contains "Dropped: testdb_test_1"
+}
+
+@test "dropdbs refuses a database host that is not local" {
+    # Arrange
+    given_env_file DB_HOST=db.example.com DB_DATABASE=maindb
+    write_fake_binary mysql
+    write_fake_binary php
+
+    # Act
+    run call_dropdbs
+
+    # Assert
+    assert_failure
+    assert_output_contains "db.example.com is not a local database host"
+    assert_binary_not_called mysql
+    assert_binary_not_called php
 }
