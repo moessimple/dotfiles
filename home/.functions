@@ -242,11 +242,7 @@ pf() {
         return 0
     fi
 
-    if [ -f vendor/bin/pest ]; then
-        herd php -d memory_limit=2G ./vendor/bin/pest --testdox --filter "$@"
-    else
-        herd php -d memory_limit=2G ./vendor/bin/phpunit --testdox --filter "$@"
-    fi
+    p --filter "$@"
 }
 
 # Run tests with code coverage
