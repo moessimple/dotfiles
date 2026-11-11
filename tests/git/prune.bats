@@ -51,6 +51,35 @@ teardown() {
     assert_remote_branch_does_not_exist merged
 }
 
+@test "a merged branch that exists only on the remote is kept" {
+    # Arrange
+    given_repository_with_origin_on main
+    given_merged_branch_pushed_to_origin colleague-work
+    git -C "$repository" branch -q -D colleague-work
+
+    # Act
+    run call_prune
+
+    # Assert
+    assert_success
+    assert_remote_branch_exists colleague-work
+}
+
+@test "a remote counterpart with commits of its own is kept" {
+    # Arrange
+    given_repository_with_origin_on main
+    given_merged_branch_pushed_to_origin shared-work
+    given_commit_pushed_to_origin_only shared-work
+
+    # Act
+    run call_prune
+
+    # Assert
+    assert_success
+    assert_branch_does_not_exist shared-work
+    assert_remote_branch_exists shared-work
+}
+
 @test "a local branch with an unreachable upstream is deleted" {
     # Arrange
     given_repository_with_origin_on main
