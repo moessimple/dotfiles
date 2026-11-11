@@ -100,7 +100,7 @@ cask "google-chrome"
 cask "herd"
 cask "microsoft-teams"
 cask "monitorcontrol"
-cask "spatie/bloom/spatie-bloom"
+cask "spatie/bloom/spatie-bloom", trusted: true
 cask "tableplus"
 cask "visual-studio-code"
 cask "whatsapp"
