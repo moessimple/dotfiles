@@ -13,9 +13,9 @@ alias dotfiles="cd ~/.dotfiles"
 
 # === Git ===
 
-alias log="git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
+alias timeline="git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
 alias wip="commit wip"
-alias diff="git diff"
+alias changes="git diff"
 alias undo="git reset --soft HEAD~1"
 alias status="git status -sb"
 alias browse="gh browse"
@@ -30,7 +30,7 @@ alias github='open -a "/Applications/GitHub Desktop.app" "`pwd`"'
 alias php="herd php"
 alias a="php artisan"
 alias pint='./vendor/bin/pint --parallel'
-alias view="herd open"
+alias site="herd open"
 
 # === Composer ===
 
@@ -43,7 +43,7 @@ alias cud="composer update \$(composer show -s | sed -n '/requires (dev)$/,/^$/p
 alias cup="composer update \$(composer show -s | sed -n '/requires$/,/^$/p' | grep -v 'requires$' | cut -d ' ' -f1) && composer bump --no-dev-only"
 alias cf="rm -rf vendor && composer install"
 alias cfresh="cf"
-alias cc="cchangelog"
+alias changelog="cchangelog"
 alias cda="composer dumpautoload"
 alias co="composer outdated --direct"
 
