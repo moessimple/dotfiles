@@ -15,11 +15,6 @@
     excludesfile = ~/.global-gitignore
     pager = delta
 
-[color]
-    # Use colors in Git commands that are capable of colored output when
-	# outputting to the terminal. (This is the default setting in Git ≥ 1.8.4.)
-	ui = auto
-
 [color "branch"]
 	current = yellow reverse
 	local = yellow
@@ -35,10 +30,6 @@
 	added = yellow
 	changed = green
 	untracked = cyan
-
-[push]
-    # https://git-scm.com/docs/git-config#Documentation/git-config.txt-pushdefault
-    default = simple
 
 [pull]
     ff = only
@@ -74,7 +65,7 @@
 	pushInsteadOf = "github:"
 	pushInsteadOf = "git://github.com/"
 
-[url "git://github.com/"]
+[url "https://github.com/"]
 	insteadOf = "github:"
 
 [url "git@gist.github.com:"]
@@ -82,7 +73,7 @@
 	pushInsteadOf = "gist:"
 	pushInsteadOf = "git://gist.github.com/"
 
-[url "git://gist.github.com/"]
+[url "https://gist.github.com/"]
 	insteadOf = "gist:"
 
 [interactive]

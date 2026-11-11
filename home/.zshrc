@@ -10,9 +10,6 @@ ZSH_THEME="agnoster"
 # Hide username in prompt
 DEFAULT_USER=$(whoami)
 
-# Use this dotfiles repository as Oh My Zsh's custom directory
-ZSH_CUSTOM=$DOTFILES_DIR
-
 # Oh My Zsh plugins
 plugins=(git composer macos)
 
@@ -22,10 +19,6 @@ source $ZSH/oh-my-zsh.sh
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd _fix_tty
 _fix_tty() { stty sane 2>/dev/null }
-
-# Use the US English UTF-8 locale
-export LC_ALL=en_US.UTF-8
-export LANG=en_US.UTF-8
 
 # Load the shell dotfiles
 for _dotfile in ~/.dotfiles/home/.{exports,paths,aliases,functions}; do
