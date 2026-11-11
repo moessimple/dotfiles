@@ -18,6 +18,7 @@ teardown() {
     run call_fif "TODO"
 
     # Assert
+    assert_failure
     assert_binary_called_with_substring fzf "--disabled --query TODO"
 }
 
@@ -26,5 +27,6 @@ teardown() {
     run call_fif
 
     # Assert (two spaces: the query argument itself is empty)
+    assert_failure
     assert_binary_called_with_substring fzf "--disabled --query  --bind"
 }

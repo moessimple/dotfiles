@@ -19,6 +19,7 @@ teardown() {
     run call_scheduler
 
     # Assert
+    assert_status 143
     assert_binary_call_count php 2
     assert_binary_called_with php "artisan schedule:run"
     assert_output_contains "Sleeping 60 seconds..."

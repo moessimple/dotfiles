@@ -6,6 +6,7 @@ load ../support/fzf_helper
 
 setup() {
     new_dotfiles_fixture
+    given_fake_bin_on_path
 }
 
 teardown() {

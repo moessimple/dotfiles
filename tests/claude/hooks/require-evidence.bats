@@ -134,6 +134,10 @@ teardown() {
 @test "a repeated final check succeeds after the project is fixed" {
     # Arrange
     given_dirty_project_after_php_edit_with_tools composer pint phpstan rector pest phpunit
+    failing_tool=phpstan
+    QUALITY_FAIL_TOOL="$failing_tool" run stop_event false
+    assert_status 2
+    : > "$log"
 
     # Act
     run stop_event true

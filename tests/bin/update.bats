@@ -8,12 +8,10 @@ setup() {
     new_dotfiles_fixture
     test_home="$fixture/home"
     repository="$test_home/.dotfiles"
-    bin_dir="$fixture/bin"
-    fake_bin="$bin_dir"
-    mkdir -p "$repository" "$bin_dir"
+    mkdir -p "$repository"
+    given_fake_bin_on_path
     export REAL_GIT="$(command -v git)"
     export UPDATE_SIDE_EFFECT_REACHED="$fixture/update-side-effect-reached"
-    export PATH="$bin_dir:$PATH"
 }
 
 teardown() {

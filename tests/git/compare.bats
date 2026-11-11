@@ -6,6 +6,7 @@ load ../support/fzf_helper
 
 setup() {
     new_dotfiles_fixture
+    given_fake_bin_on_path
 }
 
 teardown() {
@@ -63,6 +64,7 @@ teardown() {
     run call_compare main
 
     # Assert
+    assert_success
     assert_fzf_offered_candidate "feature"
     assert_fzf_did_not_offer_candidate "main"
 }

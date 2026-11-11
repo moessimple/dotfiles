@@ -1,28 +1,14 @@
 given_fzf_selects() {
     local selection="$1"
-    bin_dir="$fixture/bin"
     fzf_stdin_log="$fixture/fzf-stdin"
-    mkdir -p "$bin_dir"
-    cat > "$bin_dir/fzf" <<EOF
-#!/bin/sh
-cat > "$fzf_stdin_log"
-printf '%s\n' "$selection"
-EOF
-    chmod +x "$bin_dir/fzf"
-    export PATH="$bin_dir:$PATH"
+    write_fake_binary fzf "cat > \"$fzf_stdin_log\"
+printf '%s\n' \"$selection\""
 }
 
 given_fzf_selects_nothing() {
-    bin_dir="$fixture/bin"
     fzf_stdin_log="$fixture/fzf-stdin"
-    mkdir -p "$bin_dir"
-    cat > "$bin_dir/fzf" <<EOF
-#!/bin/sh
-cat > "$fzf_stdin_log"
-exit 1
-EOF
-    chmod +x "$bin_dir/fzf"
-    export PATH="$bin_dir:$PATH"
+    write_fake_binary fzf "cat > \"$fzf_stdin_log\"
+exit 1"
 }
 
 assert_fzf_offered_candidate() {

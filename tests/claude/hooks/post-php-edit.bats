@@ -61,6 +61,20 @@ teardown() {
     assert_path_exists "$marker"
 }
 
+@test "a failing check on an edited PHP file is reported back and still marks the project" {
+    # Arrange
+    given_project_with_tools pint rector
+    marker="$config_home/claude-quality/runs$project.dirty"
+
+    # Act
+    QUALITY_FAIL_TOOL=pint run post_event post-php-edit.sh "$project/src/Example.php"
+
+    # Assert
+    assert_status 2
+    assert_output_contains "The file gate failed for $project/src/Example.php"
+    assert_path_exists "$marker"
+}
+
 @test "editing a PHP file in a nested project marks that nested project, not the Git root" {
     # Arrange
     given_nested_project_with_tools pint rector

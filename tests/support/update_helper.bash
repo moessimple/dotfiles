@@ -3,23 +3,15 @@ call_update() {
 }
 
 write_update_side_effects_that_must_not_run() {
-    cat > "$bin_dir/git" <<'EOF'
-#!/bin/sh
-for argument in "$@"; do
+    write_fake_binary git 'for argument in "$@"; do
     if [ "$argument" = "pull" ]; then
         touch "$UPDATE_SIDE_EFFECT_REACHED"
     fi
 done
-exec "$REAL_GIT" "$@"
-EOF
+exec "$REAL_GIT" "$@"'
 
-    cat > "$bin_dir/brew" <<'EOF'
-#!/bin/sh
-touch "$UPDATE_SIDE_EFFECT_REACHED"
-exit 1
-EOF
-
-    chmod +x "$bin_dir/git" "$bin_dir/brew"
+    write_fake_binary brew 'touch "$UPDATE_SIDE_EFFECT_REACHED"
+exit 1'
 }
 
 assert_update_side_effect_was_not_reached() {

@@ -7,9 +7,8 @@ setup() {
     new_dotfiles_fixture
     repository="$fixture/repository"
     working_directory="$repository"
-    bin_dir="$fixture/bin"
-    mkdir -p "$repository" "$bin_dir"
-    export PATH="$bin_dir:$PATH"
+    mkdir -p "$repository"
+    given_fake_bin_on_path
     export PROVIDER_INPUT="$fixture/provider-input"
     export PROVIDER_CALLED="$fixture/provider-called"
 }

@@ -23,42 +23,35 @@ call_commit_then_report_leaked_state() {
 write_successful_claude() {
     local message="$1"
 
-    cat > "$bin_dir/claude" <<EOF
-#!/bin/sh
+    write_fake_binary claude "$(cat <<EOF
 cat > "\$PROVIDER_INPUT"
 printf '%s\n' '{"type":"result","is_error":false,"result":"$message"}'
 EOF
-    chmod +x "$bin_dir/claude"
+)"
 }
 
 write_successful_codex() {
     local message="$1"
 
-    cat > "$bin_dir/codex" <<EOF
-#!/bin/sh
+    write_fake_binary codex "$(cat <<EOF
 cat > "\$PROVIDER_INPUT"
 printf '%s\n' '{"type":"item.completed","item":{"type":"agent_message","text":"$message"}}'
 printf '%s\n' '{"type":"turn.completed"}'
 EOF
-    chmod +x "$bin_dir/codex"
+)"
 }
 
 write_failing_provider() {
     local provider="$1"
 
-    printf '#!/bin/sh\nexit 1\n' > "$bin_dir/$provider"
-    chmod +x "$bin_dir/$provider"
+    write_fake_binary "$provider" "exit 1"
 }
 
 write_provider_that_must_not_run() {
     local provider="$1"
 
-    cat > "$bin_dir/$provider" <<'EOF'
-#!/bin/sh
-touch "$PROVIDER_CALLED"
-exit 1
-EOF
-    chmod +x "$bin_dir/$provider"
+    write_fake_binary "$provider" 'touch "$PROVIDER_CALLED"
+exit 1'
 }
 
 write_providers_that_must_not_run() {
