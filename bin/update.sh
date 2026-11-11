@@ -159,7 +159,7 @@ source ~/.dotfiles/support/setup/codex/codex-skills.sh
 source ~/.dotfiles/support/setup/packages/ollama-models.sh
 ollama_models_cleanup
 
-# Raises a pinned npm package to its newest stable release that is at least 7 days old, the same
+# Raises a pinned npm package to its newest stable release that is at least 3 days old, the same
 # cooldown its npx call enforces. The raised pin is an uncommitted change in this repository and
 # takes effect on the next run, which refuses a dirty worktree, so it is committed first.
 raise_npm_pin() {
@@ -172,7 +172,7 @@ raise_npm_pin() {
             def numbers: split(".") | map(tonumber);
             to_entries
             | map(select(.key | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")))
-            | map(select((.value | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601) <= now - 7 * 86400))
+            | map(select((.value | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601) <= now - 3 * 86400))
             | map(select((.key | numbers) > ($current | numbers)))
             | max_by(.key | numbers) | .key // empty'); then
         warn "Could not check $package for a newer release"

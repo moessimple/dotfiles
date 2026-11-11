@@ -50,13 +50,13 @@ THIRD_PARTY_SKILLS=(
 )
 
 # The skills CLI installs, updates and removes the skills below with full user rights. It is pinned,
-# and it runs through Homebrew's npx with a 7-day release-age cooldown, because it loads
+# and it runs through Homebrew's npx with a 3-day release-age cooldown, because it loads
 # dependencies with version ranges that the pin alone does not fix. Herd's bundled npm 10 ignores
-# --min-release-age. A raised version must itself be at least 7 days old, or npx refuses it.
+# --min-release-age. A raised version must itself be at least 3 days old, or npx refuses it.
 SKILLS_CLI_VERSION="1.7.6"
 
 skills_cli() {
-    "${HOMEBREW_PREFIX:-/opt/homebrew}/bin/npx" --min-release-age=7 --yes "skills@$SKILLS_CLI_VERSION" "$@"
+    "${HOMEBREW_PREFIX:-/opt/homebrew}/bin/npx" --min-release-age=3 --yes "skills@$SKILLS_CLI_VERSION" "$@"
 }
 
 # Clarity's root SKILL.md makes the CLI copy its whole repository, including the

@@ -54,7 +54,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with_substring npx "--min-release-age=7 --yes skills@1.7.6 add"
+    assert_binary_called_with_substring npx "--min-release-age=3 --yes skills@1.7.6 add"
 }
 
 @test "an installed skill not declared in claude-skills.sh is removed" {

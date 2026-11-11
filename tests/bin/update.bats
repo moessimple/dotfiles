@@ -120,10 +120,10 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with_substring npx "--min-release-age=7 --yes skills@1.7.6 update -g"
+    assert_binary_called_with_substring npx "--min-release-age=3 --yes skills@1.7.6 update -g"
 }
 
-@test "a pinned npm package is raised to the newest release that is at least 7 days old" {
+@test "a pinned npm package is raised to the newest release that is at least 3 days old" {
     # Arrange
     given_clean_repository_on_main
     given_repository_with_real_setup_scripts
@@ -131,18 +131,18 @@ teardown() {
     given_bare_origin_remote
     git -C "$repository" push -q origin main
     given_every_external_tool_update_touches_is_faked
-    given_npm_releases chrome-devtools-mcp 1.12.0:30 1.13.0:10 1.14.0-beta.1:9 1.14.0:2
+    given_npm_releases chrome-devtools-mcp 1.12.0:30 1.13.0:10 1.13.1:4 1.14.0-beta.1:4 1.14.0:2
 
     # Act
     run call_update
 
     # Assert
     assert_success
-    assert_pinned_version support/setup/claude/claude-plugins.sh CHROME_DEVTOOLS_MCP_VERSION 1.13.0
-    assert_output_contains "Raised chrome-devtools-mcp from 1.12.0 to 1.13.0"
+    assert_pinned_version support/setup/claude/claude-plugins.sh CHROME_DEVTOOLS_MCP_VERSION 1.13.1
+    assert_output_contains "Raised chrome-devtools-mcp from 1.12.0 to 1.13.1"
 }
 
-@test "a pinned npm package stays put while the newer release is younger than 7 days" {
+@test "a pinned npm package stays put while the newer release is younger than 3 days" {
     # Arrange
     given_clean_repository_on_main
     given_repository_with_real_setup_scripts
@@ -150,7 +150,7 @@ teardown() {
     given_bare_origin_remote
     git -C "$repository" push -q origin main
     given_every_external_tool_update_touches_is_faked
-    given_npm_releases skills 1.7.6:8 1.8.1:0
+    given_npm_releases skills 1.7.6:8 1.8.0:2 1.8.1:0
 
     # Act
     run call_update

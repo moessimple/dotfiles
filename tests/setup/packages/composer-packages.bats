@@ -13,7 +13,7 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "Composer withholds releases younger than 7 days in every project" {
+@test "Composer withholds releases younger than 3 days in every project" {
     # Arrange
     given_fake_composer_reporting_installed '{"installed":[]}'
 
@@ -22,7 +22,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with composer "config --global policy.cooldown.period 7 days"
+    assert_binary_called_with composer "config --global policy.cooldown.period 3 days"
     assert_binary_called_with composer "config --global policy.cooldown.audit report"
 }
 
