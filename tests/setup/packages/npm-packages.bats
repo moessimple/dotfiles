@@ -13,6 +13,35 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
+@test "global packages are installed with Homebrew's npm, not the npm Herd puts first on PATH" {
+    # Arrange
+    given_fake_npm_reporting_installed '{"dependencies":{}}'
+    write_fake_binary agent-browser
+    given_herd_npm_first_on_path
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_binary_called_with npm "install -g intelephense"
+    assert_herd_npm_not_called
+}
+
+@test "cleanup reads and removes packages in Homebrew's npm, not in Herd's" {
+    # Arrange
+    given_fake_npm_reporting_installed '{"dependencies":{"stale-package":{}}}'
+    given_herd_npm_first_on_path
+
+    # Act
+    run call_cleanup_function "$target" npm_packages_cleanup
+
+    # Assert
+    assert_success
+    assert_binary_called_with npm "uninstall -g stale-package"
+    assert_herd_npm_not_called
+}
+
 @test "a globally installed package not declared in npm-packages.sh is removed" {
     # Arrange
     given_fake_npm_reporting_installed '{"dependencies":{"typescript":{},"leftpad":{}}}'
@@ -70,7 +99,7 @@ teardown() {
 
     # Assert
     assert_success
-    # If the `command -v npm` guard failed to return early, the read below it would still
+    # If the Homebrew npm guard failed to return early, the read below it would still
     # fail (npm is genuinely absent from this restricted PATH) and this warning would
     # appear, so its absence is what proves the guard fired.
     assert_output_does_not_contain "Could not read global npm packages"

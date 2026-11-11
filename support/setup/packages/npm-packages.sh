@@ -15,6 +15,13 @@ NPM_PACKAGES_KEEP=(
     corepack
 )
 
+# Global packages go through Homebrew's npm, not the npm first on PATH: Herd's NVM gives each Node
+# version its own global directory, so a Node switch by Herd would leave them behind and drop
+# them from PATH. Homebrew's prefix stays put and is on PATH.
+global_npm() {
+    "${HOMEBREW_PREFIX:-/opt/homebrew}/bin/npm" "$@"
+}
+
 # `agent-browser install` downloads every new Chrome for Testing release (~360 MB each) next
 # to the previous ones and never removes them. It always launches the newest version, so
 # every older one is dead weight.
@@ -36,7 +43,7 @@ agent_browser_prune_chrome() {
 # Installs each entry in NPM_PACKAGES; agent-browser's own setup runs right after.
 step "Installing global npm packages"
 for package in "${NPM_PACKAGES[@]}"; do
-    npm install -g "$package" || warn "$package already installed or failed"
+    global_npm install -g "$package" || warn "$package already installed or failed"
 done
 agent-browser install 2>/dev/null || warn "agent-browser setup skipped"
 agent_browser_prune_chrome
@@ -45,14 +52,14 @@ success "npm packages processed"
 # Removes any globally installed npm package that isn't in NPM_PACKAGES or NPM_PACKAGES_KEEP.
 # Same idea as `brew bundle cleanup --force` and claude_skills_cleanup in claude-skills.sh.
 npm_packages_cleanup() {
-    command -v npm &>/dev/null || return 0
+    [ -x "${HOMEBREW_PREFIX:-/opt/homebrew}/bin/npm" ] || return 0
 
     step "Checking for undeclared global npm packages"
 
     # pipefail, and the assignment kept out of `local`, so a failing npm or a missing jq
     # surfaces instead of looking like an empty list and reporting a green run over a broken one.
     local installed
-    if ! installed=$(set -o pipefail; npm ls -g --depth=0 --json 2>/dev/null | jq -r '.dependencies // {} | keys[]'); then
+    if ! installed=$(set -o pipefail; global_npm ls -g --depth=0 --json 2>/dev/null | jq -r '.dependencies // {} | keys[]'); then
         warn "Could not read global npm packages, skipping cleanup"
         return 0
     fi
@@ -63,7 +70,7 @@ npm_packages_cleanup() {
         if ! printf '%s\n' "${NPM_PACKAGES[@]}" "${NPM_PACKAGES_KEEP[@]}" | grep -qxF "$name"; then
             found_undeclared=1
             warn "Removing undeclared global npm package: $name (not in npm-packages.sh)"
-            npm uninstall -g "$name" || warn "Could not remove $name, remove it manually"
+            global_npm uninstall -g "$name" || warn "Could not remove $name, remove it manually"
         fi
     done <<< "$installed"
 

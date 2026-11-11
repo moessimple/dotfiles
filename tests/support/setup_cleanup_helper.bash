@@ -183,3 +183,18 @@ exit 0
 EOF2
     chmod +x "$fake_bin/ollama"
 }
+
+# A second npm, standing in for Herd's, placed ahead of the Homebrew fakes on PATH, as Herd's
+# NVM Node is in an interactive shell. It records its calls in herd_npm_calls.
+given_herd_npm_first_on_path() {
+    local herd_bin="$fixture/herd/bin"
+    herd_npm_calls="$herd_bin/npm.calls"
+    mkdir -p "$herd_bin"
+    printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$*" >> "%s"\n' "$herd_npm_calls" > "$herd_bin/npm"
+    chmod +x "$herd_bin/npm"
+    export PATH="$herd_bin:$PATH"
+}
+
+assert_herd_npm_not_called() {
+    [ ! -e "$herd_npm_calls" ]
+}
