@@ -100,7 +100,7 @@ given_composer_project_without_quality_tools() {
 given_dirty_project_after_php_edit_with_tools() {
     given_project_with_tools "$@"
     marker="$config_home/claude-quality/runs$project.dirty"
-    post_event post-php-edit.sh "$project/src/Example.php"
+    post_event post-edit.sh "$project/src/Example.php"
     [ -e "$marker" ]
     : > "$log"
 }
@@ -122,7 +122,7 @@ printf 'phpstan\n' >> "$QUALITY_TEST_LOG"
 exit 1
 TOOL
     chmod +x "$second_project/vendor/bin/phpstan"
-    post_event post-php-edit.sh "$second_project/src/Example.php"
+    post_event post-edit.sh "$second_project/src/Example.php"
 }
 
 given_project_with_artisan_test_runner() {

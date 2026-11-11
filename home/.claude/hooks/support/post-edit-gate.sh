@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
 #
-# Shared by the PHP and composer.json PostToolUse hooks. After either hook
-# matches its file type, this runs the file gate, marks the project dirty and
-# reports failures consistently.
+# Used by the PostToolUse hook post-edit.sh once it has matched a PHP file or a
+# composer.json: runs the file gate, marks the project dirty and reports failures.
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/project-root.sh"
 source "$(dirname -- "${BASH_SOURCE[0]}")/exit-codes.sh"
 
-# Exits the calling hook script directly, the same way both hooks already
-# did inline: 0 when there's no project to gate or the gate passed, 2 with
-# the gate's own output on failure. Never returns.
+# Exits the calling hook script directly: 0 when there's no project to gate or
+# the gate passed, 2 with the gate's own output on failure. Never returns.
 run_post_edit_gate() {
     local file="$1"
     local dispatcher="$HOME/.claude/hooks/quality-gate.sh"

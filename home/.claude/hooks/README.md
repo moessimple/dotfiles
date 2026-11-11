@@ -67,13 +67,11 @@ skip flags.
 
 ### After an Edit
 
-Claude Code invokes both `PostToolUse` hooks after every `Write` or `Edit` operation:
+Claude Code invokes the `PostToolUse` hook [`post-edit.sh`](post-edit.sh) after every `Write` or `Edit`
+operation. It accepts existing `.php` files and files named `composer.json` and runs `file` mode, which checks a PHP
+file and runs `composer validate` for a `composer.json`.
 
-- [`post-php-edit.sh`](post-php-edit.sh) accepts existing `.php` files and runs `file` mode.
-- [`post-composer-edit.sh`](post-composer-edit.sh) accepts files named `composer.json` and runs
-  `composer validate` through `file` mode.
-
-Each hook resolves the nearest Composer project inside the surrounding Git repository. When supported tooling is
+The hook resolves the nearest Composer project inside the surrounding Git repository. When supported tooling is
 found, it creates a dirty marker for that project even if the immediate file check passes. A failing check returns its
 output to Claude so the next action can address it. Because these are post-edit hooks, they report problems but cannot
 undo the edit.
@@ -146,8 +144,7 @@ for the current Claude Code session.
 
 | File                                                     | Role                                                               |
 | -------------------------------------------------------- | ------------------------------------------------------------------ |
-| [`post-php-edit.sh`](post-php-edit.sh)                   | Matches PHP edits and starts the file gate                         |
-| [`post-composer-edit.sh`](post-composer-edit.sh)         | Matches `composer.json` edits and starts validation                |
+| [`post-edit.sh`](post-edit.sh)                           | Matches PHP and `composer.json` edits and starts the file gate     |
 | [`require-evidence.sh`](require-evidence.sh)             | Runs `fast` for dirty projects and blocks on failure               |
 | [`quality-gate.sh`](quality-gate.sh)                     | Resolves modes, detects tools, runs checks, and records results    |
 | [`support/post-edit-gate.sh`](support/post-edit-gate.sh) | Shares post-edit execution, marker, and reporting logic            |

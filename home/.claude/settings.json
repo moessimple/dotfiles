@@ -105,12 +105,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$HOME/.claude/hooks/post-php-edit.sh\"",
-            "timeout": 60
-          },
-          {
-            "type": "command",
-            "command": "\"$HOME/.claude/hooks/post-composer-edit.sh\"",
+            "command": "\"$HOME/.claude/hooks/post-edit.sh\"",
             "timeout": 60
           }
         ]

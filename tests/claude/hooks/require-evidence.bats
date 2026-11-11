@@ -244,7 +244,7 @@ teardown() {
     install_tool "$other_project" pint
 
     other_marker="$config_home/claude-quality/runs$other_project.dirty"
-    post_event post-php-edit.sh "$other_project/src/Example.php"
+    post_event post-edit.sh "$other_project/src/Example.php"
     assert_path_exists "$other_marker"
 
     : > "$log"
