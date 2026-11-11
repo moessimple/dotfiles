@@ -542,6 +542,12 @@ _mysql_cmd() {
 # Manage local MySQL databases: refresh, create, drop, or list
 db() {
     case "$1" in
+        refresh|create|drop)
+            [ -n "$2" ] || { echo "db: '$1' requires a database name" >&2; echo "Run 'db --help' for usage." >&2; return 1; }
+            ;;
+    esac
+
+    case "$1" in
         -h|--help)
             echo "Usage: db <refresh|create|drop|list> [database_name]"
             echo "  refresh  Drop and recreate a database"
@@ -551,16 +557,13 @@ db() {
             return 0
             ;;
         refresh)
-            [ -n "$2" ] || { echo "db: '$1' requires a database name" >&2; echo "Run 'db --help' for usage." >&2; return 1; }
             _require_local_database || return
             _mysql_cmd -e "drop database \`$2\`; create database \`$2\`"
             ;;
         create)
-            [ -n "$2" ] || { echo "db: '$1' requires a database name" >&2; echo "Run 'db --help' for usage." >&2; return 1; }
             _mysql_cmd -e "create database \`$2\`"
             ;;
         drop)
-            [ -n "$2" ] || { echo "db: '$1' requires a database name" >&2; echo "Run 'db --help' for usage." >&2; return 1; }
             _require_local_database || return
             _mysql_cmd -e "drop database \`$2\`"
             ;;
