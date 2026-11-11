@@ -23,7 +23,7 @@ alias viewpr="gh pr view --web"
 alias checkoutpr="gh pr checkout"
 alias issues="gh issue list"
 alias viewissue="gh issue view --web"
-alias github='open -a "/Applications/GitHub Desktop.app" "`pwd`"'
+alias github='open -a "/Applications/GitHub Desktop.app" "$PWD"'
 
 # === PHP / Laravel ===
 
@@ -92,9 +92,9 @@ fi
 
 alias shrug="echo '¯\_(ツ)_/¯' | pbcopy"
 alias wttr=weather
-alias path='echo -e ${PATH//:/\\n}'
+alias path='print -l $path'
 alias cleanup="find . -name '.DS_Store' -type f -delete"
-alias rmorig="find . -name \*.orig -exec rm {} \;"
+alias rmorig="find . -name '*.orig' -type f -delete"
 
 # === Credentials ===
 
