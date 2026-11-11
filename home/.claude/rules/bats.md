@@ -8,9 +8,10 @@ paths:
 
 Bats tests are shell programs. A check is an assertion only when its failure necessarily fails the test.
 
-1. Invoke a command directly when only success matters. When `run` is needed to capture output or status, declare
-   the expected exit status with `run -N` or `run !`; if the project's Bats version does not support that syntax,
-   assert `$status` immediately after `run`.
+1. When only success matters, invoking the command directly is enough. After `run`, check the exit status before
+   anything else: declare it with `run -N` or `run !`, or assert it first with the project's helper (such as
+   `assert_success`, `assert_failure`, or `assert_status N`) or with `[ "$status" -eq N ]`. Follow the form the
+   project already uses.
 
 2. Do not rely on bare `! command`, `[[ ... ]]`, or `(( ... ))` as intermediate assertions. Use `[ ... ]`, `run !`,
    a project-provided assertion helper, or an explicit `|| false` so a failed assertion cannot be ignored by Bash.

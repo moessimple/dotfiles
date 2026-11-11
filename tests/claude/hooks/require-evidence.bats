@@ -168,6 +168,7 @@ teardown() {
     given_dirty_project_after_php_edit_with_tools composer pint phpstan rector pest phpunit
     given_second_dirty_project_with_failing_phpstan
     run stop_event false
+    assert_status 2
     ln -sf "$fake_bin/tool" "$second_project/vendor/bin/phpstan"
     : > "$log"
 
