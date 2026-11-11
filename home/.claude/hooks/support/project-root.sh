@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Shared by quality-gate.sh and post-edit-gate.sh. Resolves the nearest Composer
+# Shared by quality-gate.sh and post-edit.sh. Resolves the nearest Composer
 # project within a Git repository, including projects nested below a tool-less
 # repository root, so every caller uses the same project boundary.
 

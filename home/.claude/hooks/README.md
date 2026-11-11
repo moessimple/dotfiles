@@ -147,12 +147,12 @@ for the current Claude Code session.
 | [`post-edit.sh`](post-edit.sh)                           | Matches PHP and `composer.json` edits and starts the file gate     |
 | [`require-evidence.sh`](require-evidence.sh)             | Runs `fast` for dirty projects and blocks on failure               |
 | [`quality-gate.sh`](quality-gate.sh)                     | Resolves modes, detects tools, runs checks, and records results    |
-| [`support/post-edit-gate.sh`](support/post-edit-gate.sh) | Shares post-edit execution, marker, and reporting logic            |
+| [`support/exit-codes.sh`](support/exit-codes.sh)         | Names the exit codes the dispatcher returns and its callers check  |
 | [`support/project-root.sh`](support/project-root.sh)     | Resolves the nearest Composer project inside a Git repository      |
 | [`tests/claude/hooks/`](../../../tests/claude/hooks/)    | Bats coverage for each hook, the dispatcher, and their integration |
 
 Run the hook tests from the dotfiles root:
 
 ```zsh
-bats -r tests/
+bin/test.sh
 ```

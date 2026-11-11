@@ -91,13 +91,11 @@ against whatever Laravel/PHP project Claude Code is currently editing, using eac
 
 - `support/project-root.sh` resolves the nearest `composer.json` at or above a path without crossing above the Git
   toplevel, so a monorepo with a nested Composer project (e.g. a Laravel app with its own `packages/*` package) is
-  handled correctly. `support/post-edit-gate.sh`, `quality-gate.sh`, and the `quality` function source it rather
+  handled correctly. `post-edit.sh`, `quality-gate.sh`, and the `quality` function source it rather
   than re-implementing project resolution.
-- `support/post-edit-gate.sh` holds `run_post_edit_gate`, the body of the `PostToolUse` hook: it runs
-  the `file`-mode check, writes the project's "dirty" marker under
+- `post-edit.sh` is the `PostToolUse` hook for every `Write`/`Edit` of a `*.php` file or any `composer.json`: it
+  runs the `file`-mode check, writes the project's "dirty" marker under
   `${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality/runs`, and reports a failure without blocking the edit.
-- `post-edit.sh` is the `PostToolUse` hook that calls `run_post_edit_gate` after every `Write`/`Edit` of a `*.php`
-  file or any `composer.json`.
 - `require-evidence.sh` is the `Stop` hook: before Claude finishes a response, it re-runs `quality fast` for every
   dirty project in the current repo and blocks (exit 2) on failure instead of trusting a claimed fix.
 - `quality-gate.sh` is the actual dispatcher (`file`/`fast`/`full` modes), detecting installed tools per project and
