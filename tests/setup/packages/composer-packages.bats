@@ -13,6 +13,19 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
+@test "Composer withholds releases younger than 7 days in every project" {
+    # Arrange
+    given_fake_composer_reporting_installed '{"installed":[]}'
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_binary_called_with composer "config --global policy.cooldown.period 7 days"
+    assert_binary_called_with composer "config --global policy.cooldown.audit report"
+}
+
 @test "the composer-diff plugin is allow-listed with an explicit true" {
     # Arrange
     given_fake_composer_reporting_installed '{"installed":[]}'

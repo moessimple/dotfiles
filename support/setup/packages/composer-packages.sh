@@ -13,6 +13,12 @@ COMPOSER_PACKAGES=(
 # Ensure each entry in COMPOSER_PACKAGES is globally required; failures are
 # downgraded to warnings so the remaining packages can still be processed.
 step "Installing global Composer packages"
+# A 7-day cooldown in the machine-wide config, the same window as the npm tools: update, require
+# and remove in every project skip releases younger than that, which keeps most hijacked releases
+# out because they are found within days. Set before the requires below so they wait too.
+# `composer outdated` lists withheld releases; `--no-cooldown` takes one deliberately.
+composer config --global policy.cooldown.period "7 days" || warn "Could not set the Composer cooldown"
+composer config --global policy.cooldown.audit report || warn "Could not set the Composer cooldown audit mode"
 composer global config --no-plugins allow-plugins.ion-bazan/composer-diff true || warn "Could not allow-list the composer-diff plugin"
 for package in "${COMPOSER_PACKAGES[@]}"; do
     composer global require --no-interaction "$package" || warn "$package already installed or failed"
