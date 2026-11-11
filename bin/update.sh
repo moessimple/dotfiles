@@ -88,14 +88,15 @@ claude_skills_cleanup
 
 # Install any Claude Code plugins/MCP servers newly added to the list, update the official ones
 source ~/.dotfiles/support/setup/claude/claude-plugins.sh
+source ~/.dotfiles/support/setup/claude/plugin-review.sh
 # Plugins run with full user rights and are not committed, so a third-party plugin's changes are
 # not pulled in unseen. Only Anthropic's official marketplace updates automatically. For every
 # other plugin whose installed commit differs from its marketplace's GitHub HEAD, a link to the
-# changes and the command to apply them are printed, to run after a review. The installed commit
+# changes is printed. In a terminal, Claude's assessment follows and each update is applied on a
+# yes; otherwise the command to apply it is printed, to run after a review. The installed commit
 # comes from Claude Code's install record; the marketplace checkout is not used, because Claude
 # Code can refresh it without updating the plugins.
 report_plugin_changes() {
-    local install_record="$HOME/.claude/plugins/installed_plugins.json"
     local marketplaces
     # pipefail, so a failed listing is reported instead of reading as "no marketplaces to check".
     if ! marketplaces=$(set -o pipefail; claude plugin marketplace list --json 2>/dev/null \
@@ -105,7 +106,8 @@ report_plugin_changes() {
     fi
 
     local name url upstream plugin installed slug
-    while IFS=$'\t' read -r name url; do
+    # The list arrives on fd 3, so stdin stays the terminal that answers review_plugin_update.
+    while IFS=$'\t' read -r -u 3 name url; do
         [ -n "$name" ] || continue
         if ! upstream=$(git ls-remote "$url" HEAD 2>/dev/null | cut -f1) || [ -z "$upstream" ]; then
             warn "Could not check the $name marketplace for changes"
@@ -114,7 +116,7 @@ report_plugin_changes() {
 
         for plugin in "${CLAUDE_PLUGINS[@]}"; do
             [ "${plugin#*@}" = "$name" ] || continue
-            installed=$(jq -r --arg id "$plugin" '.plugins[$id][0].gitCommitSha // empty' "$install_record" 2>/dev/null) || installed=""
+            installed=$(installed_plugin_commit "$plugin") || installed=""
             if [ -z "$installed" ]; then
                 warn "Could not read the installed commit of $plugin, check it with: claude plugin details $plugin"
                 continue
@@ -131,9 +133,13 @@ report_plugin_changes() {
                     warn "$plugin has changes from ${installed:0:7} to ${upstream:0:7} at $url"
                     ;;
             esac
-            echo "  After review: claude plugin marketplace update $name && claude plugin update $plugin"
+            if [ -t 0 ]; then
+                review_plugin_update "$plugin" "$name" "$url" "$installed" "$upstream"
+            else
+                echo "  After review: claude plugin marketplace update $name && claude plugin update $plugin"
+            fi
         done
-    done <<< "$marketplaces"
+    done 3<<< "$marketplaces"
 }
 
 step "Updating Claude Code plugins"
