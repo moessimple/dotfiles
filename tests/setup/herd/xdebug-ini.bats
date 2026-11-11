@@ -14,35 +14,44 @@ teardown() {
 }
 
 @test "each installed PHP version gets an always-loaded xdebug.ini with the extension and mode off" {
+    # Arrange
     given_herd_reports_installed_php_versions 8.3 8.4
     given_herd_ships_xdebug_build_for 83 84
     given_herd_debug_template_is_present
 
+    # Act
     run run_herd_debug_ini_setup
 
+    # Assert
     assert_success
     assert_always_loaded_xdebug_ini 83
     assert_always_loaded_xdebug_ini 84
 }
 
 @test "each installed PHP version keeps its own debug.ini for herd debug" {
+    # Arrange
     given_herd_reports_installed_php_versions 8.4
     given_herd_ships_xdebug_build_for 84
     given_herd_debug_template_is_present
 
+    # Act
     run run_herd_debug_ini_setup
 
+    # Assert
     assert_success
     assert_herd_debug_ini 84
 }
 
 @test "a PHP version Herd has no Xdebug build for is skipped with a warning and no ini files" {
+    # Arrange
     given_herd_reports_installed_php_versions 8.4 8.6
     given_herd_ships_xdebug_build_for 84
     given_herd_debug_template_is_present
 
+    # Act
     run run_herd_debug_ini_setup
 
+    # Assert
     assert_success
     assert_always_loaded_xdebug_ini 84
     assert_no_ini_files_for 86
@@ -50,37 +59,46 @@ teardown() {
 }
 
 @test "a PHP version Herd reports as not installed is not configured" {
+    # Arrange
     given_herd_reports_installed_php_versions 8.4
     given_herd_ships_xdebug_build_for 74 84
     given_herd_debug_template_is_present
 
+    # Act
     run run_herd_debug_ini_setup
 
+    # Assert
     assert_success
     assert_no_ini_files_for 74
 }
 
 @test "re-running the setup does not overwrite an existing xdebug.ini or debug.ini" {
+    # Arrange
     given_herd_reports_installed_php_versions 8.4
     given_herd_ships_xdebug_build_for 84
     given_herd_debug_template_is_present
     given_existing_ini_file 84/xdebug.ini "xdebug.mode=develop"
     given_existing_ini_file 84/debug/debug.ini "hand-tuned by herd"
 
+    # Act
     run run_herd_debug_ini_setup
 
+    # Assert
     assert_success
     assert_file_content "$(ini_path 84/xdebug.ini)" "xdebug.mode=develop"
     assert_file_content "$(ini_path 84/debug/debug.ini)" "hand-tuned by herd"
 }
 
 @test "a failing herd php:list is reported instead of claiming the ini files were installed" {
+    # Arrange
     given_herd_php_list_fails
     given_herd_ships_xdebug_build_for 84
     given_herd_debug_template_is_present
 
+    # Act
     run run_herd_debug_ini_setup
 
+    # Assert
     assert_success
     assert_output_contains "WARN: Could not read Herd's PHP versions"
     assert_output_does_not_contain "SUCCESS:"
@@ -88,11 +106,14 @@ teardown() {
 }
 
 @test "no Herd debug template found: nothing is generated and a warning is shown" {
+    # Arrange
     given_herd_reports_installed_php_versions 8.4
     given_herd_ships_xdebug_build_for 84
 
+    # Act
     run run_herd_debug_ini_setup
 
+    # Assert
     assert_success
     assert_no_ini_files_for 84
     assert_output_contains "WARN: Herd's debug.ini template was not found"

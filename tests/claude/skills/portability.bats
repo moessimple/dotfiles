@@ -10,6 +10,7 @@ setup() {
 }
 
 @test "legacy commands are replaced by shared skills" {
+    # Assert
     [ ! -e "$commands_dir/debug.md" ]
     [ ! -e "$commands_dir/pr.md" ]
     [ ! -e "$commands_dir/review.md" ]
@@ -20,6 +21,7 @@ setup() {
 }
 
 @test "shared skill frontmatter contains no agent-specific fields" {
+    # Assert
     for skill in "${shared_skills[@]}"; do
         frontmatter="$(awk 'NR == 1 && $0 == "---" { inside = 1; next } inside && $0 == "---" { exit } inside { print }' "$skills_dir/$skill/SKILL.md")"
 
@@ -34,6 +36,7 @@ setup() {
 }
 
 @test "manual-only skills are only invoked explicitly, in Claude and in Codex" {
+    # Assert
     for skill in explain-changes pr review document-product characterize-behavior raise-quality-gate; do
         skill_dir="$skills_dir/$skill"
 
@@ -43,6 +46,7 @@ setup() {
 }
 
 @test "shared skill instructions contain no Claude command expansion or named Claude agents" {
+    # Assert
     for skill in code-review-dispatch debug explain-changes pr quality review document-product characterize-behavior raise-quality-gate; do
         skill_file="$skills_dir/$skill/SKILL.md"
 
@@ -55,6 +59,7 @@ setup() {
 }
 
 @test "shared workflows delegate reusable concerns to existing skills" {
+    # Assert
     grep -Fq 'REQUIRED SUB-SKILL' "$skills_dir/debug/SKILL.md"
     grep -Fq '`diagnosing-bugs`' "$skills_dir/debug/SKILL.md"
     grep -Fq 'REQUIRED SUB-SKILL' "$skills_dir/pr/SKILL.md"
@@ -70,6 +75,7 @@ setup() {
 }
 
 @test "product skills work without the reference projects they were modelled on" {
+    # Assert
     for skill in document-product characterize-behavior raise-quality-gate; do
         ! grep -rniE 'starter.?kit|/Users/|~/Code' "$skills_dir/$skill" || false
     done
@@ -78,5 +84,6 @@ setup() {
 }
 
 @test "the golden master reference is the same in both product skills that record it" {
+    # Assert
     cmp "$skills_dir/characterize-behavior/references/golden-master.md" "$skills_dir/raise-quality-gate/references/golden-master.md"
 }

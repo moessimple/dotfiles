@@ -17,6 +17,7 @@ teardown() {
 }
 
 @test "Clarity keeps only runtime files after installation and updates" {
+    # Arrange
     clarity_dir="$test_home/.claude/skills/clarity"
     mkdir -p "$clarity_dir/references" "$clarity_dir/scripts" "$test_home/.claude/skills/other"
     touch "$clarity_dir/SKILL.md" "$clarity_dir/LICENSE" "$clarity_dir/references/edit.md"
@@ -28,8 +29,10 @@ teardown() {
         touch "$clarity_dir/site/index.html" "$clarity_dir/.github/workflow.yml"
         touch "$clarity_dir/README.md" "$clarity_dir/scripts/validate_package.py"
 
+        # Act
         run run_setup_script "$target"
 
+        # Assert
         assert_success
         [ "$(ls -A "$clarity_dir" | sort)" = "$(printf '%s\n' LICENSE SKILL.md references scripts | sort)" ]
         [ "$(ls -A "$clarity_dir/scripts" | sort)" = "$(printf '%s\n' prose_stats.py strip_markdown.py | sort)" ]
@@ -39,11 +42,14 @@ teardown() {
 }
 
 @test "Clarity trimming leaves an incomplete installation untouched" {
+    # Arrange
     mkdir -p "$test_home/.claude/skills/clarity/site"
     touch "$test_home/.claude/skills/clarity/site/keep"
 
+    # Act
     run run_setup_script "$target"
 
+    # Assert
     assert_success
     [ -f "$test_home/.claude/skills/clarity/site/keep" ]
 }

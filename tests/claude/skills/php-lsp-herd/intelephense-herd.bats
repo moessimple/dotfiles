@@ -25,18 +25,22 @@ teardown() {
 }
 
 @test "intelephense is exec'd with php on PATH resolved to the Herd binary" {
+    # Act
     run "$script" --stdio
 
+    # Assert
     assert_success
     assert_output_contains "args:--stdio"
     assert_output_contains "herd-php-8.4"
 }
 
 @test "relaunching reuses one shim directory instead of leaking a new one each time" {
+    # Act
     "$script" --stdio
     "$script" --stdio
     "$script" --stdio
 
+    # Assert
     shopt -s nullglob
     local temp_entries=("$TMPDIR"/*)
     [ "${#temp_entries[@]}" -eq 1 ]

@@ -37,8 +37,10 @@ run_codex_skills_setup() {
 }
 
 @test "reviewed harness-neutral skills are linked for Codex" {
+    # Act
     run run_codex_skills_setup
 
+    # Assert
     assert_success
     [ -L "$skills_dir/debug" ]
     [ "$(readlink "$skills_dir/debug")" = "$source_dir/debug" ]
@@ -66,34 +68,43 @@ run_codex_skills_setup() {
 }
 
 @test "the Claude-activated plugin version is used" {
+    # Arrange
     inactive_skill="$plugin_cache/agent-browser/agent-browser/2.0.0/skills/agent-browser"
     mkdir -p "$inactive_skill"
     touch "$inactive_skill/SKILL.md"
 
+    # Act
     run run_codex_skills_setup
 
+    # Assert
     assert_success
     [ "$(readlink "$skills_dir/agent-browser")" = "$plugin_cache/agent-browser/agent-browser/1.0.0/skills/agent-browser" ]
 }
 
 @test "stale managed links are removed without touching unrelated links" {
+    # Arrange
     mkdir -p "$plugin_cache/removed-plugin/1.0.0/skills/removed-skill" "$fixture/external-skill"
     ln -s "$plugin_cache/removed-plugin/1.0.0/skills/removed-skill" "$skills_dir/stale"
     ln -s "$fixture/external-skill" "$skills_dir/external"
 
+    # Act
     run run_codex_skills_setup
 
+    # Assert
     assert_success
     [ ! -L "$skills_dir/stale" ]
     [ -L "$skills_dir/external" ]
 }
 
 @test "plugin links are preserved when installed plugin metadata is unavailable" {
+    # Arrange
     ln -s "$plugin_cache/addy-agent-skills/agent-skills/1.0.0/skills/plugin-workflow" "$skills_dir/plugin-workflow"
     installed_plugins="$fixture/missing-installed-plugins.json"
 
+    # Act
     run run_codex_skills_setup
 
+    # Assert
     assert_success
     [ -L "$skills_dir/plugin-workflow" ]
     [ "$(readlink "$skills_dir/plugin-workflow")" = "$plugin_cache/addy-agent-skills/agent-skills/1.0.0/skills/plugin-workflow" ]
@@ -101,19 +112,24 @@ run_codex_skills_setup() {
 }
 
 @test "Claude-specific and duplicate skills are not linked for Codex" {
+    # Act
     run run_codex_skills_setup
 
+    # Assert
     assert_success
     [ ! -e "$skills_dir/pdf" ]
     [ ! -e "$skills_dir/skill-creator" ]
 }
 
 @test "an existing skill directory is preserved" {
+    # Arrange
     mkdir -p "$skills_dir/outcome-writing"
     touch "$skills_dir/outcome-writing/keep"
 
+    # Act
     run run_codex_skills_setup
 
+    # Assert
     assert_success
     [ ! -L "$skills_dir/outcome-writing" ]
     [ -f "$skills_dir/outcome-writing/keep" ]
@@ -122,11 +138,14 @@ run_codex_skills_setup() {
 }
 
 @test "a missing reviewed skill source does not create a dangling link" {
+    # Arrange
     source_dir="$fixture/missing-local-skills"
     mkdir -p "$source_dir"
 
+    # Act
     run run_codex_skills_setup
 
+    # Assert
     assert_success
     [ ! -L "$skills_dir/debug" ]
     assert_output_contains "WARN: Skipping debug, no SKILL.md found"
