@@ -43,10 +43,10 @@ given_every_external_tool_update_touches_is_faked() {
     given_fake_ollama_listing ''
 }
 
-# The skills CLI reinstalls Clarity's whole repository on `skills update -g`,
+# The skills CLI reinstalls Clarity's whole repository on every add or update of it,
 # so this fake brings the repository extras back the same way.
 given_skills_update_restoring_clarity_extras() {
-    write_fake_binary npx 'if [[ "$*" == *" update -g" ]]; then
+    write_fake_binary npx 'if [[ "$*" == *clarity* ]]; then
     clarity="$HOME/.claude/skills/clarity"
     mkdir -p "$clarity/references" "$clarity/scripts" "$clarity/website"
     touch "$clarity/SKILL.md" "$clarity/LICENSE" "$clarity/README.md"

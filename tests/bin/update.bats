@@ -90,7 +90,7 @@ teardown() {
     assert_output_contains "No undeclared Ollama models found"
 }
 
-@test "Clarity is trimmed again after the skills are updated" {
+@test "Clarity is trimmed again after the skills are installed or updated" {
     # Arrange
     given_clean_repository_on_main
     given_repository_with_real_setup_scripts
@@ -107,20 +107,21 @@ teardown() {
     assert_clarity_keeps_only_its_runtime_files
 }
 
-@test "skills are updated through the pinned skills CLI with a release-age cooldown" {
+@test "Anthropic skills are updated through the pinned skills CLI with a release-age cooldown" {
     # Arrange
     given_clean_repository_on_main
     given_repository_with_real_setup_scripts
     given_bare_origin_remote
     git -C "$repository" push -q origin main
     given_every_external_tool_update_touches_is_faked
+    given_skill_lock_file '{"skills":{"pdf":{"sourceUrl":"https://github.com/anthropics/skills.git","skillPath":"skills/pdf/SKILL.md"}}}'
 
     # Act
     run call_update
 
     # Assert
     assert_success
-    assert_binary_called_with_substring npx "--min-release-age=3 --yes skills@1.7.6 update -g"
+    assert_binary_called_with_substring npx "--min-release-age=3 --yes skills@1.7.6 update pdf -g"
 }
 
 @test "a pinned npm package is raised to the newest release that is at least 3 days old" {

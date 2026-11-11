@@ -78,17 +78,22 @@ python_pip install --user --quiet --no-warn-script-location --upgrade "${PYTHON_
 success "Python packages updated"
 python_packages_cleanup
 
-# Install any Claude Code skills newly added to the list, then update all
+# Install any Claude Code skills newly added to the list, then update them. Skills run with full user
+# rights, so in a terminal each third-party update is assessed by Claude and applied on a yes.
 source ~/.dotfiles/support/setup/claude/claude-skills.sh
+source ~/.dotfiles/support/setup/claude/update-review.sh
 step "Updating Claude Code skills"
-skills_cli update -g
+if [ -t 0 ]; then
+    review_skill_updates 1
+else
+    review_skill_updates 0
+fi
 claude_skills_trim_clarity || warn "Could not trim Clarity's repository extras"
 success "Claude Code skills updated"
 claude_skills_cleanup
 
 # Install any Claude Code plugins/MCP servers newly added to the list, update the official ones
 source ~/.dotfiles/support/setup/claude/claude-plugins.sh
-source ~/.dotfiles/support/setup/claude/plugin-review.sh
 # Plugins run with full user rights and are not committed, so a third-party plugin's changes are
 # not pulled in unseen. Only Anthropic's official marketplace updates automatically. For every
 # other plugin whose installed commit differs from its marketplace's GitHub HEAD, a link to the
