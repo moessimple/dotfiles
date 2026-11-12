@@ -28,15 +28,16 @@ Install the Xcode Command Line Tools if Git is not available yet:
 xcode-select --install
 ```
 
-Generate a GitHub SSH key. Both this repository and tinkerbench are cloned over SSH:
+Generate a GitHub SSH key with [`bin/setup-ssh.sh`](bin/setup-ssh.sh). Both this repository and tinkerbench are
+cloned over SSH. Run this before cloning:
 
 ```zsh
-ssh-keygen -t ed25519 -C "your@github-email.com"
-ssh-add --apple-use-keychain ~/.ssh/id_ed25519
-cat ~/.ssh/id_ed25519.pub | pbcopy
+curl -fsSL https://raw.githubusercontent.com/moessimple/dotfiles/HEAD/bin/setup-ssh.sh | bash -s -- "your@github-email.com"
 ```
 
-Add the copied public key at [github.com/settings/keys](https://github.com/settings/keys).
+The script asks for a passphrase, adds the key to the SSH agent and macOS Keychain, and copies the public key.
+Add it at [github.com/settings/keys](https://github.com/settings/keys). If you already have an SSH key configured
+for GitHub, skip this step. The script refuses to overwrite existing keys.
 
 ## Before You Install
 

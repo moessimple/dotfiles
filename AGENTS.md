@@ -65,13 +65,18 @@ Claude remains the only installer and updater. Shared workflows keep their instr
 with agent-specific tools, paths, or runtime behavior stay exclusive to that agent.
 
 **Entry points vs. setup logic.** `bin/install.sh`, `bin/reconfigure.sh`, and `bin/update.sh` are the setup scripts a
-user runs directly (besides `bin/test.sh`); each sources scripts under `support/setup/` in a specific order
-(documented by comments at each `source` call in the entry-point scripts) rather than duplicating logic. `install.sh`
+user runs directly (besides `bin/test.sh` and the standalone `bin/setup-ssh.sh`); each sources scripts under
+`support/setup/` in a specific order (documented by comments at each `source` call in the entry-point scripts)
+rather than duplicating logic. `install.sh`
 does a full fresh setup (Homebrew, Oh My Zsh, symlinks, packages, Herd, tinkerbench, macOS defaults).
 `reconfigure.sh` reapplies symlinks, Codex skill links, service setup, Herd/tinkerbench, and macOS defaults without
 touching package managers. `update.sh` pulls the repo, then updates Homebrew, global Composer/npm packages,
 user-level Python packages, Claude Code skills/plugins (after a cooldown, see below), Codex skill links, and
 Ollama models.
+
+`bin/setup-ssh.sh` runs before cloning on a fresh Mac. It generates an Ed25519 key, adds it to the SSH agent and
+macOS Keychain, and copies the public key for manual registration on GitHub. It refuses to overwrite existing keys
+and does not run as part of `bin/install.sh`.
 
 `bin/install.sh`, `bin/reconfigure.sh`, and `bin/update.sh` read and validate the saved profile through
 `support/setup/machine-profile.sh`. On its first run, `bin/install.sh` asks private/work,
@@ -164,6 +169,7 @@ place that logic lives; callers never re-derive it. Its priority order is covere
   declarations in `support/setup/claude/`, `support/setup/codex/`, and `support/setup/packages/`
 - `tests/setup/herd/*.bats`: `support/setup/herd-debug-ini.sh`
 - `tests/bin/update.bats`: a full `bin/update.sh` run across all package cleanups
+- `tests/bin/setup-ssh.bats`: standalone SSH key setup and protection of existing keys
 
 `tests/support/test_helper.bash` provides shared fixtures (`new_dotfiles_fixture`, `call_dotfiles_function`,
 `call_dotfiles_function_in`, `call_dotfiles_alias`) for building throwaway Git repos/projects under
