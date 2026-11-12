@@ -161,6 +161,21 @@ Homebrew entries, global Composer and npm packages, user-installed Python packag
 and plugins, and user-level MCP servers without asking. Project dependencies and project-level Claude Code
 integrations are not affected.
 
+Composer and npm skip releases younger than 3 days. The setup sets this in their user-level configuration
+([`support/setup/packages/composer-packages.sh`](support/setup/packages/composer-packages.sh),
+[`support/setup/packages/npm-packages.sh`](support/setup/packages/npm-packages.sh)), so it also applies to every
+project without its own setting.
+
+Claude Code plugins and skills get the same 3-day cooldown
+([`support/setup/claude/update-cooldown.sh`](support/setup/claude/update-cooldown.sh)), counted from the update's
+first sighting instead of a publish date, which Git does not record reliably: a new upstream version of a
+skill's folder, or of a plugin's folder and marketplace entry, is installed only after the update has seen it
+unchanged for 3 days. A plugin or skill that changes more often than that waits until it rests for 3 days. Plugins
+from the same marketplace are updated together, once all of them have passed the cooldown, because refreshing the
+marketplace changes the configuration of every plugin it defines. The
+first sighting of each version is recorded in `${XDG_CONFIG_HOME:-~/.config}/claude-update-cooldown/first-seen`,
+so the first run on a new machine starts every cooldown.
+
 Reapply symlinks, services, Herd and tinkerbench setup, and macOS preferences without reinstalling packages with:
 
 ```zsh
@@ -184,7 +199,10 @@ duplicates of Codex's built-in skills from being shared accidentally.
 Third-party skills are managed in
 [`support/setup/claude/claude-skills.sh`](support/setup/claude/claude-skills.sh), while plugins and user-level MCP
 servers are managed in [`support/setup/claude/claude-plugins.sh`](support/setup/claude/claude-plugins.sh). Run
-`bin/update.sh` after changing either file.
+`bin/update.sh` after changing either file. A new plugin marketplace also needs an entry with `"autoUpdate": false`
+under `extraKnownMarketplaces` in [`home/.claude/settings.json`](home/.claude/settings.json), so that Claude Code
+does not update its plugins on its own, outside `bin/update.sh`. `claude plugin marketplace add` removes that
+setting, so `claude-plugins.sh` sets it again after adding a marketplace.
 
 ## Customization
 

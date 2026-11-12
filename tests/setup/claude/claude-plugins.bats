@@ -6,6 +6,8 @@ load ../../support/setup_cleanup_helper
 setup() {
     new_dotfiles_fixture
     given_fake_bin_on_path
+    test_home="$fixture/home"
+    mkdir -p "$test_home/.claude"
     target="$dotfiles_dir/support/setup/claude/claude-plugins.sh"
 }
 
@@ -72,6 +74,61 @@ teardown() {
     assert_binary_called_with claude "plugin marketplace add https://github.com/vercel-labs/agent-browser"
     assert_binary_called_with claude "plugin marketplace add https://github.com/anthropics/claude-plugins-official"
     assert_binary_called_with claude "plugin marketplace add https://github.com/pbakaus/impeccable"
+}
+
+@test "a marketplace Claude Code already knows is not added again, which would drop its autoUpdate setting" {
+    # Arrange
+    given_fake_claude '[]' ""
+    given_claude_knows_marketplaces https://github.com/anthropics/claude-plugins-official.git
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_binary_not_called_with_substring claude "plugin marketplace add https://github.com/anthropics/claude-plugins-official"
+    assert_binary_called_with claude "plugin marketplace add https://github.com/laravel/claude-code"
+}
+
+@test "a newly added marketplace keeps autoUpdate off, which marketplace add drops from its settings entry" {
+    # Arrange
+    given_fake_claude '[]' ""
+    given_settings_linked_from_repository_with_marketplace https://github.com/pbakaus/impeccable.git
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_marketplace_auto_update_off https://github.com/pbakaus/impeccable.git
+    assert_settings_still_linked_into_repository
+}
+
+@test "an unreadable marketplace listing adds no marketplace and says so" {
+    # Arrange
+    given_fake_claude '[]' ""
+    given_claude_failing_to_list_marketplaces
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_output_contains "WARN: Could not list the plugin marketplaces, skipping adding them"
+    assert_binary_not_called_with_substring claude "plugin marketplace add"
+}
+
+@test "every plugin marketplace has Claude Code's own auto-update turned off in settings.json" {
+    # Arrange
+    given_fake_claude '[]' ""
+    settings="$dotfiles_dir/home/.claude/settings.json"
+
+    # Act
+    run declared_marketplaces_with_auto_update_not_off "$target" "$settings"
+
+    # Assert
+    assert_success
+    assert_output_equals ""
 }
 
 @test "installing plugins announces its own step" {

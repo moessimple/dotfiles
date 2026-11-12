@@ -28,6 +28,19 @@ teardown() {
     assert_herd_npm_not_called
 }
 
+@test "npm withholds releases younger than 3 days in every project" {
+    # Arrange
+    given_fake_npm_reporting_installed '{"dependencies":{}}'
+    write_fake_binary agent-browser
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_binary_called_with npm "config set min-release-age 3"
+}
+
 @test "cleanup reads and removes packages in Homebrew's npm, not in Herd's" {
     # Arrange
     given_fake_npm_reporting_installed '{"dependencies":{"stale-package":{}}}'

@@ -186,6 +186,13 @@ assert_output_does_not_contain() {
     [[ "$output" != *"$1"* ]] || false
 }
 
+# Succeeds when <first> appears in the output before <second>.
+assert_output_contains_before() {
+    local first="$1" second="$2"
+    [[ "$output" == *"$second"* ]] || false
+    [[ "${output%%"$second"*}" == *"$first"* ]] || false
+}
+
 assert_output_equals() {
     [ "$output" = "$1" ]
 }

@@ -78,83 +78,22 @@ python_pip install --user --quiet --no-warn-script-location --upgrade "${PYTHON_
 success "Python packages updated"
 python_packages_cleanup
 
-# Install any Claude Code skills newly added to the list, then update them. Skills run with full user
-# rights, so in a terminal each third-party update is assessed by Claude and applied on a yes.
+# Install any Claude Code skills newly added to the list, then update them. A new upstream version of
+# a skill or plugin waits out the same 3-day cooldown as Composer and npm
+# (support/setup/claude/update-cooldown.sh).
 source ~/.dotfiles/support/setup/claude/claude-skills.sh
-source ~/.dotfiles/support/setup/claude/update-review.sh
+source ~/.dotfiles/support/setup/claude/update-cooldown.sh
 step "Updating Claude Code skills"
-if [ -t 0 ]; then
-    review_skill_updates 1
-else
-    review_skill_updates 0
-fi
+update_skills_after_cooldown
 claude_skills_trim_clarity || warn "Could not trim Clarity's repository extras"
 success "Claude Code skills updated"
 claude_skills_cleanup
 
-# Install any Claude Code plugins/MCP servers newly added to the list, update the official ones
+# Install any Claude Code plugins/MCP servers newly added to the list, then update them.
 source ~/.dotfiles/support/setup/claude/claude-plugins.sh
-# Plugins run with full user rights and are not committed, so a third-party plugin's changes are
-# not pulled in unseen. Only Anthropic's official marketplace updates automatically. For every
-# other plugin whose installed commit differs from its marketplace's GitHub HEAD, a link to the
-# changes is printed. In a terminal, Claude's assessment follows and each update is applied on a
-# yes; otherwise the command to apply it is printed, to run after a review. The installed commit
-# comes from Claude Code's install record; the marketplace checkout is not used, because Claude
-# Code can refresh it without updating the plugins.
-report_plugin_changes() {
-    local marketplaces
-    # pipefail, so a failed listing is reported instead of reading as "no marketplaces to check".
-    if ! marketplaces=$(set -o pipefail; claude plugin marketplace list --json 2>/dev/null \
-        | jq -r '.[] | select(.name != "claude-plugins-official" and .url != null) | [.name, .url] | @tsv'); then
-        warn "Could not list the plugin marketplaces, check third-party plugins for changes by hand"
-        return 0
-    fi
-
-    local name url upstream plugin installed slug
-    # The list arrives on fd 3, so stdin stays the terminal that answers review_plugin_update.
-    while IFS=$'\t' read -r -u 3 name url; do
-        [ -n "$name" ] || continue
-        if ! upstream=$(git ls-remote "$url" HEAD 2>/dev/null | cut -f1) || [ -z "$upstream" ]; then
-            warn "Could not check the $name marketplace for changes"
-            continue
-        fi
-
-        for plugin in "${CLAUDE_PLUGINS[@]}"; do
-            [ "${plugin#*@}" = "$name" ] || continue
-            installed=$(installed_plugin_commit "$plugin") || installed=""
-            if [ -z "$installed" ]; then
-                warn "Could not read the installed commit of $plugin, check it with: claude plugin details $plugin"
-                continue
-            fi
-            [ "$installed" = "$upstream" ] && continue
-
-            case "$url" in
-                https://github.com/*)
-                    slug=${url#https://github.com/}
-                    slug=${slug%.git}
-                    warn "$plugin has changes: https://github.com/$slug/compare/$installed...$upstream"
-                    ;;
-                *)
-                    warn "$plugin has changes from ${installed:0:7} to ${upstream:0:7} at $url"
-                    ;;
-            esac
-            if [ -t 0 ]; then
-                review_plugin_update "$plugin" "$name" "$url" "$installed" "$upstream"
-            else
-                echo "  After review: claude plugin marketplace update $name && claude plugin update $plugin"
-            fi
-        done
-    done 3<<< "$marketplaces"
-}
-
 step "Updating Claude Code plugins"
-for plugin in "${CLAUDE_PLUGINS[@]}"; do
-    if [ "${plugin#*@}" = "claude-plugins-official" ]; then
-        claude plugin update "$plugin" || true
-    fi
-done
-success "Official Claude Code plugins updated"
-report_plugin_changes
+update_plugins_after_cooldown
+success "Claude Code plugins updated"
 claude_plugins_cleanup
 
 # Refresh links after Claude has updated both standalone and plugin-provided skills.

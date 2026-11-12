@@ -141,37 +141,43 @@
       "source": {
         "source": "git",
         "url": "https://github.com/addyosmani/agent-skills.git"
-      }
+      },
+      "autoUpdate": false
     },
     "laravel": {
       "source": {
         "source": "git",
         "url": "https://github.com/laravel/claude-code.git"
-      }
+      },
+      "autoUpdate": false
     },
     "agent-browser": {
       "source": {
         "source": "git",
         "url": "https://github.com/vercel-labs/agent-browser.git"
-      }
+      },
+      "autoUpdate": false
     },
     "claude-plugins-official": {
       "source": {
         "source": "git",
         "url": "https://github.com/anthropics/claude-plugins-official.git"
-      }
+      },
+      "autoUpdate": false
     },
     "addy-web-quality-skills": {
       "source": {
         "source": "git",
         "url": "https://github.com/addyosmani/web-quality-skills.git"
-      }
+      },
+      "autoUpdate": false
     },
     "impeccable": {
       "source": {
         "source": "git",
         "url": "https://github.com/pbakaus/impeccable.git"
-      }
+      },
+      "autoUpdate": false
     }
   },
   "spinnerVerbs": {
@@ -193,5 +199,6 @@
   "autoMemoryEnabled": false,
   "theme": "dark",
   "agentPushNotifEnabled": false,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "model": "opus"
 }

@@ -1,5 +1,5 @@
 call_update() {
-    HOME="$test_home" HOMEBREW_PREFIX="$fixture" bash "$dotfiles_dir/bin/update.sh"
+    HOME="$test_home" XDG_CONFIG_HOME="$test_home/.config" HOMEBREW_PREFIX="$fixture" bash "$dotfiles_dir/bin/update.sh"
 }
 
 write_update_side_effects_that_must_not_run() {
@@ -95,45 +95,55 @@ assert_pinned_version() {
     grep -qx "$variable=\"$version\"" "$repository/$file"
 }
 
-# A third-party marketplace named laravel whose GitHub repository is a local bare repository: the
-# test HOME's git config redirects https://github.com/ to it, so `git ls-remote` stays offline.
-# The laravel@laravel plugin is recorded as installed from the first commit. With "ahead",
-# upstream has one more commit; with "unrecorded", the install record lacks the plugin; with
-# "no-record", the install record file does not exist.
-# A fake claude lists the marketplace and records every call.
+# A third-party marketplace named laravel, holding the laravel plugin in ./laravel, whose GitHub
+# repository is a local bare repository: the test HOME's git config redirects https://github.com/
+# to it, so no clone leaves the machine. A fake claude lists it next to Anthropic's official
+# marketplace and records every call.
 given_laravel_marketplace() {
-    local state="$1"
     local upstream="$fixture/github/laravel/claude-code.git"
     local work="$fixture/marketplace-work"
 
     git init -q --bare "$upstream"
     git init -q -b main "$work"
     configure_test_repository "$work"
-    git -C "$work" commit -q --allow-empty -m first
+    mkdir -p "$work/.claude-plugin" "$work/laravel/skills"
+    printf '%s\n' '{"plugins":[{"name":"laravel","source":"./laravel"}]}' > "$work/.claude-plugin/marketplace.json"
+    echo "first" > "$work/laravel/skills/SKILL.md"
+    git -C "$work" add .
+    git -C "$work" commit -q -m first
     git -C "$work" push -q "$upstream" main
     git --git-dir="$upstream" symbolic-ref HEAD refs/heads/main
-    installed_commit=$(git -C "$work" rev-parse HEAD)
-    upstream_commit="$installed_commit"
-    if [ "$state" = ahead ]; then
-        git -C "$work" commit -q --allow-empty -m second
-        git -C "$work" push -q "$upstream" main
-        upstream_commit=$(git -C "$work" rev-parse HEAD)
-    fi
 
     git config --file "$test_home/.gitconfig" url."$fixture/github/".insteadOf "https://github.com/"
 
-    mkdir -p "$test_home/.claude/plugins"
-    if [ "$state" = unrecorded ]; then
-        printf '%s\n' '{"version":2,"plugins":{}}' > "$test_home/.claude/plugins/installed_plugins.json"
-    elif [ "$state" != no-record ]; then
-        printf '%s\n' "{\"version\":2,\"plugins\":{\"laravel@laravel\":[{\"gitCommitSha\":\"$installed_commit\"}]}}" \
-            > "$test_home/.claude/plugins/installed_plugins.json"
-    fi
-
     write_fake_binary claude "case \"\$*\" in
     'plugin list --json') printf '%s\n' '[]' ;;
-    'plugin marketplace list --json') printf '%s\n' '[{\"name\":\"laravel\",\"source\":\"git\",\"url\":\"https://github.com/laravel/claude-code.git\"},{\"name\":\"claude-plugins-official\",\"source\":\"git\"}]' ;;
+    'plugin marketplace list --json') printf '%s\n' '[{\"name\":\"laravel\",\"source\":\"git\",\"url\":\"https://github.com/laravel/claude-code.git\"},{\"name\":\"claude-plugins-official\",\"source\":\"git\",\"url\":\"https://github.com/anthropics/claude-plugins-official.git\"}]' ;;
 esac"
+}
+
+# Anthropic's official marketplace at the URL the fake claude of given_laravel_marketplace lists,
+# which must run first. It holds the three declared official plugins.
+given_official_marketplace() {
+    local upstream="$fixture/github/anthropics/claude-plugins-official.git"
+    local work="$fixture/official-work" name
+
+    git init -q --bare "$upstream"
+    git init -q -b main "$work"
+    configure_test_repository "$work"
+    mkdir -p "$work/.claude-plugin"
+    printf '%s\n' '{"plugins":[
+        {"name":"claude-md-management","source":"./plugins/claude-md-management"},
+        {"name":"typescript-lsp","source":"./plugins/typescript-lsp"},
+        {"name":"context7","source":"./external_plugins/context7"}]}' > "$work/.claude-plugin/marketplace.json"
+    for name in plugins/claude-md-management plugins/typescript-lsp external_plugins/context7; do
+        mkdir -p "$work/$name/skills"
+        echo "first" > "$work/$name/skills/SKILL.md"
+    done
+    git -C "$work" add .
+    git -C "$work" commit -q -m first
+    git -C "$work" push -q "$upstream" main
+    git --git-dir="$upstream" symbolic-ref HEAD refs/heads/main
 }
 
 given_marketplace_listing_fails() {
@@ -141,4 +151,13 @@ given_marketplace_listing_fails() {
     'plugin list --json') printf '%s\n' '[]' ;;
     'plugin marketplace list --json') exit 1 ;;
 esac"
+}
+
+# Runs update.sh once, so it records the upstream changes it sees, then ages those sightings by
+# <days>, so the test's own run starts that far into the cooldown.
+given_update_ran_days_ago() {
+    local days="$1"
+    call_update > /dev/null 2>&1 || true
+    given_first_sightings_aged_by_days "$days"
+    rm -f "$fake_bin"/*.calls
 }

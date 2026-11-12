@@ -70,7 +70,20 @@ user runs directly (besides `bin/test.sh`); each sources scripts under `support/
 does a full fresh setup (Homebrew, Oh My Zsh, symlinks, packages, Herd, tinkerbench, macOS defaults).
 `reconfigure.sh` reapplies symlinks, Codex skill links, service setup, Herd/tinkerbench, and macOS defaults without
 touching package managers. `update.sh` pulls the repo, then updates Homebrew, global Composer/npm packages,
-user-level Python packages, Claude Code skills/plugins, Codex skill links, and Ollama models.
+user-level Python packages, Claude Code skills/plugins (after a cooldown, see below), Codex skill links, and
+Ollama models.
+
+**Claude Code plugin and skill updates (`support/setup/claude/update-cooldown.sh`).** Neither Claude Code nor the
+skills CLI has a release-age cooldown, so `update.sh` calls `update_skills_after_cooldown` and
+`update_plugins_after_cooldown`, which give them the same 3 days that Composer and npm wait. The upstream state (a
+skill's folder; a plugin's folder plus its `marketplace.json` entry) is installed only after it has been seen
+unchanged for 3 days, counted from its first sighting in
+`${XDG_CONFIG_HOME:-$HOME/.config}/claude-update-cooldown/first-seen`, never from a commit date. A marketplace is
+refreshed only when every declared plugin from it has passed the cooldown, because Claude Code reads each plugin's
+marketplace entry (inline LSP/MCP servers, hooks) from the refreshed checkout on every start. Like Composer and
+npm, held-back versions are not announced and updates after the cooldown are not confirmed. `"autoUpdate": false`
+on every `extraKnownMarketplaces` entry in `home/.claude/settings.json` keeps Claude Code from updating plugins
+itself; `claude-plugins.sh` sets it again after `claude plugin marketplace add`.
 
 **Declared list = desired state.** The Brewfile (`support/config/Brewfile`), global Composer/npm/Python package lists
 and Ollama models (`support/setup/packages/`), Claude Code skills/plugins (`support/setup/claude/claude-skills.sh`,

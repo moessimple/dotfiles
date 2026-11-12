@@ -3,6 +3,7 @@
 load ../support/test_helper
 load ../support/update_helper
 load ../support/setup_cleanup_helper
+load ../support/update_cooldown_helper
 
 setup() {
     new_dotfiles_fixture
@@ -107,14 +108,16 @@ teardown() {
     assert_clarity_keeps_only_its_runtime_files
 }
 
-@test "Anthropic skills are updated through the pinned skills CLI with a release-age cooldown" {
+@test "a skill change unchanged for 3 days is updated through the pinned skills CLI with a release-age cooldown" {
     # Arrange
     given_clean_repository_on_main
     given_repository_with_real_setup_scripts
     given_bare_origin_remote
     git -C "$repository" push -q origin main
     given_every_external_tool_update_touches_is_faked
-    given_skill_lock_file '{"skills":{"pdf":{"sourceUrl":"https://github.com/anthropics/skills.git","skillPath":"skills/pdf/SKILL.md"}}}'
+    given_skill_repository pdf https://github.com/anthropics/skills.git
+    given_skill_upstream_change_to skills/pdf/SKILL.md
+    given_update_ran_days_ago 3
 
     # Act
     run call_update
@@ -179,97 +182,48 @@ teardown() {
     assert_output_contains "Could not check chrome-devtools-mcp for a newer release"
 }
 
-@test "plugins from the official marketplace are updated automatically" {
+@test "plugin states unchanged for 3 days are updated, official and third-party alike" {
     # Arrange
     given_clean_repository_on_main
     given_repository_with_real_setup_scripts
     given_bare_origin_remote
     git -C "$repository" push -q origin main
     given_every_external_tool_update_touches_is_faked
-    given_laravel_marketplace current
+    given_laravel_marketplace
+    given_official_marketplace
+    given_update_ran_days_ago 3
 
     # Act
     run call_update
 
     # Assert
     assert_success
+    assert_binary_called_with claude "plugin marketplace update laravel"
+    assert_binary_called_with claude "plugin update laravel@laravel"
+    assert_binary_called_with claude "plugin marketplace update claude-plugins-official"
     assert_binary_called_with claude "plugin update context7@claude-plugins-official"
 }
 
-@test "a third-party plugin behind its upstream is not updated but linked for review" {
+@test "plugin states seen for the first time are not updated" {
     # Arrange
     given_clean_repository_on_main
     given_repository_with_real_setup_scripts
     given_bare_origin_remote
     git -C "$repository" push -q origin main
     given_every_external_tool_update_touches_is_faked
-    given_laravel_marketplace ahead
+    given_laravel_marketplace
+    given_official_marketplace
 
     # Act
     run call_update
 
     # Assert
     assert_success
-    assert_binary_not_called_with_substring claude "plugin update laravel@laravel"
-    assert_output_contains "https://github.com/laravel/claude-code/compare/$installed_commit...$upstream_commit"
-    assert_output_contains "claude plugin marketplace update laravel && claude plugin update laravel@laravel"
+    assert_binary_not_called_with_substring claude "plugin update"
+    assert_binary_not_called_with_substring claude "plugin marketplace update"
 }
 
-@test "a third-party plugin at its upstream commit is not reported" {
-    # Arrange
-    given_clean_repository_on_main
-    given_repository_with_real_setup_scripts
-    given_bare_origin_remote
-    git -C "$repository" push -q origin main
-    given_every_external_tool_update_touches_is_faked
-    given_laravel_marketplace current
-
-    # Act
-    run call_update
-
-    # Assert
-    assert_success
-    assert_binary_not_called_with_substring claude "plugin update laravel@laravel"
-    assert_output_does_not_contain "laravel/claude-code/compare"
-}
-
-@test "a third-party plugin without an install record is reported for a manual check" {
-    # Arrange
-    given_clean_repository_on_main
-    given_repository_with_real_setup_scripts
-    given_bare_origin_remote
-    git -C "$repository" push -q origin main
-    given_every_external_tool_update_touches_is_faked
-    given_laravel_marketplace unrecorded
-
-    # Act
-    run call_update
-
-    # Assert
-    assert_success
-    assert_binary_not_called_with_substring claude "plugin update laravel@laravel"
-    assert_output_contains "Could not read the installed commit of laravel@laravel"
-}
-
-@test "a missing plugin install record is reported and the update still completes" {
-    # Arrange
-    given_clean_repository_on_main
-    given_repository_with_real_setup_scripts
-    given_bare_origin_remote
-    git -C "$repository" push -q origin main
-    given_every_external_tool_update_touches_is_faked
-    given_laravel_marketplace no-record
-
-    # Act
-    run call_update
-
-    # Assert
-    assert_success
-    assert_output_contains "Could not read the installed commit of laravel@laravel"
-    assert_output_contains "Update complete!"
-}
-
-@test "a failed marketplace listing is reported instead of skipping the plugin check silently" {
+@test "a failed marketplace listing is reported and the update still completes" {
     # Arrange
     given_clean_repository_on_main
     given_repository_with_real_setup_scripts
@@ -283,5 +237,6 @@ teardown() {
 
     # Assert
     assert_success
-    assert_output_contains "Could not list the plugin marketplaces"
+    assert_output_contains "Could not list the plugin marketplaces, plugins not updated"
+    assert_output_contains "Update complete!"
 }

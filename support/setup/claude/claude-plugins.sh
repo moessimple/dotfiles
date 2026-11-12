@@ -40,11 +40,35 @@ CLAUDE_MCP_SERVERS=(
 # has no runtime dependencies, so this pin fixes all code that runs. Raise it deliberately.
 CHROME_DEVTOOLS_MCP_VERSION="1.12.0"
 
+# `claude plugin marketplace add` rewrites the marketplace's extraKnownMarketplaces entry without
+# "autoUpdate": false, also for one declared there before it is first cloned. Sets it again for the
+# entry with git <url>. settings.json is a symlink into this repository, so it is written through
+# the link rather than replaced.
+claude_marketplace_auto_update_off() {
+    local url="$1" settings="$HOME/.claude/settings.json" updated
+    updated=$(jq --arg url "${url%.git}" '.extraKnownMarketplaces |= with_entries(
+        if (.value.source.url // "" | sub("\\.git$"; "")) == $url then .value.autoUpdate = false else . end)' \
+        "$settings" 2>/dev/null) || return 1
+    printf '%s\n' "$updated" > "$settings"
+}
+
 step "Installing Claude Code plugins and MCP servers"
 if command -v claude &>/dev/null; then
-    for marketplace in "${CLAUDE_PLUGIN_MARKETPLACES[@]}"; do
-        claude plugin marketplace add "$marketplace" 2>/dev/null || warn "$marketplace already added"
-    done
+    # Only marketplaces Claude Code does not know yet are added, and their autoUpdate is set off
+    # again afterwards: without it Claude Code updates plugins on its own and bypasses the cooldown
+    # in update.sh.
+    if known_marketplaces=$(set -o pipefail; claude plugin marketplace list --json 2>/dev/null | jq -r '.[].url'); then
+        for marketplace in "${CLAUDE_PLUGIN_MARKETPLACES[@]}"; do
+            printf '%s\n' "$known_marketplaces" | grep -qxF "$marketplace.git" && continue
+            if ! claude plugin marketplace add "$marketplace" 2>/dev/null; then
+                warn "Could not add the $marketplace marketplace"
+            elif ! claude_marketplace_auto_update_off "$marketplace"; then
+                warn "Could not turn off auto-update for $marketplace, set \"autoUpdate\": false in ~/.claude/settings.json"
+            fi
+        done
+    else
+        warn "Could not list the plugin marketplaces, skipping adding them"
+    fi
     for plugin in "${CLAUDE_PLUGINS[@]}"; do
         claude plugin install "$plugin" 2>/dev/null || warn "$plugin already installed"
     done

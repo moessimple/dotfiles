@@ -42,6 +42,11 @@ agent_browser_prune_chrome() {
 
 # Installs each entry in NPM_PACKAGES; agent-browser's own setup runs right after.
 step "Installing global npm packages"
+# A 3-day cooldown in the user config (~/.npmrc), the same window as Composer: install and update
+# skip releases younger than that, which keeps out hijacked releases that are found and pulled
+# within days. It applies to every npm on the machine, also Herd's; a project's own .npmrc takes
+# precedence. Set before the installs below so they wait too.
+global_npm config set min-release-age 3 || warn "Could not set the npm cooldown"
 for package in "${NPM_PACKAGES[@]}"; do
     global_npm install -g "$package" || warn "$package already installed or failed"
 done
