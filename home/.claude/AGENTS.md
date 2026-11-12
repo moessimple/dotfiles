@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 This file provides shared guidance for Claude Code and Codex when working with code.
 
@@ -38,8 +38,8 @@ For Laravel and PHP work, always use the `spatie-laravel-php` skill.
 
 Use the agent-browser skill for browser automation.
 
-For frontend design work, use the `impeccable` skill. Fix Impeccable detector findings. Add an ignore only for one
-rule in one file, with `--reason`, and name it in the PR.
+For frontend design work in Claude Code, use the `impeccable` skill. Fix Impeccable detector findings. Add an ignore
+only for one rule in one file, with `--reason`, and name it in the PR.
 
 ## GitHub
 
@@ -53,7 +53,7 @@ follow its workflow from gathering context through writing the description, incl
 
 Don't reference planning artifacts (SPEC*.md, spec/, docs/ideas/, docs/specs/, tasks/plan.md, tasks/todo.md, or
 similar) in PR descriptions. They are gitignored and never committed, so any link to them is dead on arrival. If
-their rationale matters long-term, fold it into CLAUDE.md instead.
+their rationale matters long-term, fold it into the project's CLAUDE.md or AGENTS.md instead.
 
 ## Engineering mindset
 
@@ -117,7 +117,7 @@ published under the MIT License.
 
 Before implementing:
 - State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
+- If multiple interpretations exist, present them; don't pick silently.
 - If a simpler approach exists, say so. Push back when warranted.
 - If something is unclear, stop. Name what's confusing. Ask.
 
@@ -130,7 +130,6 @@ Before implementing:
 - No "flexibility" or "configurability" that wasn't requested.
 - No error handling for impossible scenarios.
 - If you write 200 lines and it could be 50, rewrite it.
-- A shortcut with a known limit gets a code comment: `shortcut: <the limit>, <when to upgrade>`.
 - Never cut validation at trust boundaries, error handling that prevents data loss, security, or accessibility.
 
 Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
@@ -143,7 +142,7 @@ When editing existing code:
 - Don't "improve" adjacent code, comments, or formatting.
 - Don't refactor things that aren't broken.
 - Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
+- If you notice unrelated dead code, mention it, don't delete it.
 
 When your changes create orphans:
 - Remove imports/variables/functions that YOUR changes made unused.
@@ -160,11 +159,6 @@ Transform tasks into verifiable goals:
 - "Fix the bug" → "Write a test that reproduces it, then make it pass"
 - "Refactor X" → "Ensure tests pass before and after"
 
-For multi-step tasks, state a brief plan:
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-```
+For multi-step tasks, give each step a check that proves it worked.
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.

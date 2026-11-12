@@ -54,9 +54,9 @@ If you fork the repository, adjust these personal defaults first:
 - Absolute paths to my home directory in the lines Herd added to [`home/.zshrc`](home/.zshrc) and Docker Desktop
   added to [`home/.zprofile`](home/.zprofile)
 
-The macOS setup enables FileVault and the application firewall, disables hibernation, changes Finder and Dock
-behavior, applies German regional settings, and configures several bundled applications. The installer asks for
-confirmation before applying these preferences. Review
+The macOS setup enables FileVault and the application firewall, disables hibernation on Macs without a battery,
+changes Finder and Dock behavior, applies German regional settings, and configures several bundled applications. The
+installer asks for confirmation before applying these preferences. Review
 [`support/setup/macos/osx-defaults.sh`](support/setup/macos/osx-defaults.sh) if you do not want those choices.
 
 ## Installation
@@ -97,7 +97,8 @@ The complete list of Homebrew formulae, applications, fonts, and Quick Look plug
 
 Files under [`home/`](home/) mirror their locations below `$HOME`. For example, `home/.zshrc` is linked to
 `~/.zshrc`, and `home/.claude/skills` is linked to `~/.claude/skills`. Editing either path changes the file stored in
-this repository.
+this repository. The one exception is [`home/.claude/AGENTS.md`](home/.claude/AGENTS.md), described under
+[Claude Code and Codex](#claude-code-and-codex).
 
 The managed files cover the shell, Git, Ghostty, and Claude Code. Machine-specific shell configuration that should
 not be committed belongs in `~/.extra`.
@@ -144,12 +145,8 @@ Claude Code invokes these workflows as `/debug`, `/pr`, `/review`, and `/quality
 - `pr` prepares or refreshes a pull request and waits for approval before pushing or changing GitHub.
 - `review` reviews code across technical and customer-facing concerns, then reports the verdict without changing
   files or posting to GitHub.
-- `quality` runs the recorded PHP and Laravel quality gate and reports only checks that actually ran.
-
-Two things keep changes disciplined without me having to think about it: [Addy Osmani's
-agent-skills](https://skills.addy.ie) workflow (spec, plan, build, test, review, ship) and a [quality
-gate](home/.claude/hooks/README.md) that runs Pint, PHPStan, Rector, and Pest/PHPUnit against whatever Laravel/PHP
-project is being edited.
+- `quality` runs the recorded PHP and Laravel [quality gate](home/.claude/hooks/README.md) and reports only checks
+  that actually ran.
 
 ## Maintenance
 
@@ -160,8 +157,9 @@ bin/update.sh
 ```
 
 The update treats the repository's package and Claude Code declarations as the desired state. It removes undeclared
-Homebrew entries, global Composer and npm packages, user-installed Python packages, Ollama models, Claude Code skills and plugins, and user-level MCP
-servers without asking. Project dependencies and project-level Claude Code integrations are not affected.
+Homebrew entries, global Composer and npm packages, user-installed Python packages, Ollama models, Claude Code skills
+and plugins, and user-level MCP servers without asking. Project dependencies and project-level Claude Code
+integrations are not affected.
 
 Reapply symlinks, services, Herd and tinkerbench setup, and macOS preferences without reinstalling packages with:
 
@@ -174,7 +172,9 @@ bin/reconfigure.sh
 Claude Code settings, agents, hooks, rules, and skills live under `home/.claude/` and are linked into
 `~/.claude/` during installation.
 
-Claude Code and Codex reuse the same global instructions through `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md`.
+Claude Code and Codex reuse the same global instructions: [`home/.claude/AGENTS.md`](home/.claude/AGENTS.md) is
+linked as `~/.claude/CLAUDE.md` and as `~/.codex/AGENTS.md`.
+
 Harness-neutral skills keep their source under `home/.claude/skills/` or Claude's installed plugin cache and are
 linked individually into Codex's documented user skill directory, `~/.agents/skills/`. Claude remains the only
 installer and updater. The explicit allowlists in
@@ -207,7 +207,7 @@ aliases, the Git helpers, and the update and setup scripts.
 ## Further Documentation
 
 - [Quality Gate Hooks](home/.claude/hooks/README.md)
-- [Repository Architecture](CLAUDE.md), for working on this repository with Claude Code
+- [Repository Architecture](AGENTS.md), for working on this repository with Claude Code or Codex
 
 ## Credits
 

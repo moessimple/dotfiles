@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code and Codex when working with code in this repository.
 
 ## What this is
 
@@ -34,11 +34,10 @@ GNU `parallel`, selected with `--parallel-binary-name`. Job count defaults to th
 run serially when debugging a test that only fails under concurrency. Fixtures keep all mutable state under
 `$BATS_TEST_TMPDIR`, so tests are order-independent and safe to parallelize.
 
-Most of the wall time is macOS `syspolicyd` assessing each freshly written fake-binary stub
-(`write_fake_binary` in `tests/support/test_helper.bash`) on its first exec. That check is serial and cannot be
-parallelized or skipped, so ~40s of it stays fixed no matter the job count, and under load `bats` shows nothing
-until the first files clear it: the quiet start and the bursts are that queue draining, not a hang. Cutting it
-would mean creating the stub executables once per file instead of once per test.
+A quiet start followed by bursts of output is not a hang. Most of the wall time is macOS `syspolicyd` assessing each
+freshly written fake-binary stub (`write_fake_binary` in `tests/support/test_helper.bash`) on its first exec. That
+check is serial and cannot be skipped, so more jobs do not shorten it. Cutting it would mean creating the stubs once
+per file instead of once per test.
 
 CI (`.github/workflows/tests.yml`) runs `bin/test.sh` on `macos-latest`, matching the interpreter and userland
 (`/bin/bash` 3.2, BSD tools) the target machine actually has, with `bats-core`, `php`, `patchutils`, and
@@ -48,28 +47,33 @@ There is no separate lint/build command; shell code is not linted automatically 
 
 ## Architecture
 
-**`home/` mirrors `$HOME`.** Every file under `home/` is symlinked to the same relative path below `$HOME` (e.g.
-`home/.zshrc` → `~/.zshrc`, `home/.claude/skills` → `~/.claude/skills`). Editing the path in either location changes
-the file tracked in this repository. `support/setup/symlink-dotfiles.sh` is the single source of truth for which
-paths are linked and whether a given path is linked as a file (`ln -sf`) or as a directory (`ln -sfn`, used for
-`.claude/agents`, `.claude/commands`, `.claude/hooks`, `.claude/rules`, `.claude/skills`).
+**`home/` mirrors `$HOME`.** Every file under `home/` except `home/.claude/AGENTS.md` (see below) is symlinked to the
+same relative path below `$HOME` (e.g. `home/.zshrc` → `~/.zshrc`, `home/.claude/skills` → `~/.claude/skills`).
+Editing the path in either location changes the file tracked in this repository.
+`support/setup/symlink-dotfiles.sh` is the single source of truth for which paths are linked and whether a given path
+is linked as a file (`ln -sf`) or as a directory (`ln -sfn`, used for `.claude/agents`, `.claude/commands`,
+`.claude/hooks`, `.claude/rules`, `.claude/skills`).
 
-`~/.codex/AGENTS.md` intentionally links to `~/.claude/CLAUDE.md`, so Claude Code and Codex share one global
-instruction file instead of maintaining two copies. `support/setup/codex/codex-skills.sh` links explicitly reviewed
-harness-neutral skills from `home/.claude/skills/` and Claude's installed plugin cache into `~/.agents/skills`.
+`home/.claude/AGENTS.md` holds the global instructions and is the one exception to the mirror: `symlink-dotfiles.sh`
+links it as `~/.claude/CLAUDE.md`, the only name Claude Code reads user-level instructions from, and as
+`~/.codex/AGENTS.md` for Codex, so both share one file instead of two copies. A Claude Code session started in
+`home/` also reads `home/.claude/AGENTS.md` as project instructions and so loads the global instructions twice;
+start sessions in the repository root.
+`support/setup/codex/codex-skills.sh` links explicitly reviewed harness-neutral skills from `home/.claude/skills/` and
+Claude's installed plugin cache into `~/.agents/skills`.
 Claude remains the only installer and updater. Shared workflows keep their instructions in one `SKILL.md`. Skills
 with agent-specific tools, paths, or runtime behavior stay exclusive to that agent.
 
 **Entry points vs. setup logic.** `bin/install.sh`, `bin/reconfigure.sh`, and `bin/update.sh` are the setup scripts a
-user runs directly (besides `bin/test.sh`); each sources scripts under `support/setup/` in a specific order (documented by comments at each
-`source` call in the entry-point scripts) rather than duplicating logic. `install.sh` does a full fresh setup
-(Homebrew, Oh My Zsh, symlinks, packages, Herd, tinkerbench, macOS defaults). `reconfigure.sh` reapplies symlinks,
-Codex skill links, service setup, Herd/tinkerbench, and macOS defaults without touching package managers. `update.sh`
-pulls the repo, then updates Homebrew, global Composer/npm packages, user-level Python packages, Claude Code skills/plugins, Codex skill links,
-and Ollama models.
+user runs directly (besides `bin/test.sh`); each sources scripts under `support/setup/` in a specific order
+(documented by comments at each `source` call in the entry-point scripts) rather than duplicating logic. `install.sh`
+does a full fresh setup (Homebrew, Oh My Zsh, symlinks, packages, Herd, tinkerbench, macOS defaults).
+`reconfigure.sh` reapplies symlinks, Codex skill links, service setup, Herd/tinkerbench, and macOS defaults without
+touching package managers. `update.sh` pulls the repo, then updates Homebrew, global Composer/npm packages,
+user-level Python packages, Claude Code skills/plugins, Codex skill links, and Ollama models.
 
-**Declared list = desired state.** The Brewfile (`support/config/Brewfile`), global Composer/npm/Python package lists and Ollama
-models (`support/setup/packages/`), Claude Code skills/plugins (`support/setup/claude/claude-skills.sh`,
+**Declared list = desired state.** The Brewfile (`support/config/Brewfile`), global Composer/npm/Python package lists
+and Ollama models (`support/setup/packages/`), Claude Code skills/plugins (`support/setup/claude/claude-skills.sh`,
 `claude-plugins.sh`), and Codex-compatible skills (`support/setup/codex/codex-skills.sh`) are each treated as the full
 desired state. After each update step, `bin/update.sh` removes anything installed but not declared: Homebrew via
 `brew bundle cleanup --force`, the others via a `*_cleanup` function in the declaring file, while `codex-skills.sh`
@@ -111,26 +115,34 @@ from the scripts.
 **Git helpers (`support/git/`).** Each top-level `*.sh` file defines one command function (`branches`, `push`,
 `pull`, `nah`, `merge`, `review`, `prune`, `switch`, `sync`, `search`, `compare`) and is sourced by `.zshrc`.
 Shared internal pieces sit in `support/git/support/`, which `.zshrc`'s non-recursive `*.sh` loop skips on its own:
-`stash-guard.sh` defines `_git_stash_guard` / `_git_stash_restore` (stash the working tree aside for an operation,
-then restore it; `merge`, `pull`, and `sync` each `source` it, while `switch` keeps its own version because it tags
-every stash with the branch it belongs to), `long-lived-branches.sh` holds the develop/main/master/release list
-that `sync` iterates and `prune` protects, and `pickaxe-diff.sh` is the diff driver `search` invokes.
+
+- `stash-guard.sh` defines `_git_stash_guard` / `_git_stash_restore`, which stash the working tree aside for an
+  operation and then restore it. `merge`, `pull`, and `sync` each `source` it. `switch` keeps its own version because
+  it tags every stash with the branch it belongs to.
+- `long-lived-branches.sh` holds the develop/main/master/release list that `sync` iterates and `prune` protects.
+- `pickaxe-diff.sh` is the diff driver `search` invokes.
 
 `review`, `compare`, `prune`, and the `cchangelog` function all resolve "the default branch" through the
 `git default-branch` alias, which runs `home/.config/git/default-branch`. That script tries the live remote HEAD
 (`upstream`, then `origin`), then the local remote-tracking cache, then a `main`/`master` probe. It is the single
 place that logic lives; callers never re-derive it. Its priority order is covered by `tests/git/default-branch.bats`.
 
-**Tests mirror source layout.** `tests/claude/hooks/*.bats` covers the quality gate hooks; `tests/claude/skills/*/*.bats` covers the bundled scripts of local skills under `home/.claude/skills/`, and
-`tests/claude/skills/portability.bats` checks the skills shared with Codex; `tests/functions/*.bats`
-covers selected functions from `home/.functions`; `tests/aliases/*.bats` covers selected aliases from
-`home/.aliases`; `tests/git/*.bats` covers the helpers from `support/git/`; `tests/setup/claude/*.bats`,
-`tests/setup/codex/*.bats`, and `tests/setup/packages/*.bats` cover the setup/cleanup declarations in
-`support/setup/claude/`, `support/setup/codex/`, and `support/setup/packages/`; `tests/setup/herd/*.bats` covers `support/setup/herd-debug-ini.sh`;
-`tests/bin/update.bats` exercises a full `bin/update.sh` run across all package cleanups.
+**Tests mirror source layout.**
+
+- `tests/claude/hooks/*.bats`: the quality gate hooks
+- `tests/claude/skills/*/*.bats`: the bundled scripts of local skills under `home/.claude/skills/`
+- `tests/claude/skills/portability.bats`: the skills shared with Codex
+- `tests/functions/*.bats`: selected functions from `home/.functions`
+- `tests/aliases/*.bats`: selected aliases from `home/.aliases`
+- `tests/git/*.bats`: the helpers from `support/git/`
+- `tests/setup/claude/*.bats`, `tests/setup/codex/*.bats`, `tests/setup/packages/*.bats`: the setup/cleanup
+  declarations in `support/setup/claude/`, `support/setup/codex/`, and `support/setup/packages/`
+- `tests/setup/herd/*.bats`: `support/setup/herd-debug-ini.sh`
+- `tests/bin/update.bats`: a full `bin/update.sh` run across all package cleanups
+
 `tests/support/test_helper.bash` provides shared fixtures (`new_dotfiles_fixture`, `call_dotfiles_function`,
-`call_dotfiles_function_in`, `call_dotfiles_alias`) for building throwaway Git repos/projects under `mktemp -d`; most
-suites also load their own `tests/support/<name>_helper.bash` for suite-specific fixtures.
+`call_dotfiles_function_in`, `call_dotfiles_alias`) for building throwaway Git repos/projects under
+`$BATS_TEST_TMPDIR`; most suites also load their own `tests/support/<name>_helper.bash` for suite-specific fixtures.
 
 ## Conventions specific to this repo
 
@@ -141,8 +153,8 @@ suites also load their own `tests/support/<name>_helper.bash` for suite-specific
   repeated "Herd injected PHP binary" block). Because `~/.zshrc` is a symlink into `home/.zshrc`, those writes land
   in the tracked file and are committed as-is. This is expected: do not relocate Herd's injected blocks to `~/.extra`
   or rewrite their absolute paths, and expect Herd to re-add or reorder them on the next install/update.
-- `home/.claude/CLAUDE.md` is the user-level Claude Code instructions file (symlinked to `~/.claude/CLAUDE.md`); it
-  is a different file from this one and applies globally across all projects, not just this repo.
+- `home/.claude/AGENTS.md` (see Architecture) is a different file from this one: it applies to every project, not
+  just this repo.
 - `home/.functions` stays a single file, sourced whole by `.zshrc`, grouped by `# === section ===` headers. The
   one-function-per-file split under `support/git/` is deliberate for that set (a coherent group with its own Bats
   suite and shell-startup sourcing loop), not a pattern to extend here. Do not split `home/.functions` into
@@ -150,3 +162,19 @@ suites also load their own `tests/support/<name>_helper.bash` for suite-specific
 - The `precmd` `_fix_tty` hook in `.zshrc` runs `stty sane` before every prompt on purpose. Interactive tools that
   exit uncleanly (artisan prompts, some TUIs) leave the terminal in a broken state; repairing it on every prompt is
   the accepted cost. Keep it unless it is shown to clobber a deliberate `stty` setting in practice.
+
+## Documentation maintenance
+
+`README.md` is written for people who fork this repository and doubles as the owner's reference: what the setup
+does, what to check before installing, how to install, update, and adapt it, and which commands it adds. This file
+explains the architecture to agents, `home/.claude/hooks/README.md` documents the quality gate, and
+`home/.claude/AGENTS.md` holds the global instructions for every project, including the skills and tools they name.
+Some facts appear in more than one of the four on purpose, so a change can make several of them wrong at once.
+
+- After changing a file, search all four documents for its repository path (and, for a file under `home/`, also
+  its `~/` path) and check every match against the new behavior. Update them in the same change.
+- When adding something a user runs or invokes (a script under `bin/`, an alias, a function, a Git helper, a skill
+  in a Codex allowlist, a declared package), decide whether `README.md` should mention it.
+- When a sentence in one of these documents describes what a specific file does, name or link that file, so the
+  search above finds the sentence.
+- Never leave a line that contradicts the code.

@@ -63,7 +63,7 @@ If no ticket or PR context exists at all, run this check against whatever intent
 
 ## Step 5: Verdict in the chat
 
-ALWAYS keep this exact structure:
+Keep this exact structure:
 
 ```markdown
 ## Review: PASS | PASS WITH REMARKS | FAIL

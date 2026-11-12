@@ -16,10 +16,12 @@ ln -sfn ~/.dotfiles/home/.claude/commands ~/.claude/commands
 ln -sfn ~/.dotfiles/home/.claude/hooks ~/.claude/hooks
 ln -sfn ~/.dotfiles/home/.claude/rules ~/.claude/rules
 ln -sfn ~/.dotfiles/home/.claude/skills ~/.claude/skills
-ln -sf ~/.dotfiles/home/.claude/CLAUDE.md ~/.claude/CLAUDE.md
 ln -sf ~/.dotfiles/home/.claude/settings.json ~/.claude/settings.json
 ln -sf ~/.dotfiles/home/.claude/statusline.sh ~/.claude/statusline.sh
-ln -sf ~/.claude/CLAUDE.md ~/.codex/AGENTS.md
+# Claude Code reads a project's AGENTS.md natively, but user-level instructions have to live at
+# ~/.claude/CLAUDE.md, so that gets a symlink under the name it expects. Codex reads AGENTS.md directly.
+ln -sf ~/.dotfiles/home/.claude/AGENTS.md ~/.claude/CLAUDE.md
+ln -sf ~/.dotfiles/home/.claude/AGENTS.md ~/.codex/AGENTS.md
 
 ln -sf ~/.dotfiles/home/.config/ghostty/config ~/.config/ghostty/config
 ln -sf ~/.dotfiles/home/.config/git/default-branch ~/.config/git/default-branch

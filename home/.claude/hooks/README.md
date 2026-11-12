@@ -26,7 +26,7 @@ official [security considerations](https://code.claude.com/docs/en/hooks#securit
 ## Requirements and Activation
 
 The dotfiles installer symlinks this directory to `~/.claude/hooks` and
-[`home/.claude/settings.json`](../settings.json) registers two `PostToolUse` hooks and one `Stop` hook. The `quality`
+[`home/.claude/settings.json`](../settings.json) registers one `PostToolUse` hook and one `Stop` hook. The `quality`
 shell command comes from [`home/.functions`](../../.functions), which `.zshrc` loads for interactive shells.
 
 A checked project must:
@@ -48,10 +48,10 @@ project, ParaTest runs instead of PHPUnit.
 | -------------------------------- | ---------------------- | ------------------------------------------------ | -------------------- |
 | Pint                             | Edited PHP file        | PHP files with uncommitted changes via `--dirty` | Whole project        |
 | Rector                           | Edited PHP file        | PHP files with uncommitted changes               | Whole project        |
-| PHPStan                          | —                      | Whole project                                    | Whole project        |
+| PHPStan                          | not run                | Whole project                                    | Whole project        |
 | `composer validate`              | Edited `composer.json` | Project manifest                                 | Project manifest     |
-| `composer audit`                 | —                      | —                                                | Project dependencies |
-| Pest, PHPUnit, or `artisan test` | —                      | Full test suite                                  | Full test suite      |
+| `composer audit`                 | not run                | not run                                          | Project dependencies |
+| Pest, PHPUnit, or `artisan test` | not run                | Full test suite                                  | Full test suite      |
 
 `file` mode ignores unrelated files. It also skips PHP files under dot-directories because project-wide Pint and Rector
 runs do not normally cover them. Pint is skipped when the path matches the project's `pint.json` `exclude` or
@@ -73,7 +73,7 @@ file and runs `composer validate` for a `composer.json`.
 
 The hook resolves the nearest Composer project inside the surrounding Git repository. When supported tooling is
 found, it creates a dirty marker for that project even if the immediate file check passes. A failing check returns its
-output to Claude so the next action can address it. Because these are post-edit hooks, they report problems but cannot
+output to Claude so the next action can address it. Because this is a post-edit hook, it reports problems but cannot
 undo the edit.
 
 ### Before Claude Stops
@@ -89,7 +89,7 @@ limit can be changed with `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`. A failing project's
 checked again on a later Stop event. See Claude Code's official
 [hook troubleshooting documentation](https://code.claude.com/docs/en/hooks-guide#stop-hook-hits-the-block-cap).
 
-The configured timeout is 60 seconds for each post-edit hook and 120 seconds for the Stop hook. A project whose fast
+The configured timeout is 60 seconds for the post-edit hook and 120 seconds for the Stop hook. A project whose fast
 gate takes longer can exceed the automatic hook timeout; the manual `quality` command is not subject to those Claude
 Code hook timeouts.
 
@@ -154,5 +154,5 @@ for the current Claude Code session.
 Run the hook tests from the dotfiles root:
 
 ```zsh
-bin/test.sh
+bin/test.sh tests/claude/hooks/
 ```
