@@ -8,6 +8,22 @@ Personal, opinionated dotfiles for Laravel/PHP development on macOS (Herd, Oh My
 version-controlled Claude Code configuration). There is no build step and no application code; changes take effect
 by symlinking files into `$HOME` and by shell scripts that install/configure the machine.
 
+## Source of truth
+
+The goal is to keep every managed configuration and package in sync with this repository at all times. This
+repository is the sole source of truth for that state. Changes to setup and
+update logic must preserve that authority: apply the repository's files and declarations rather than silently
+keeping or merging conflicting machine state. Lasting changes to managed settings belong in the repository.
+Edits through symlinks already change repository files; treat them as working-tree changes, not disposable drift.
+Backups may preserve previous state, but must not become an alternative source of configuration or prevent the
+declared state from being applied.
+
+The current implementation does not fully enforce this goal: `bin/install.sh`, `bin/reconfigure.sh`, and
+`bin/update.sh` have different scopes, documented below. Gaps in synchronization are implementation limitations,
+not exceptions to the goal or reasons to preserve drift. Only reconcile explicitly managed
+state. Machine-specific settings and secrets (such as `~/.extra`, `~/.gitconfig-local`, and the saved machine
+profile), runtime data, and independently managed installations stay outside that scope unless explicitly declared.
+
 ## Commands
 
 Run the Bats test suite from the repository root:
