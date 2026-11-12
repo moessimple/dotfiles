@@ -47,7 +47,7 @@ does `bin/reconfigure.sh`. Review
 
 If you fork the repository, adjust these personal defaults first:
 
-- Git identity in [`home/.gitconfig`](home/.gitconfig)
+- Git name in [`home/.gitconfig`](home/.gitconfig); each machine's email is configured locally during install
 - Absolute working directory in [`home/.config/ghostty/config`](home/.config/ghostty/config)
 - Locale and time zone in
   [`support/setup/macos/osx-defaults.sh`](support/setup/macos/osx-defaults.sh), if they don't match yours
@@ -102,6 +102,31 @@ this repository. The one exception is [`home/.claude/AGENTS.md`](home/.claude/AG
 
 The managed files cover the shell, Git, Ghostty, and Claude Code. Machine-specific shell configuration that should
 not be committed belongs in `~/.extra`.
+
+### Git Identity
+
+On its first run, [`bin/install.sh`](bin/install.sh) asks whether the machine is private or for work. The choice
+is saved locally as `private` or `work` in `~/.config/dotfiles/profile`. Both profiles ask for your Git email
+and write it to the untracked `~/.gitconfig-local`. Private setup offers your existing global email as a default,
+which you can accept with Enter or replace. Your name stays in [`home/.gitconfig`](home/.gitconfig), which includes
+the local file last. Existing local settings are preserved.
+
+[`support/setup/machine-profile.sh`](support/setup/machine-profile.sh) reads and validates the saved choice for
+install, reconfigure, and update. [`bin/install.sh`](bin/install.sh) handles profile selection and local Git email
+setup.
+Later installs reuse the profile and email, asking only for the email if its local setting is missing or blank.
+Reconfigure and update never prompt and default to private without a saved profile.
+To change your choice, remove `~/.config/dotfiles/profile` and run install again, entering the email for the new
+profile.
+
+[`home/.gitconfig`](home/.gitconfig) has no fallback email and sets `user.useConfigOnly = true`. If no email is
+configured, Git refuses to commit. When upgrading an existing machine, save its email locally before pulling
+this change: `git config --file ~/.gitconfig-local user.email "YOUR_EMAIL"`.
+
+The work profile excludes Discord and WhatsApp from [`support/config/Brewfile`](support/config/Brewfile).
+Installation and updates use that same list; update's existing cleanup also removes these apps if installed on
+a work machine. System setup and all other packages remain the same for both profiles.
+Repository settings and Git environment variables can still set the identity for individual commits.
 
 ## Daily Usage
 

@@ -4,6 +4,9 @@ set -e  # Exit on unhandled command failures
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/output.sh"
 
+# Validate the saved profile before installing or removing packages.
+source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/machine-profile.sh"
+
 echo ""
 step "Updating dotfiles"
 echo ""

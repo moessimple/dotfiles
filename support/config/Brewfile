@@ -1,6 +1,9 @@
 # Dotfiles Brewfile
 # Install with: brew bundle --file=~/.dotfiles/support/config/Brewfile
 
+profile_path = File.expand_path("~/.config/dotfiles/profile")
+work_machine = File.file?(profile_path) && File.read(profile_path).strip == "work"
+
 # === Taps ===
 tap "spatie/bloom"
 
@@ -91,7 +94,6 @@ cask "chatgpt"
 cask "claude-code"
 cask "codex"
 cask "dbngin"
-cask "discord"
 cask "docker-desktop"
 cask "firefox"
 cask "ghostty"
@@ -103,7 +105,12 @@ cask "monitorcontrol"
 cask "spatie/bloom/spatie-bloom", trusted: true
 cask "tableplus"
 cask "visual-studio-code"
-cask "whatsapp"
+
+# === Private Apps ===
+unless work_machine
+  cask "discord"
+  cask "whatsapp"
+end
 
 # === QuickLook Plugins ===
 cask "betterzip"

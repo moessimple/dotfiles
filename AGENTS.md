@@ -73,6 +73,18 @@ touching package managers. `update.sh` pulls the repo, then updates Homebrew, gl
 user-level Python packages, Claude Code skills/plugins (after a cooldown, see below), Codex skill links, and
 Ollama models.
 
+`bin/install.sh`, `bin/reconfigure.sh`, and `bin/update.sh` read and validate the saved profile through
+`support/setup/machine-profile.sh`. On its first run, `bin/install.sh` asks private/work,
+saves the choice in `~/.config/dotfiles/profile`, and asks for the machine's Git email for either profile.
+Private setup offers the existing global email as a default. Only `user.email` is written to the untracked
+`~/.gitconfig-local`, which `home/.gitconfig` includes last; the name stays shared. `home/.gitconfig` has no email
+fallback and sets `user.useConfigOnly = true`, so Git refuses commits without a configured email.
+Later installs reuse the profile and ask only for the email if the local setting is missing or blank.
+All profile selection and email setup logic lives directly in `bin/install.sh`. Reconfigure and update never
+prompt and default to private without a saved profile. `support/config/Brewfile`
+reads the same profile and excludes Discord and WhatsApp on work machines, including from the desired state
+used by update's cleanup. Other packages and sudo steps are shared.
+
 **Claude Code plugin and skill updates (`support/setup/claude/update-cooldown.sh`).** Neither Claude Code nor the
 skills CLI has a release-age cooldown, so `update.sh` calls `update_skills_after_cooldown` and
 `update_plugins_after_cooldown`, which give them the same 3 days that Composer and npm wait. The upstream state (a

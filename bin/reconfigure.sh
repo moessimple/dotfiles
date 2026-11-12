@@ -4,6 +4,9 @@ set -e  # Exit on unhandled command failures
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/output.sh"
 
+# Validate the saved profile before changing machine configuration.
+source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/machine-profile.sh"
+
 sudo -v  # Request the administrator password up front
 
 # Prepare clean state: creates the directories later steps write into and removes the five

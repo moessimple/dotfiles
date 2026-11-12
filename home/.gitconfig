@@ -1,6 +1,6 @@
 [user]
-   email = maurice.hadamczyk@icloud.com
    name = Maurice Hadamczyk
+   useConfigOnly = true
 
 [init]
     defaultBranch = main
@@ -87,3 +87,6 @@
 
 [merge]
 	conflictstyle = diff3
+
+[include]
+	path = ~/.gitconfig-local
