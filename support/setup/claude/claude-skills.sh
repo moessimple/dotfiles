@@ -76,8 +76,6 @@ claude_skills_trim_clarity() {
         ! -name strip_markdown.py ! -name prose_stats.py -exec rm -rf -- {} +
 }
 
-# Install each entry in THIRD_PARTY_SKILLS via `skills_cli add`; failures are
-# downgraded to warnings so the remaining skills can still be processed.
 step "Installing Claude Code skills"
 for entry in "${THIRD_PARTY_SKILLS[@]}"; do
     repo="${entry%%:*}"
@@ -87,11 +85,10 @@ done
 claude_skills_trim_clarity || warn "Could not trim Clarity's repository extras"
 success "Claude Code skills processed"
 
-# Removes any globally installed skill that isn't in THIRD_PARTY_SKILLS. This
-# is the Claude Code equivalent of `brew bundle cleanup --force`: it catches skills added by
-# hand with `npx skills add` (or by Claude on request) and never recorded here, such as the
-# mvanhorn/last30days-skill install that lingered in ~/.agents/.skill-lock.json after its
-# folder was removed.
+# Removes any globally installed skill that isn't in THIRD_PARTY_SKILLS, the Claude Code
+# equivalent of `brew bundle cleanup --force`. That includes skills added by hand with
+# `npx skills add` (or by Claude on request), even when only their entry in the lock file
+# is left and the folder is already gone.
 claude_skills_cleanup() {
     [ -f "$SKILL_LOCK_FILE" ] || return 0
 
@@ -102,8 +99,8 @@ claude_skills_cleanup() {
         declared_names+=("${entry#*:}")
     done
 
-    # The assignment is kept out of `local` so a missing jq or an unreadable lock file surfaces
-    # instead of looking like an empty list and reporting a green run over a broken one.
+    # A separate `local`, so a missing jq or an unreadable lock file is reported instead of
+    # reading as an empty list.
     local installed
     if ! installed=$(jq -r '.skills // {} | keys[]' "$SKILL_LOCK_FILE" 2>/dev/null); then
         warn "Could not read $SKILL_LOCK_FILE, skipping cleanup"

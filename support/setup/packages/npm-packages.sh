@@ -40,7 +40,6 @@ agent_browser_prune_chrome() {
     done
 }
 
-# Installs each entry in NPM_PACKAGES; agent-browser's own setup runs right after.
 step "Installing global npm packages"
 # A 3-day cooldown in the user config (~/.npmrc), the same window as Composer: install and update
 # skip releases younger than that, which keeps out hijacked releases that are found and pulled
@@ -61,8 +60,8 @@ npm_packages_cleanup() {
 
     step "Checking for undeclared global npm packages"
 
-    # pipefail, and the assignment kept out of `local`, so a failing npm or a missing jq
-    # surfaces instead of looking like an empty list and reporting a green run over a broken one.
+    # pipefail and a separate `local`, so a failing npm or a missing jq is reported instead
+    # of reading as an empty list.
     local installed
     if ! installed=$(set -o pipefail; global_npm ls -g --depth=0 --json 2>/dev/null | jq -r '.dependencies // {} | keys[]'); then
         warn "Could not read global npm packages, skipping cleanup"

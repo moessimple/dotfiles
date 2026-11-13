@@ -8,14 +8,10 @@
 # ignores both. Projects set these variables in .claude/settings.local.json;
 # see README.md for usage.
 #
-# No gate-specific project file is required. The script detects installed
-# Laravel/PHP tools and uses each project's own tool configuration. It executes
-# only installed vendor binaries or `artisan`, the trust boundary already
-# crossed by `composer install`. The global Composer binary handles validation
-# in every applicable mode and auditing in full mode.
-#
-# support/project-root.sh resolves the nearest Composer project, including one
-# nested below the Git toplevel.
+# Tools are detected per project and run with the project's own configuration.
+# Only installed vendor binaries and `artisan` are executed, the trust boundary
+# `composer install` already crossed, plus the global Composer for validation
+# and, in full mode, auditing.
 
 set -u
 
@@ -58,16 +54,11 @@ pint_covers_path() {
     return 0
 }
 
-# Mirrors Pint's own --dirty semantics (every PHP file with an uncommitted
-# change: staged, unstaged, or new) so Rector, which has no --dirty flag of
-# its own, can be scoped to the same bounded set of files in fast mode.
-# Hidden paths are dropped for the same reason file mode drops them (see
-# is_hidden_path): neither Pint's nor Rector's project-wide run reaches a
-# dot-file or a file under a dot-directory, so fast mode must not either.
-# --relative forces paths relative to the caller's cwd (already $root by the
-# time this runs), matching what a relative `vendor/bin/rector process <path>`
-# call expects; git's default without it is relative to the repo toplevel,
-# which would be wrong for a project nested below the git root.
+# Every PHP file with an uncommitted change (staged, unstaged or new), the same
+# set Pint's --dirty checks, so Rector, which has no --dirty flag, can be scoped
+# to it. Hidden paths are dropped, see is_hidden_path. --relative makes paths
+# relative to $root, the current directory here; git's default, the repository
+# toplevel, is wrong for a project nested below the Git root.
 dirty_php_files() {
     local file
     { git diff --name-only --relative --diff-filter=ACMR HEAD -- . 2>/dev/null
@@ -77,8 +68,6 @@ dirty_php_files() {
     done
 }
 
-# Rector has no --dirty flag of its own; this gives it Pint's scope instead
-# of the whole project.
 run_rector_dirty() {
     local files=() file
     while IFS= read -r file; do
@@ -88,10 +77,9 @@ run_rector_dirty() {
     vendor/bin/rector process "${files[@]}" --dry-run --no-progress-bar --memory-limit="$memory_limit"
 }
 
-# full always calls this; fast only when CLAUDE_QUALITY_SKIP_TESTS is unset.
-# vendor/bin/paratest, when installed, runs the suite in parallel: Pest and
-# `artisan test` both take --parallel directly, but plain PHPUnit has no such
-# flag of its own, so paratest replaces vendor/bin/phpunit outright instead.
+# With vendor/bin/paratest installed, the suite runs in parallel. Pest and
+# `artisan test` take --parallel; plain PHPUnit has no such flag, so paratest
+# replaces vendor/bin/phpunit.
 run_test_suite() {
     local parallel=""
     $has_paratest && parallel="--parallel"
@@ -135,10 +123,8 @@ if [[ "$mode" == "file" ]]; then
         printf '%s/%s' "$(pwd -P)" "$(basename -- "$file")"
     )" || exit "$exit_usage"
 
-    # Resolved from the file's own directory, not $PWD/CLAUDE_PROJECT_DIR: a
-    # repo can nest more than one Composer project, and running `quality file
-    # <path>` from inside a different one of them must still gate the project
-    # the given file actually belongs to, not whichever one the shell is in.
+    # A repository can nest several Composer projects, so the file's own
+    # directory decides which one is gated, not the shell's current directory.
     start_dir="$(dirname -- "$canonical")"
 else
     start_dir="${CLAUDE_PROJECT_DIR:-$PWD}"
@@ -150,8 +136,6 @@ resolve_project_root "$start_dir" git_root root || {
 }
 
 if [[ "$mode" == "file" ]]; then
-    # Nothing to check for anything but a PHP file or composer.json; exit
-    # before touching any tool.
     if [[ "$canonical" != *.php ]] && [[ "$(basename -- "$canonical")" != "composer.json" ]]; then
         exit 0
     fi
@@ -159,19 +143,15 @@ fi
 
 cd "$root" || exit "$exit_internal"
 
-# A `vendor/bin/*` binary resolves `php` via its own shebang, and the php
-# invocations below call it directly. Both only see PATH, never the
-# interactive `php='herd php'` shell alias, so a project isolated to a
-# non-global Herd PHP version would otherwise run every check here against
-# the wrong interpreter. Resolved once via Herd's own `which-php` and
-# exposed as a plain symlink ahead of PATH, so every invocation below stays
-# unchanged and still resolves the right interpreter through it. Runs after the
-# cd into the project, because `herd which-php` answers for the site in the
-# current directory. No-op when Herd is not installed, as on the CI runner.
+# vendor/bin/* shebangs and the php calls below find `php` on PATH, never the
+# interactive `php='herd php'` alias. A project isolated to another Herd PHP
+# version would run every check with the wrong interpreter, so the binary
+# `herd which-php` names is linked into a directory ahead of PATH. This runs
+# after the cd because Herd answers for the site in the current directory, and
+# does nothing without Herd, as on CI.
 #
-# Herd only reaches PATH through interactive .zshrc, but this runs from a
-# non-interactive Stop hook, so `command -v herd` misses it. Fall back to
-# Herd's default install location before giving up.
+# Hooks run non-interactively, where .zshrc has not put Herd on PATH, so its
+# default install location is the fallback.
 herd_bin="$(command -v herd || true)"
 if [[ -z "$herd_bin" && -x "$HOME/Library/Application Support/Herd/bin/herd" ]]; then
     herd_bin="$HOME/Library/Application Support/Herd/bin/herd"
@@ -195,10 +175,8 @@ has_paratest=false; [[ -x vendor/bin/paratest ]] && has_paratest=true
 
 if ! $has_pint && ! $has_phpstan && ! $has_rector && ! $has_pest && ! $has_phpunit && ! $has_artisan && ! $has_composer; then
     echo "QUALITY_NO_TOOLING: no Pint, PHPStan, Rector, Pest, PHPUnit, Artisan or composer found in $root" >&2
-    # A root with no tooling has nothing left to prove clean, so its dirty
-    # marker must not stay stuck forever.
-    # Fast and full normally clear that marker after a successful run, so a
-    # stale one is cleared here too.
+    # Without tooling there is nothing left to prove clean, so fast and full
+    # clear the dirty marker here, as they would after a passing run.
     [[ "$mode" != "file" ]] && rm -f "$quality_runs_dir$root.dirty"
     exit "$exit_nothing_to_check"
 fi
@@ -216,8 +194,7 @@ case "$mode" in
         if [[ "$(basename -- "$canonical")" == "composer.json" ]]; then
             $has_composer && { composer validate --no-check-all --strict || status=$?; }
         elif is_hidden_path "$relative"; then
-            : # Neither tool's own project-wide run would reach a dot-file or a
-              # file under a dot-directory, see is_hidden_path above.
+            : # See is_hidden_path.
         else
             if $has_pint && pint_covers_path "$relative"; then
                 vendor/bin/pint --test "$canonical" || status=$?

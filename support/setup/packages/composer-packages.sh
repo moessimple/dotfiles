@@ -10,8 +10,6 @@ COMPOSER_PACKAGES=(
     cpx/cpx
 )
 
-# Ensure each entry in COMPOSER_PACKAGES is globally required; failures are
-# downgraded to warnings so the remaining packages can still be processed.
 step "Installing global Composer packages"
 # A 3-day cooldown in the machine-wide config, the same window as the npm tools and as the projects
 # that set their own: update, require and remove skip releases younger than that, which keeps out
@@ -34,8 +32,8 @@ composer_packages_cleanup() {
 
     step "Checking for undeclared global Composer packages"
 
-    # pipefail, and the assignment kept out of `local`, so a failing composer or a missing jq
-    # surfaces instead of looking like an empty list and reporting a green run over a broken one.
+    # pipefail and a separate `local`, so a failing composer or a missing jq is reported
+    # instead of reading as an empty list.
     local installed
     if ! installed=$(set -o pipefail; composer global show -D --format=json 2>/dev/null | jq -r '.installed // [] | .[].name'); then
         warn "Could not read global Composer packages, skipping cleanup"

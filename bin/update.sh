@@ -11,13 +11,10 @@ echo ""
 step "Updating dotfiles"
 echo ""
 
-# Update dotfiles repo
-#
-# Check before any other step because the Claude CLI and skill updates modify
-# live configuration tracked in this repository. Pulling over those changes can
-# conflict with incoming updates. `git pull --autostash` is not a safe
-# substitute: it can advance the branch, fail to reapply the stash and still
-# exit 0 while conflicted settings remain active.
+# Runs first and refuses anything but a clean main checkout: the Claude CLI and skill
+# updates below write to configuration tracked in this repository, and pulling over local
+# changes can leave conflicted settings active. `git pull --autostash` can do exactly that
+# and still exit 0.
 step "Pulling latest changes"
 if ! git -C ~/.dotfiles rev-parse --git-dir &>/dev/null; then
     error "~/.dotfiles is not a Git repository."
@@ -46,13 +43,11 @@ step "Updating Homebrew packages"
 brew update
 brew upgrade
 brew bundle --file=~/.dotfiles/support/config/Brewfile
-# --force because without it this only prompts, and a prompt it cannot show makes it a no-op.
-# All cleanups in this script remove undeclared things unattended, the declaration files
-# are the only source of truth for what may be installed.
+# Without --force this only prompts, and an unattended prompt does nothing.
 brew bundle cleanup --force --file=~/.dotfiles/support/config/Brewfile || true
-# --prune=all: this runs weekly right after update/upgrade/bundle, so every declared
-# package was just re-downloaded as needed and the entire download cache is stale.
-# The default 120-day window lets casks like Docker.dmg accumulate GBs between prunes.
+# --prune=all: update, upgrade and bundle just downloaded every declared package they
+# needed, so the whole download cache is stale. The default 120-day window lets casks
+# like Docker.dmg pile up GBs between prunes.
 brew cleanup --prune=all
 success "Homebrew packages updated"
 
@@ -69,9 +64,8 @@ step "Updating global npm packages"
 global_npm update -g --force
 success "npm packages updated"
 npm_packages_cleanup
-# npm never evicts its own cache on its own; every `npm`/`npx` run only adds to it. `verify`
-# garbage-collects unreferenced content and prunes it back toward `cache-max`, the npm
-# counterpart to `brew cleanup` above.
+# npm never evicts its cache; every `npm`/`npx` run only adds to it. `verify` removes
+# unreferenced content and trims the cache toward `cache-max`.
 global_npm cache verify
 
 # Install any Python packages newly added to the list, then update all

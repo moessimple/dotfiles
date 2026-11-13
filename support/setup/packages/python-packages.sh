@@ -38,8 +38,8 @@ python_packages_cleanup() {
     # --not-required lists only packages no other installed package depends on, so the
     # dependencies of declared packages are never candidates. shortcut: the dependencies of a
     # removed package become candidates only on the following run, which removes them then.
-    # pipefail, and the assignment kept out of `local`, so a failing pip or a missing jq
-    # surfaces instead of looking like an empty list and reporting a green run over a broken one.
+    # pipefail and a separate `local`, so a failing pip or a missing jq is reported instead
+    # of reading as an empty list.
     local installed
     if ! installed=$(set -o pipefail; python_pip list --user --not-required --format=json 2>/dev/null | jq -r '.[].name'); then
         warn "Could not read user-installed Python packages, skipping cleanup"

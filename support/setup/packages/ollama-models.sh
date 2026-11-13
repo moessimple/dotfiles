@@ -46,8 +46,8 @@ ollama_models_cleanup() {
 
     step "Checking for undeclared Ollama models"
 
-    # pipefail, and the assignment kept out of `local`, so an unreachable server surfaces
-    # instead of looking like an empty list and reporting a green run over a broken one.
+    # pipefail and a separate `local`, so an unreachable server is reported instead of
+    # reading as an empty list.
     local installed
     if ! installed=$(set -o pipefail; ollama list 2>/dev/null | awk 'NR > 1 { print $1 }'); then
         warn "Could not read Ollama models, skipping cleanup"
