@@ -37,15 +37,9 @@ function sync() {
                 git switch "$branch"
             else
                 git switch -c "$branch" "upstream/$branch"
-            fi
-            exit_code=$?
-            [ "$exit_code" -eq 0 ] || break
-
-            git reset --hard "upstream/$branch"
-            exit_code=$?
-            [ "$exit_code" -eq 0 ] || break
-
-            git push origin "$branch" --force
+            fi \
+                && git reset --hard "upstream/$branch" \
+                && git push origin "$branch" --force
             exit_code=$?
             [ "$exit_code" -eq 0 ] || break
         fi

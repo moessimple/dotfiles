@@ -56,11 +56,10 @@ function switch() {
     [ $# -ne 1 ] && { echo "Expected exactly one branch name."; return 1; }
 
     local requested_branch="$1" branch
-    branch=$(git check-ref-format --branch "$requested_branch" 2>/dev/null)
-    if [ $? -ne 0 ]; then
+    branch=$(git check-ref-format --branch "$requested_branch" 2>/dev/null) || {
         echo "Invalid branch name: $requested_branch" >&2
         return 1
-    fi
+    }
 
     local current_branch
     current_branch=$(git symbolic-ref --quiet --short HEAD) || current_branch=$(git rev-parse --short HEAD) || return

@@ -80,7 +80,7 @@ dirty_php_files() {
 # Rector has no --dirty flag of its own; this gives it Pint's scope instead
 # of the whole project.
 run_rector_dirty() {
-    local files=()
+    local files=() file
     while IFS= read -r file; do
         [[ -n "$file" ]] && files+=("$file")
     done < <(dirty_php_files)
