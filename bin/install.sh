@@ -147,10 +147,9 @@ source ~/.dotfiles/support/setup/packages/ollama-models.sh
 # Create local config files if they don't exist
 touch ~/.extra
 
-# macOS defaults — run last because some settings reload the shell
+# macOS defaults: run last because they quit the affected apps, Terminal among them.
 step "Applying macOS defaults"
 source ~/.dotfiles/support/setup/macos/osx-defaults.sh
-success "macOS defaults applied"
 
 echo ""
 success "Installation complete!"

@@ -184,6 +184,7 @@ place that logic lives; callers never re-derive it. Its priority order is covere
 - `tests/setup/claude/*.bats`, `tests/setup/codex/*.bats`, `tests/setup/packages/*.bats`: the setup/cleanup
   declarations in `support/setup/claude/`, `support/setup/codex/`, and `support/setup/packages/`
 - `tests/setup/herd/*.bats`: `support/setup/herd-debug-ini.sh`
+- `tests/setup/macos/*.bats`: `support/setup/macos/osx-defaults.sh`
 - `tests/bin/update.bats`: a full `bin/update.sh` run across all package cleanups
 - `tests/bin/setup-ssh.bats`: standalone SSH key setup and protection of existing keys
 

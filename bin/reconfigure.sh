@@ -42,7 +42,6 @@ step "Configure some things"
 source ~/.dotfiles/support/setup/configure.sh
 success "Some things configured"
 
-# macOS defaults — run last because some settings reload the shell
+# macOS defaults: run last because they quit the affected apps, Terminal among them.
 step "Applying macOS defaults"
 source ~/.dotfiles/support/setup/macos/osx-defaults.sh
-success "macOS defaults applied"

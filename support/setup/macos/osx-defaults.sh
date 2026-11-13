@@ -11,7 +11,8 @@ read -p "Continue? (y/n) " -n 1 -r
 echo ""
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     echo "Cancelled."
-    exit 0
+    # Sourced from bin/install.sh and bin/reconfigure.sh, where exit would end the whole run.
+    return 0 2>/dev/null || exit 0
 fi
 
 # Close any open System Preferences panes, to prevent them from overriding
