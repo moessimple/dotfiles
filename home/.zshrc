@@ -29,7 +29,7 @@ unset _dotfile
 
 # Load git command functions. Shared helpers live in support/git/support/ and
 # are pulled in by the functions that need them, not sourced here.
-for _git_fn in ~/.dotfiles/support/git/*.sh; do
+for _git_fn in $DOTFILES_DIR/support/git/*.sh; do
     source "$_git_fn"
 done
 unset _git_fn

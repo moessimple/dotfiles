@@ -9,13 +9,12 @@ call_quality_in() {
 }
 
 # Points $HOME at a fixture directory that carries a fake quality-gate.sh
-# (recording its invocations) alongside the project's real project-root.sh,
-# since `quality status` reads the project root through that real helper.
+# (recording its invocations) alongside the project's real hooks/support/ files,
+# since `quality status` sources them for the project root, exit codes and record path.
 given_fake_home_with_quality_gate() {
     fake_home="$fixture/home"
     mkdir -p "$fake_home/.claude/hooks/support"
-    cp "$dotfiles_dir/home/.claude/hooks/support/project-root.sh" \
-        "$fake_home/.claude/hooks/support/project-root.sh"
+    cp "$dotfiles_dir/home/.claude/hooks/support/"*.sh "$fake_home/.claude/hooks/support/"
     cat > "$fake_home/.claude/hooks/quality-gate.sh" <<'SCRIPT'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "$(dirname "$0")/quality-gate.calls"

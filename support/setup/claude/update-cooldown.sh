@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SKILL_LOCK_FILE="$HOME/.agents/.skill-lock.json"
+# Sourced after claude-skills.sh (skills_cli, SKILL_LOCK_FILE) and claude-plugins.sh (CLAUDE_PLUGINS).
 
 # A new upstream version of a plugin or skill is installed only after update.sh has seen it
 # unchanged this long, the same 3 days Composer and npm wait for a release. Neither Claude Code nor

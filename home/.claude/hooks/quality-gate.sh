@@ -21,6 +21,7 @@ set -u
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/support/project-root.sh"
 source "$(dirname -- "${BASH_SOURCE[0]}")/support/exit-codes.sh"
+source "$(dirname -- "${BASH_SOURCE[0]}")/support/quality-runs.sh"
 
 # Pint ignores dot-files and dot-directories by default. Projects using this
 # gate also reserve .ai, .github and .claude for tooling and omit them from
@@ -183,8 +184,6 @@ if [[ -x "$php_bin" ]]; then
     PATH="$php_shim_dir:$PATH"
 fi
 
-config_home="${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality"
-
 has_pint=false;     [[ -x vendor/bin/pint    ]] && has_pint=true
 has_phpstan=false;  [[ -x vendor/bin/phpstan ]] && has_phpstan=true
 has_rector=false;   [[ -x vendor/bin/rector  ]] && has_rector=true
@@ -200,7 +199,7 @@ if ! $has_pint && ! $has_phpstan && ! $has_rector && ! $has_pest && ! $has_phpun
     # marker must not stay stuck forever.
     # Fast and full normally clear that marker after a successful run, so a
     # stale one is cleared here too.
-    [[ "$mode" != "file" ]] && rm -f "$config_home/runs$root.dirty"
+    [[ "$mode" != "file" ]] && rm -f "$quality_runs_dir$root.dirty"
     exit "$exit_nothing_to_check"
 fi
 
@@ -246,8 +245,8 @@ case "$mode" in
 esac
 
 if [[ "$mode" != "file" ]]; then
-    record="$config_home/runs$root.json"
-    marker="$config_home/runs$root.dirty"
+    record="$quality_runs_dir$root.json"
+    marker="$quality_runs_dir$root.dirty"
     mkdir -p "$(dirname -- "$record")"
 
     sha="$(git rev-parse --short HEAD 2>/dev/null || echo none)"

@@ -133,8 +133,8 @@ remains on disk and may be reconsidered by later Stop events.
 
 ## State Files
 
-`fast` and `full` write their last result below `${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality/runs`, keyed by the
-project's absolute path. The JSON record contains the project root, mode, Git commit, worktree state, exit code, and a
+`fast` and `full` write their last result below `${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality/runs`
+(defined once in [`support/quality-runs.sh`](support/quality-runs.sh)), keyed by the project's absolute path. The JSON record contains the project root, mode, Git commit, worktree state, exit code, and a
 UTC timestamp. A sibling `.dirty` marker records that a relevant edit has not yet been followed by a passing gate.
 
 Nested Composer projects are tracked separately. The Stop hook only considers markers at or below the Git repository
@@ -149,6 +149,7 @@ for the current Claude Code session.
 | [`quality-gate.sh`](quality-gate.sh)                     | Resolves modes, detects tools, runs checks, and records results    |
 | [`support/exit-codes.sh`](support/exit-codes.sh)         | Names the exit codes the dispatcher returns and its callers check  |
 | [`support/project-root.sh`](support/project-root.sh)     | Resolves the nearest Composer project inside a Git repository      |
+| [`support/quality-runs.sh`](support/quality-runs.sh)     | Names the directory holding each project's run record and marker   |
 | [`tests/claude/hooks/`](../../../tests/claude/hooks/)    | Bats coverage for each hook, the dispatcher, and their integration |
 
 Run the hook tests from the dotfiles root:

@@ -55,6 +55,8 @@ THIRD_PARTY_SKILLS=(
 # --min-release-age. A raised version must itself be at least 3 days old, or npx refuses it.
 SKILLS_CLI_VERSION="1.7.6"
 
+SKILL_LOCK_FILE="$HOME/.agents/.skill-lock.json"
+
 skills_cli() {
     "${HOMEBREW_PREFIX:-/opt/homebrew}/bin/npx" --min-release-age=3 --yes "skills@$SKILLS_CLI_VERSION" "$@"
 }
@@ -91,8 +93,7 @@ success "Claude Code skills processed"
 # mvanhorn/last30days-skill install that lingered in ~/.agents/.skill-lock.json after its
 # folder was removed.
 claude_skills_cleanup() {
-    local lock_file=~/.agents/.skill-lock.json
-    [ -f "$lock_file" ] || return 0
+    [ -f "$SKILL_LOCK_FILE" ] || return 0
 
     step "Checking for undeclared Claude Code skills"
 
@@ -104,8 +105,8 @@ claude_skills_cleanup() {
     # The assignment is kept out of `local` so a missing jq or an unreadable lock file surfaces
     # instead of looking like an empty list and reporting a green run over a broken one.
     local installed
-    if ! installed=$(jq -r '.skills // {} | keys[]' "$lock_file" 2>/dev/null); then
-        warn "Could not read $lock_file, skipping cleanup"
+    if ! installed=$(jq -r '.skills // {} | keys[]' "$SKILL_LOCK_FILE" 2>/dev/null); then
+        warn "Could not read $SKILL_LOCK_FILE, skipping cleanup"
         return 0
     fi
 

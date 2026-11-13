@@ -18,9 +18,9 @@
 set -u
 
 dispatcher="$HOME/.claude/hooks/quality-gate.sh"
-config_home="${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality"
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/support/exit-codes.sh"
+source "$(dirname -- "${BASH_SOURCE[0]}")/support/quality-runs.sh"
 
 input="$(cat)"
 
@@ -32,12 +32,12 @@ git_root="$(cd "$git_root" && pwd -P)" || exit 0
 
 dirty_projects=()
 while IFS= read -r marker; do
-    project="${marker#"$config_home/runs"}"
+    project="${marker#"$quality_runs_dir"}"
     project="${project%.dirty}"
     case "$project" in
         "$git_root" | "$git_root"/*) dirty_projects+=("$project") ;;
     esac
-done < <(find "$config_home/runs" -name '*.dirty' 2>/dev/null)
+done < <(find "$quality_runs_dir" -name '*.dirty' 2>/dev/null)
 
 (( ${#dirty_projects[@]} == 0 )) && exit 0
 

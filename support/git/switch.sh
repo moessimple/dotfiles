@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 
+source "${0:A:h}/support/stash-guard.sh"
+
 # The uncommitted-changes handling below (bring/leave/cancel, warn before overwriting a
 # leftover stash) is adapted from GitHub Desktop's branch-switch workflow, reimplemented
 # independently rather than sharing any format or code with the app itself.
@@ -36,23 +38,6 @@ _switch_drop_stash_by_commit() {
             return
         fi
     done < <(git stash list)
-}
-
-# Confirms something was actually saved, since `git stash push` exits 0 even when there
-# was nothing to stash.
-_switch_do_stash() {
-    local message="$1" stash_before stash_after
-    stash_before=$(git rev-parse -q --verify refs/stash 2>/dev/null)
-    git stash push --include-untracked -m "$message"
-    local push_status=$?
-    [ "$push_status" -eq 0 ] || return "$push_status"
-
-    stash_after=$(git rev-parse -q --verify refs/stash 2>/dev/null)
-    if [ -z "$stash_after" ] || [ "$stash_after" = "$stash_before" ]; then
-        echo "Could not stash local changes; branch was not switched." >&2
-        return 1
-    fi
-    return 0
 }
 
 # Switch to a branch (creating it if needed). With uncommitted changes, asks whether to bring
@@ -110,13 +95,13 @@ function switch() {
                     # leave the branch with neither stash.
                     existing_stash_commit="$(git rev-parse --verify --quiet "$existing_stash")"
                 fi
-                _switch_do_stash "$(_switch_stash_marker "$current_branch")" || return
+                _git_stash_guard "$(_switch_stash_marker "$current_branch")" || return
                 [ -n "$existing_stash_commit" ] && _switch_drop_stash_by_commit "$existing_stash_commit"
                 stashed=1
                 leaving=1
                 ;;
             2)
-                _switch_do_stash "$(_switch_stash_marker "$current_branch")" || return
+                _git_stash_guard "$(_switch_stash_marker "$current_branch")" || return
                 stashed=1
                 ;;
             *)

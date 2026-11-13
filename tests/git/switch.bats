@@ -241,7 +241,7 @@ teardown() {
 
     # Assert
     assert_failure
-    assert_output_contains "Could not stash local changes; branch was not switched."
+    assert_output_contains "Could not stash local changes."
     assert_current_branch feature
     assert_stash_count 1
     assert_stash_marked_for feature
@@ -380,7 +380,7 @@ teardown() {
 
     # Assert
     assert_failure
-    assert_output_contains "Could not stash local changes; branch was not switched."
+    assert_output_contains "Could not stash local changes."
     assert_current_branch feature
     assert_local_changes_are_present
     assert_stash_count 1

@@ -1,23 +1,26 @@
 #!/usr/bin/env zsh
 
-# Shared by merge, pull and sync: put the working tree aside before a git
-# operation that needs a clean tree, then restore it. switch keeps its own
-# stash handling because it tags every stash with the branch it belongs to.
+# Shared by merge, pull, sync and switch: put the working tree aside before a
+# git operation that needs a clean tree. merge, pull and sync restore it with
+# _git_stash_restore; switch restores or leaves it itself.
 
-# Stashes tracked and untracked changes when the working tree is dirty and
-# confirms an entry was actually created: `git stash push` exits 0 even when
-# it saves nothing, so a plain exit check would let a caller carry on believing
-# the tree is safely put away when it is not. Sets _git_stash_guard_active to 1
-# when a stash was pushed and 0 when the tree was already clean; returns
-# non-zero, leaving the flag at 0, when stashing was needed but did not happen.
+# Stashes tracked and untracked changes when the working tree is dirty, with
+# message $1 when given, and confirms an entry was actually created: `git stash
+# push` exits 0 even when it saves nothing, so a plain exit check would let a
+# caller carry on believing the tree is safely put away when it is not. Sets
+# _git_stash_guard_active to 1 when a stash was pushed and 0 when the tree was
+# already clean; returns non-zero, leaving the flag at 0, when stashing was
+# needed but did not happen.
 _git_stash_guard() {
     _git_stash_guard_active=0
 
     [ -n "$(git status --porcelain)" ] || return 0
 
     local stash_before stash_after
+    local -a message_options
+    [ -n "${1:-}" ] && message_options=(-m "$1")
     stash_before=$(git rev-parse -q --verify refs/stash 2>/dev/null)
-    git stash push --include-untracked || return
+    git stash push --include-untracked "${message_options[@]}" || return
     stash_after=$(git rev-parse -q --verify refs/stash 2>/dev/null)
 
     if [ -z "$stash_after" ] || [ "$stash_after" = "$stash_before" ]; then

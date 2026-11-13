@@ -115,7 +115,7 @@ raise_npm_pin() {
     current=$(sed -n "s/^$variable=\"\(.*\)\"$/\1/p" "$file")
     # pipefail, so a failed npm lookup is reported instead of reading as "no newer release".
     # npm 12 wraps `npm view --json` output in an array, hence the leading .[0].
-    if ! newest=$(set -o pipefail; "${HOMEBREW_PREFIX:-/opt/homebrew}/bin/npm" view "$package" time --json 2>/dev/null \
+    if ! newest=$(set -o pipefail; global_npm view "$package" time --json 2>/dev/null \
         | jq -r --arg current "$current" '
             def numbers: split(".") | map(tonumber);
             .[0]

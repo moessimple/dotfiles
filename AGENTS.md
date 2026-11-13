@@ -163,8 +163,8 @@ from the scripts.
 Shared internal pieces sit in `support/git/support/`, which `.zshrc`'s non-recursive `*.sh` loop skips on its own:
 
 - `stash-guard.sh` defines `_git_stash_guard` / `_git_stash_restore`, which stash the working tree aside for an
-  operation and then restore it. `merge`, `pull`, and `sync` each `source` it. `switch` keeps its own version because
-  it tags every stash with the branch it belongs to.
+  operation and then restore it. `merge`, `pull`, `sync`, and `switch` each `source` it. `switch` passes a message
+  that tags the stash with its branch and restores or leaves the stash itself instead of calling `_git_stash_restore`.
 - `long-lived-branches.sh` holds the develop/main/master/release list that `sync` iterates and `prune` protects.
 - `pickaxe-diff.sh` is the diff driver `search` invokes.
 

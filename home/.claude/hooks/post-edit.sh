@@ -17,6 +17,7 @@ set -u
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/support/project-root.sh"
 source "$(dirname -- "${BASH_SOURCE[0]}")/support/exit-codes.sh"
+source "$(dirname -- "${BASH_SOURCE[0]}")/support/quality-runs.sh"
 
 input="$(cat)"
 file="$(jq -r '.tool_input.file_path // empty' <<<"$input")"
@@ -39,7 +40,7 @@ status=$?
 
 [[ "$status" == "$exit_nothing_to_check" ]] && exit 0
 
-marker="${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality/runs$root.dirty"
+marker="$quality_runs_dir$root.dirty"
 mkdir -p "$(dirname -- "$marker")" && : > "$marker"
 
 if [[ "$status" != 0 ]]; then

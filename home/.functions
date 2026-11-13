@@ -225,13 +225,17 @@ rector() {
     fi
 }
 
+_test_runner() {
+    if [ -f vendor/bin/pest ]; then
+        echo ./vendor/bin/pest
+    else
+        echo ./vendor/bin/phpunit
+    fi
+}
+
 # Run tests (Pest or PHPUnit) with testdox output
 p() {
-    if [ -f vendor/bin/pest ]; then
-        herd php -d memory_limit=2G ./vendor/bin/pest --testdox "$@"
-    else
-        herd php -d memory_limit=2G ./vendor/bin/phpunit --testdox "$@"
-    fi
+    herd php -d memory_limit=2G "$(_test_runner)" --testdox "$@"
 }
 
 # Run tests filtered by name
@@ -288,12 +292,7 @@ puff() {
     fi
 
     [ -z "$1" ] && { echo "test case required" 1>&2; return 1; }
-
-    if [ -f vendor/bin/pest ]; then
-        _run_until_fail herd php -d memory_limit=2G ./vendor/bin/pest --no-coverage --stop-on-error --stop-on-failure --filter "$1"
-    else
-        _run_until_fail herd php -d memory_limit=2G ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure --filter "$1"
-    fi
+    _run_until_fail herd php -d memory_limit=2G "$(_test_runner)" --no-coverage --stop-on-error --stop-on-failure --filter "$1"
 }
 
 # Reproduce a flaky test by running a single test case in a loop until it fails (parallel)
@@ -317,12 +316,7 @@ puf() {
     fi
 
     [ -z "$1" ] && { echo "file or directory required" 1>&2; return 1; }
-
-    if [ -f vendor/bin/pest ]; then
-        _run_until_fail herd php -d memory_limit=2G ./vendor/bin/pest --no-coverage --stop-on-error --stop-on-failure "$1"
-    else
-        _run_until_fail herd php -d memory_limit=2G ./vendor/bin/phpunit --no-coverage --stop-on-error --stop-on-failure "$1"
-    fi
+    _run_until_fail herd php -d memory_limit=2G "$(_test_runner)" --no-coverage --stop-on-error --stop-on-failure "$1"
 }
 
 # Reproduce a flaky test by running a test file or directory in a loop until it fails (parallel)
@@ -366,12 +360,13 @@ _quality_status() {
     local git_root root record
     source "$HOME/.claude/hooks/support/project-root.sh"
     source "$HOME/.claude/hooks/support/exit-codes.sh"
+    source "$HOME/.claude/hooks/support/quality-runs.sh"
 
     resolve_project_root "$PWD" git_root root || {
         echo "No Composer project (composer.json) found for $PWD." >&2
         return "$exit_nothing_to_check"
     }
-    record="${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality/runs$root.json"
+    record="$quality_runs_dir$root.json"
 
     if [[ ! -f "$record" ]]; then
         echo "No recorded gate run for $root."

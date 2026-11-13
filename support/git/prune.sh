@@ -52,7 +52,6 @@ function prune() {
     # Delete local branches whose upstream no longer exists.
     git branch --format '%(upstream:track,nobracket)%09%(refname:short)' \
         | grep -E -v "${protected_pattern}" \
-        | awk -v branch="$default_branch" '$NF != branch' \
-        | awk -F "\t" '{ if($1 ~ /gone/) { print $2 } }' \
+        | awk -F '\t' -v branch="$default_branch" '$1 ~ /gone/ && $2 != branch { print $2 }' \
         | xargs git branch -D
 }
