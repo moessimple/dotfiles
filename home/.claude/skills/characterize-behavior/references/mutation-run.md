@@ -1,11 +1,28 @@
 # Mutation run
 
-Coverage shows which lines ran, not whether a test checks what they do, so the mutation run is the measure of completeness. Measure the whole net, targeted tests and golden master together. Because the golden master runs in its own process, run `XDEBUG_MODE=coverage vendor/bin/pest --mutate --everything --covered-only --parallel` twice, once over the default suites and once with `--testsuite=GoldenMaster --group=golden-master`, never both at the same time (they share the testing databases). A mutation untested in the first run counts as caught when the second run does not list it as untested and the golden master covers its line (`--coverage-clover` of the golden master); its ID matches across runs because it hashes only the mutated file. Pest Mutate changes only the PHP files under `<source>` (its `FileFinder` takes `*.php`), so Blade views, routes, configuration, and migrations are never mutated: the golden master is their only net, and the report says so.
+Coverage shows which lines ran, not whether a test checks what they do. Run once at the end of the characterization:
+
+```bash
+XDEBUG_MODE=coverage vendor/bin/pest --mutate --everything --covered-only --parallel
+```
+
+Pest mutates only PHP files under `<source>`. Blade views, routes, configuration, and migrations are never mutated, so explicit assertions are their only net; the report says so.
 
 ## Which survivors lead to a test
 
-The goal is that every behaviour an actor can observe is pinned, not a mutation score: practice at Google found mutation adequacy "neither practical nor desirable", and mutants are highly redundant, so killing every one produces tests that exist only for the metric. Treat each survivor as a question: does this change alter something a user, an API client, the scheduler, the queue, or an operator can observe? If yes, and no test pins that observation yet, add the test that observes it at the entry point, under the admission check. If the only test that would catch it has to pin an implementation detail (an internal cache key, a framework's sleep interval, which model event fires, a constant visible to no actor), do not write it: record the mutation with that reason. If no actor can observe the change at all, record it as equivalent with the reason (for example, a changed default that every caller overrides, naming those callers). A mutation you could not observe with the tests you wrote is not equivalent until you have checked that no entry point exposes it. In developer tooling that no actor reaches in production (an evaluation or setup command outside the schedule), report the score and the survivors only. Whether a mutation is equivalent cannot be decided in general, so record each one under Equivalent mutations in `tests/CHARACTERIZATION.md`, as its format describes. Those in high-risk capabilities stay `Confirmed: open` and go under Open for a person to confirm; the others stay recorded with their reason. raise-quality-gate takes the whole list as its baseline. Pest Mutate swaps in a mutated file only once it has booted, so a class that `tests/Pest.php` or the test case file loads earlier (such as a test model declared next to the test case, which loads the trait it uses) runs unmutated, and every mutation in it shows as untested. When all mutations of a covered file are untested, look for that, and move such fixtures into their own files under `autoload-dev`. For existing tests this counts as missing test setup. Pest runs a mutant only against the tests whose coverage includes its line, and code that runs only in a forked child process (a concurrency test built on `pcntl_fork`) records no coverage, so such a test never runs against the mutant: where the observable outcome can be reached in-process (for a row lock, the decision on data written after the model was loaded), pin it there; otherwise record the mutant as caught only by the forked test.
+The goal is that every behaviour an actor can observe is pinned, not a score: mutants are highly redundant, and killing every one produces tests that exist only for the metric. For each survivor, ask whether the change alters something a user, an API client, the scheduler, the queue, or an operator can observe.
+
+- **Yes, and no test pins it:** add the test that observes it at the entry point, under the admission check in the skill.
+- **Only a test of an implementation detail would catch it** (an internal cache key, which model event fires, a constant no actor sees): do not write it; record the mutation with that reason.
+- **No actor can observe it** (for example a default every caller overrides, naming those callers): record it as equivalent with the reason. Check that no entry point exposes it before calling it equivalent.
+
+Record each one under Equivalent mutations in `tests/CHARACTERIZATION.md`. Those in high-risk capabilities stay `Confirmed: open` for a person to confirm. raise-quality-gate takes this list as its baseline.
+
+## Pitfalls
+
+- **All mutations of a covered file untested:** Pest swaps in a mutated file only after boot, so a class that `tests/Pest.php` or the test case file loads earlier (such as a fixture model declared next to the test case) runs unmutated. Move such fixtures into their own files under `autoload-dev`.
+- **Forked processes** (`pcntl_fork`) record no coverage, so their tests never run against a mutant. Pin the observable outcome in-process where possible; otherwise record the mutant as caught only by the forked test.
 
 ## After the characterization
 
-The run over everything is for the end of the characterization only. Later changes check only the classes they touch, with `--mutate --class={changed classes} --covered-only`: mutating changed code only is what keeps mutation testing practical at scale. raise-quality-gate works this way, and the handover names the command.
+Later changes check only the classes they touch: `--mutate --class={changed classes} --covered-only`. Mutating only changed code keeps mutation testing affordable.

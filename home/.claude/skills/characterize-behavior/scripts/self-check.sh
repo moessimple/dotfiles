@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Lists the hits a characterization run can find mechanically in its own uncommitted changes, staged or
 # not: files it must not touch, changed production packages, tests made easier, checks silenced, coverage
-# exclusions, changed snapshots. Each hit needs a look: fix it or explain it in the report. Exits 1 when
+# exclusions. Each hit needs a look: fix it or explain it in the report. Exits 1 when
 # there is any hit; a run that made the coverage gate the test command always has that one. Run it from
 # the project root.
 
@@ -72,10 +72,7 @@ report "Deleted test files" \
     "$(git diff HEAD --name-only --diff-filter=D -- tests)"
 
 report "Assertions removed from existing tests (check each: moved or gone?)" \
-    "$(git diff HEAD --unified=0 -- tests ':!tests/.pest' | grep '^-' | grep -v '^---' | grep -E 'assert|expect\(|->to[A-Z]' || true)"
-
-report "Snapshots changed after they were committed" \
-    "$(git diff HEAD --name-only -- tests/.pest/snapshots)"
+    "$(git diff HEAD --unified=0 -- tests | grep '^-' | grep -v '^---' | grep -E 'assert|expect\(|->to[A-Z]' || true)"
 
 report "Coverage exclusions and thresholds changed (each needs its reason in the report)" \
     "$(git diff HEAD --unified=0 -- phpunit.xml composer.json | grep -E '^[-+].*(<file>|<directory>|<exclude>|--min|--exactly|--coverage)' || true)"

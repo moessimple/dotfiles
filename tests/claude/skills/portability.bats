@@ -83,7 +83,8 @@ setup() {
     ! grep -rnE 'PRODUCT\.md|KNOWLEDGE_BASE\.md|document-product' "$skills_dir/characterize-behavior" || false
 }
 
-@test "the golden master reference is the same in both product skills that record it" {
+@test "raise-quality-gate extends the agent instructions section that document-product writes" {
     # Assert
-    cmp "$skills_dir/characterize-behavior/references/golden-master.md" "$skills_dir/raise-quality-gate/references/golden-master.md"
+    grep -Fqx '## Project knowledge' "$skills_dir/document-product/references/document-format.md"
+    grep -Fq '`## Project knowledge`' "$skills_dir/raise-quality-gate/SKILL.md"
 }

@@ -9,6 +9,7 @@ The gate every project reaches. Adjust paths to what the project has and the PHP
 - phpstan.neon
 - rector.php
 - pint.json
+- tests/Unit/ArchTest.php
 
 ## Composer scripts
 
@@ -19,15 +20,13 @@ The gate every project reaches. Adjust paths to what the project has and the PHP
 "test:type-coverage": "pest --type-coverage --min=100",
 "test:types": "phpstan",
 "test:unit": "XDEBUG_MODE=coverage pest --parallel --coverage --exactly=100.0 --fail-on-incomplete",
-"test:golden-master": "pest --parallel --testsuite=GoldenMaster --group=golden-master --fail-on-incomplete",
 "test": [
     "@php artisan config:clear --ansi",
     "@test:audit",
     "@test:lint",
     "@test:type-coverage",
     "@test:types",
-    "@test:unit",
-    "@test:golden-master"
+    "@test:unit"
 ]
 ```
 
@@ -111,8 +110,6 @@ return RectorConfig::configure()
     )
     ->withPhpSets()
     ->withSkip([
-        // The golden master stays as recorded: it is the reference every change is compared with.
-        __DIR__.'/tests/GoldenMaster',
         MakeInheritedMethodVisibilitySameAsParentRector::class,
         AddOverrideAttributeToOverriddenPropertiesRector::class,
         ReadOnlyClassRector::class,
@@ -126,6 +123,26 @@ return RectorConfig::configure()
 ```
 
 Leave out a skipped rule class that does not exist in the installed Rector version. While raising, the sets are added one at a time, as the skill describes, until the configuration matches the one above.
+
+## tests/Unit/ArchTest.php
+
+Pest's built-in architecture presets, run by `test:unit` like any other test:
+
+```php
+<?php
+
+arch()->preset()->php();
+arch()->preset()->security();
+arch()->preset()->laravel();
+```
+
+- `php` forbids debugging leftovers such as `die` and `var_dump`, and deprecated PHP functions. It needs the `intl` extension; without it, leave `php()` out and say so in the report.
+- `security` forbids functions such as `eval`, `exec`, `md5`, `sha1`, `rand`, `unserialize`, and `extract`.
+- `laravel` enforces Laravel's conventions: suffixes and base classes of controllers, form requests, commands, policies, and providers, only resource action names as public controller methods, `ShouldQueue` on mailables and jobs, no `env()` outside configuration, no `dd()` or `dump()`.
+- A package uses only `php` and `security`: the `laravel` preset assumes the `App` namespace of an application.
+- `strict` is not part of the gate: it requires `declare(strict_types=1)` and `final` classes, which change behaviour or a package's public API.
+
+Most violations cannot be fixed without changing behaviour: replacing `md5()` changes stored hashes, adding `ShouldQueue` moves a mail onto the queue, renaming a model changes its table name. So the presets start like a baseline: each existing violation is listed with `->ignoring(...)` (the class, namespace, or function) and a comment naming the reason, and goes into `QUALITY_GATE.md` as an open decision. The list only ever shrinks; a new violation fails the test.
 
 ## pint.json
 
@@ -175,7 +192,7 @@ Two rules of the set above can still change behaviour, and the review of the Pin
 - `ordered_traits` sorts a class's traits alphabetically, and Laravel boots a model's traits (`boot{Trait}`, `initialize{Trait}`) in the order they are used, so the order in which model events and global scopes are registered can change.
 - `ordered_class_elements` reorders properties across visibilities, which changes the order of `(array)` casts, `get_object_vars($this)`, and `serialize()`.
 
-Where either changes what the golden master or the tests observe, undo that part. Pint cannot turn a rule off for one file: either keep the file out of Pint with `notPath` (it is then not formatted at all) or leave the rule out of `pint.json`. Both depart from the gate and go into the report as decisions.
+Where either changes what the tests observe, undo that part. Pint cannot turn a rule off for one file: either keep the file out of Pint with `notPath` (it is then not formatted at all) or leave the rule out of `pint.json`. Both depart from the gate and go into the report as decisions.
 
 Four further rules of the gate change behaviour at runtime. Each is added on its own, only after a decision:
 

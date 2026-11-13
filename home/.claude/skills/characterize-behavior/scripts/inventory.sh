@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Lists the entry points of a Laravel application as Markdown: the inventory of capabilities and of the
-# golden master. Run it from the project root. It only reads: routes, commands, the schedule, and files.
+# Lists the entry points of a Laravel application as Markdown: the inventory of capabilities to characterize.
+# Run it from the project root. It only reads: routes, commands, the schedule, and files.
 
 set -euo pipefail
 

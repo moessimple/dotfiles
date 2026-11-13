@@ -11,7 +11,7 @@ A package supports a range of PHP and Laravel versions and is used by applicatio
 
 ## Both ends of the range
 
-Before every commit, run `composer test` with the newest versions, and the tests once with the lowest versions, PHP included: `composer update --prefer-lowest --prefer-stable` under the lowest PHP version `require.php` allows, `php{version} vendor/bin/pest --exclude-group=golden-master` with that binary (`vendor/bin/pest` alone starts the default PHP), then `composer update` back. A commit passes only when both pass. If that PHP version is not installed, run on the default one and say so in the report.
+Before every commit, run `composer test` with the newest versions, and the tests once with the lowest versions, PHP included: `composer update --prefer-lowest --prefer-stable` under the lowest PHP version `require.php` allows, `php{version} vendor/bin/pest` with that binary (`vendor/bin/pest` alone starts the default PHP), then `composer update` back. A commit passes only when both pass. If that PHP version is not installed, run on the default one and say so in the report.
 
 Run Rector with the lowest versions installed. `withPhpSets()` reads the lowest PHP version from `require.php`, but the Composer-based Laravel sets read the installed `laravel/framework`, which a package only gets through Testbench: with the newest versions installed, Rector applies rules for a Laravel version the package does not require, such as attributes the lowest version does not know. And because `composer test` runs `rector --dry-run` with the newest versions, it would then demand those rules. So a package replaces `withComposerBased(laravel: true)` with the level set of its lowest Laravel version, which does not depend on what is installed:
 
@@ -44,8 +44,8 @@ Run Rector with the lowest versions installed. `withPhpSets()` reads the lowest 
 A change that compiles inside the package can still break a consuming application. Before every commit, compare the public API with the last release using [Roave BackwardCompatibilityCheck](https://github.com/Roave/BackwardCompatibilityCheck). It needs a newer PHP than many packages support and its own dependencies, so install it outside the project, once, and run it from the package root:
 
 ```bash
-composer require roave/backward-compatibility-check --working-dir="$HOME/.claude/raise-quality-gate/tools"
-"$HOME"/.claude/raise-quality-gate/tools/vendor/bin/roave-backward-compatibility-check --from={last release tag} --to=HEAD
+composer require roave/backward-compatibility-check --working-dir="${XDG_CACHE_HOME:-$HOME/.cache}/raise-quality-gate/tools"
+"${XDG_CACHE_HOME:-$HOME/.cache}"/raise-quality-gate/tools/vendor/bin/roave-backward-compatibility-check --from={last release tag} --to=HEAD
 ```
 
 Without a release tag, compare with the commit the branch started from. Every `[BC]` line it prints is a breaking change; it also catches what the list below misses, such as an optional parameter added to a method a consumer may override. In a package, these are breaking changes and go into the report as open decisions, never into a commit on the skill's own initiative:
