@@ -8,5 +8,11 @@ function push() {
         return 0
     fi
 
-    git push -u origin $(git current-branch) "$@"
+    local current_branch
+    current_branch=$(git symbolic-ref --quiet --short HEAD) || {
+        echo "Cannot push while HEAD is detached." >&2
+        return 1
+    }
+
+    git push -u origin "$current_branch" "$@"
 }

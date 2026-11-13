@@ -60,3 +60,16 @@ teardown() {
     # Assert
     assert_failure
 }
+
+@test "pushing with a detached HEAD is rejected" {
+    # Arrange
+    given_repository_with_origin
+    git -C "$repository" switch -q --detach
+
+    # Act
+    run call_push
+
+    # Assert
+    assert_failure
+    assert_output_contains "Cannot push while HEAD is detached."
+}

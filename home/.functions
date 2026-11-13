@@ -283,6 +283,14 @@ _run_until_fail() {
     done
 }
 
+_test_until_fail() {
+    _run_until_fail herd php -d memory_limit=2G "$(_test_runner)" --no-coverage --stop-on-error --stop-on-failure "$@"
+}
+
+_parallel_test_until_fail() {
+    _run_until_fail herd php artisan test --parallel --passthru-php "'-d' 'memory_limit=2G'" --no-coverage --stop-on-error --stop-on-failure "$@"
+}
+
 # Reproduce a flaky test by running a single test case in a loop until it fails (sequential)
 puff() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
@@ -292,7 +300,7 @@ puff() {
     fi
 
     [ -z "$1" ] && { echo "test case required" 1>&2; return 1; }
-    _run_until_fail herd php -d memory_limit=2G "$(_test_runner)" --no-coverage --stop-on-error --stop-on-failure --filter "$1"
+    _test_until_fail --filter "$1"
 }
 
 # Reproduce a flaky test by running a single test case in a loop until it fails (parallel)
@@ -304,7 +312,7 @@ ppuff() {
     fi
 
     [ -z "$1" ] && { echo "test case required" 1>&2; return 1; }
-    _run_until_fail herd php artisan test --parallel --passthru-php "'-d' 'memory_limit=2G'" --no-coverage --stop-on-error --stop-on-failure --filter "$1"
+    _parallel_test_until_fail --filter "$1"
 }
 
 # Reproduce a flaky test by running a test file or directory in a loop until it fails (sequential)
@@ -316,7 +324,7 @@ puf() {
     fi
 
     [ -z "$1" ] && { echo "file or directory required" 1>&2; return 1; }
-    _run_until_fail herd php -d memory_limit=2G "$(_test_runner)" --no-coverage --stop-on-error --stop-on-failure "$1"
+    _test_until_fail "$1"
 }
 
 # Reproduce a flaky test by running a test file or directory in a loop until it fails (parallel)
@@ -328,7 +336,7 @@ ppuf() {
     fi
 
     [ -z "$1" ] && { echo "file or directory required" 1>&2; return 1; }
-    _run_until_fail herd php artisan test --parallel --passthru-php "'-d' 'memory_limit=2G'" --no-coverage --stop-on-error --stop-on-failure "$1"
+    _parallel_test_until_fail "$1"
 }
 
 # Run the project's quality gate using the available PHP and Laravel tooling.
