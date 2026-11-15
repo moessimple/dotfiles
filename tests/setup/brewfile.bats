@@ -34,13 +34,13 @@ list_casks() {
     cmp "$fixture/default" "$fixture/private"
 }
 
-@test "work profile excludes only Discord and WhatsApp" {
+@test "work profile excludes only Discord, OneCast and WhatsApp" {
     list_casks | LC_ALL=C sort > "$fixture/private"
     echo work > "$HOME/.config/dotfiles/profile"
     list_casks | LC_ALL=C sort > "$fixture/work"
     run comm -23 "$fixture/private" "$fixture/work"
     assert_success
-    [ "$output" = $'discord\nwhatsapp' ]
+    [ "$output" = $'discord\nonecast\nwhatsapp' ]
     run comm -13 "$fixture/private" "$fixture/work"
     assert_success
     [ -z "$output" ]

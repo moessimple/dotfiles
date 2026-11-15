@@ -103,7 +103,7 @@ fallback and sets `user.useConfigOnly = true`, so Git refuses commits without a 
 Later installs reuse the profile and ask only for the email if the local setting is missing or blank.
 All profile selection and email setup logic lives directly in `bin/install.sh`. Reconfigure and update never
 prompt and default to private without a saved profile. `support/config/Brewfile`
-reads the same profile and excludes Discord and WhatsApp on work machines, including from the desired state
+reads the same profile and excludes Discord, OneCast and WhatsApp on work machines, including from the desired state
 used by update's cleanup. Other packages and sudo steps are shared.
 
 **Claude Code plugin and skill updates (`support/setup/claude/update-cooldown.sh`).** Neither Claude Code nor the

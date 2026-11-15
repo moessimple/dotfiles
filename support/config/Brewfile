@@ -111,6 +111,7 @@ cask "visual-studio-code"
 # === Private Apps ===
 unless work_machine
   cask "discord"
+  cask "onecast"
   cask "whatsapp"
 end
 

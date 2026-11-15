@@ -124,7 +124,7 @@ profile.
 configured, Git refuses to commit. When upgrading an existing machine, save its email locally before pulling
 this change: `git config --file ~/.gitconfig-local user.email "YOUR_EMAIL"`.
 
-The work profile excludes Discord and WhatsApp from [`support/config/Brewfile`](support/config/Brewfile).
+The work profile excludes Discord, OneCast and WhatsApp from [`support/config/Brewfile`](support/config/Brewfile).
 Installation and updates use that same list; update's existing cleanup also removes these apps if installed on
 a work machine. System setup and all other packages remain the same for both profiles.
 Repository settings and Git environment variables can still set the identity for individual commits.
