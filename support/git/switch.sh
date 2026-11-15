@@ -110,15 +110,11 @@ function switch() {
         esac
     fi
 
-    if git show-ref --verify --quiet "refs/heads/$branch"; then
+    remote_branches=$(git for-each-ref --format='%(refname)' "refs/remotes/*/$branch") || return
+    if git show-ref --verify --quiet "refs/heads/$branch" || [ -n "$remote_branches" ]; then
         git switch "$branch"
     else
-        remote_branches=$(git for-each-ref --format='%(refname)' "refs/remotes/*/$branch") || return
-        if [ -n "$remote_branches" ]; then
-            git switch "$branch"
-        else
-            git switch -c "$branch"
-        fi
+        git switch -c "$branch"
     fi
     exit_code=$?
 

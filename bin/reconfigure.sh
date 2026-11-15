@@ -37,10 +37,9 @@ source ~/.dotfiles/support/setup/herd-debug-ini.sh
 # tinkerbench (tinkerbench.test)
 source ~/.dotfiles/support/setup/tinkerbench/tinkerbench.sh
 
-# Configure some things: starts background services like mailpit and ollama.
-step "Configure some things"
-source ~/.dotfiles/support/setup/configure.sh
-success "Some things configured"
+step "Starting background services"
+source ~/.dotfiles/support/setup/services.sh
+success "Background services started"
 
 # macOS defaults: run last because they quit the affected apps, Terminal among them.
 step "Applying macOS defaults"

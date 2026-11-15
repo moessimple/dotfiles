@@ -14,7 +14,7 @@ OLLAMA_MODELS=(
     embeddinggemma:latest
 )
 
-# The Homebrew service starts `ollama serve` asynchronously (configure.sh on install, a
+# The Homebrew service starts `ollama serve` asynchronously (services.sh on install, a
 # restart during `brew upgrade` on update), so give it a moment before talking to it.
 _ollama_wait_for_server() {
     local attempt

@@ -136,12 +136,11 @@ source ~/.dotfiles/support/setup/claude/claude-plugins.sh
 # Share reviewed standalone and plugin-provided skills with Codex after Claude installs them.
 source ~/.dotfiles/support/setup/codex/codex-skills.sh
 
-# Configure some things: starts background services like mailpit and ollama.
-step "Configure some things"
-source ~/.dotfiles/support/setup/configure.sh
-success "Some things configured"
+step "Starting background services"
+source ~/.dotfiles/support/setup/services.sh
+success "Background services started"
 
-# Ollama models: after configure.sh, which starts the Ollama service the pulls talk to.
+# Ollama models: after services.sh, which starts the Ollama service the pulls talk to.
 source ~/.dotfiles/support/setup/packages/ollama-models.sh
 
 # Create local config files if they don't exist

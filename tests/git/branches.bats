@@ -62,3 +62,17 @@ teardown() {
     assert_success
     assert_colorless_output_does_not_contain "main  →"
 }
+
+@test "a rebased branch is listed by its latest commit, not its original authorship" {
+    # Arrange
+    given_clean_repository_on_main
+    given_branch_with_commit_dates untouched "2001-01-01T00:00:00" "2001-01-01T00:00:00"
+    given_branch_with_commit_dates rebased "2000-01-01T00:00:00" "2002-01-01T00:00:00"
+
+    # Act
+    run call_branches
+
+    # Assert
+    assert_success
+    assert_branch_listed_before rebased untouched
+}

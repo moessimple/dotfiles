@@ -115,7 +115,6 @@ configure_test_repository() {
     local repository="$1"
     git -C "$repository" config user.name "Dotfiles Tests"
     git -C "$repository" config user.email "dotfiles-tests@example.com"
-    git -C "$repository" config alias.current-branch '!git rev-parse --abbrev-ref HEAD'
     git -C "$repository" config alias.default-branch "!sh $dotfiles_dir/home/.config/git/default-branch"
 }
 
