@@ -28,9 +28,9 @@ Install the Xcode Command Line Tools if Git is not available yet:
 xcode-select --install
 ```
 
-Sign in to the App Store with your Apple ID. The installer installs the App Store apps listed in
-[`support/config/Brewfile`](support/config/Brewfile) through `mas`, which can only install apps your Apple ID already
-owns.
+Sign in to the App Store with your Apple ID. The Mac App Store apps listed in
+[`support/config/Brewfile`](support/config/Brewfile) are installed through `mas`, which can only install apps your
+Apple ID already owns.
 
 Generate a GitHub SSH key with [`bin/setup-ssh.sh`](bin/setup-ssh.sh). Both this repository and tinkerbench are
 cloned over SSH. Run this before cloning:
@@ -110,30 +110,30 @@ this repository. The one exception is [`home/.claude/AGENTS.md`](home/.claude/AG
 The managed files cover the shell, Git, Ghostty, and Claude Code. Machine-specific shell configuration that should
 not be committed belongs in `~/.extra`.
 
+### Machine Profile
+
+On its first run, [`bin/install.sh`](bin/install.sh) asks whether the machine is private or for work and saves the
+choice as `private` or `work` in `~/.config/dotfiles/profile`.
+[`support/setup/machine-profile.sh`](support/setup/machine-profile.sh) reads and validates it for install,
+reconfigure, and update. Later installs reuse it. Reconfigure and update never prompt and default to private without
+a saved profile. To change the choice, remove `~/.config/dotfiles/profile` and run install again, entering the email
+for the new profile.
+
+The work profile excludes AusweisApp, Discord, OneCast, and WhatsApp from
+[`support/config/Brewfile`](support/config/Brewfile). Install and update use the same list, so update also removes
+these apps from a work machine. System setup and all other packages are the same for both profiles.
+
 ### Git Identity
 
-On its first run, [`bin/install.sh`](bin/install.sh) asks whether the machine is private or for work. The choice
-is saved locally as `private` or `work` in `~/.config/dotfiles/profile`. Both profiles ask for your Git email
-and write it to the untracked `~/.gitconfig-local`. Private setup offers your existing global email as a default,
-which you can accept with Enter or replace. Your name stays in [`home/.gitconfig`](home/.gitconfig), which includes
-the local file last. Existing local settings are preserved.
+Both profiles ask for your Git email and write it to the untracked `~/.gitconfig-local`. Private setup offers your
+existing global email as a default, which you can accept with Enter or replace. Later installs ask again only if the
+local email is missing or blank. Your name stays in [`home/.gitconfig`](home/.gitconfig), which includes the local
+file last. Existing local settings are preserved.
 
-[`support/setup/machine-profile.sh`](support/setup/machine-profile.sh) reads and validates the saved choice for
-install, reconfigure, and update. [`bin/install.sh`](bin/install.sh) handles profile selection and local Git email
-setup.
-Later installs reuse the profile and email, asking only for the email if its local setting is missing or blank.
-Reconfigure and update never prompt and default to private without a saved profile.
-To change your choice, remove `~/.config/dotfiles/profile` and run install again, entering the email for the new
-profile.
-
-[`home/.gitconfig`](home/.gitconfig) has no fallback email and sets `user.useConfigOnly = true`. If no email is
-configured, Git refuses to commit. When upgrading an existing machine, save its email locally before pulling
-this change: `git config --file ~/.gitconfig-local user.email "YOUR_EMAIL"`.
-
-The work profile excludes AusweisApp, Discord, OneCast and WhatsApp from [`support/config/Brewfile`](support/config/Brewfile).
-Installation and updates use that same list; update's existing cleanup also removes these apps if installed on
-a work machine. System setup and all other packages remain the same for both profiles.
-Repository settings and Git environment variables can still set the identity for individual commits.
+[`home/.gitconfig`](home/.gitconfig) has no fallback email and sets `user.useConfigOnly = true`, so Git refuses to
+commit until an email is configured. If a machine has no local email yet, run install again or save it directly:
+`git config --file ~/.gitconfig-local user.email "YOUR_EMAIL"`. Repository settings and Git environment variables
+can still set the identity for individual commits.
 
 ## Daily Usage
 
@@ -193,26 +193,28 @@ Homebrew entries and Mac App Store apps, global Composer and npm packages, user-
 models, Claude Code skills and plugins, and user-level MCP servers without asking. Project dependencies and
 project-level Claude Code integrations are not affected.
 
+The update does not reapply symlinks or setup scripts. When it pulls changes to them, also run
+[`bin/reconfigure.sh`](bin/reconfigure.sh), which reapplies symlinks, services, Herd and tinkerbench setup, and macOS
+preferences without reinstalling packages:
+
+```zsh
+bin/reconfigure.sh
+```
+
 Composer and npm skip releases younger than 3 days. The setup sets this in their user-level configuration
 ([`support/setup/packages/composer-packages.sh`](support/setup/packages/composer-packages.sh),
 [`support/setup/packages/npm-packages.sh`](support/setup/packages/npm-packages.sh)), so it also applies to every
 project without its own setting.
 
 Claude Code plugins and skills get the same 3-day cooldown
-([`support/setup/claude/update-cooldown.sh`](support/setup/claude/update-cooldown.sh)), counted from the update's
-first sighting instead of a publish date, which Git does not record reliably: a new upstream version of a
-skill's folder, or of a plugin's folder and marketplace entry, is installed only after the update has seen it
-unchanged for 3 days. A plugin or skill that changes more often than that waits until it rests for 3 days. Plugins
-from the same marketplace are updated together, once all of them have passed the cooldown, because refreshing the
-marketplace changes the configuration of every plugin it defines. The
-first sighting of each version is recorded in `${XDG_CONFIG_HOME:-~/.config}/claude-update-cooldown/first-seen`,
-so the first run on a new machine starts every cooldown.
-
-Reapply symlinks, services, Herd and tinkerbench setup, and macOS preferences without reinstalling packages with:
-
-```zsh
-bin/reconfigure.sh
-```
+([`support/setup/claude/update-cooldown.sh`](support/setup/claude/update-cooldown.sh)). Git does not record a
+reliable publish date, so the cooldown counts from the first update that sees a new upstream version: a skill's
+folder, or a plugin's folder and marketplace entry. That version is installed once the update has seen it unchanged
+for 3 days, so a plugin or skill that changes more often waits until it rests. Plugins from the same marketplace are
+updated together once all of them have passed the cooldown, because refreshing a marketplace changes the
+configuration of every plugin it defines. First sightings are recorded in
+`${XDG_CONFIG_HOME:-~/.config}/claude-update-cooldown/first-seen`, so on a new machine every cooldown starts with the
+first update.
 
 ## Claude Code and Codex
 
