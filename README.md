@@ -14,7 +14,7 @@ and adapted. One script sets up a fresh Mac, one keeps it up to date, and one re
 - Claude Code settings, agents, hooks, rules, skills, plugins, and MCP servers, kept under version control, with Addy
   Osmani's [agent-skills](https://skills.addy.ie) workflow and an automatic quality gate (Pint, PHPStan, Rector,
   Pest/PHPUnit)
-- Global instructions and agent skills shared between Claude Code and Codex
+- Global instructions and skills shared between Claude Code and Codex
 - Global Composer and npm tools, and the Python packages the PDF skill needs
 - Ollama with local models listed in [`support/setup/packages/ollama-models.sh`](support/setup/packages/ollama-models.sh)
 - [tinkerbench](https://github.com/moessimple/tinkerbench), installed at `~/Code/tinkerbench`
@@ -35,7 +35,7 @@ The macOS setup enables FileVault and the application firewall, disables hiberna
 changes Finder and Dock behavior, applies German regional settings, and configures several bundled applications.
 Review [`support/setup/macos/osx-defaults.sh`](support/setup/macos/osx-defaults.sh) if you do not want those choices.
 
-If you forked this repository, adjust the personal defaults listed under [Make It Your Own](#make-it-your-own) first.
+If you fork this repository, adjust the personal defaults listed under [Make It Your Own](#make-it-your-own) first.
 
 ## Setting Up Your Mac
 
@@ -46,17 +46,17 @@ If you forked this repository, adjust the personal defaults listed under [Make I
    xcode-select --install
    ```
 
-3. Sign in to the App Store with your Apple ID. The Mac App Store apps are installed through `mas`, which can only
-   install apps your Apple ID already owns.
-4. Create a GitHub SSH key, unless you already have one for GitHub. [`bin/setup-ssh.sh`](bin/setup-ssh.sh) asks for
-   a passphrase, adds the key to the SSH agent and macOS Keychain, copies the public key, and refuses to overwrite
-   existing keys:
+3. Sign in to the App Store with your Apple ID. The Brewfile's Mac App Store apps are installed through `mas`, which
+   can only install apps your Apple ID already owns.
+4. Create a GitHub SSH key, unless you already have one for GitHub:
 
    ```zsh
    curl -fsSL https://raw.githubusercontent.com/moessimple/dotfiles/HEAD/bin/setup-ssh.sh | bash -s -- "your@github-email.com"
    ```
 
-   Add the copied key at [github.com/settings/keys](https://github.com/settings/keys).
+   [`bin/setup-ssh.sh`](bin/setup-ssh.sh) asks for a passphrase, adds the key to the SSH agent and macOS Keychain,
+   copies the public key, and refuses to overwrite existing keys. Add the copied key at
+   [github.com/settings/keys](https://github.com/settings/keys).
 5. Clone this repository to `~/.dotfiles`, the path the scripts expect, and run the installer:
 
    ```zsh
@@ -89,8 +89,7 @@ arguments print their usage with `--help`.
 - `p` runs Pest or PHPUnit, `pp` runs the suite in parallel, and `pf <filter>` runs matching tests.
 - `pc` runs the tests with code coverage.
 - `puff <filter>` reruns a test until it fails, to reproduce a flaky test.
-- `quality [full]` runs the quality gate (Pint, PHPStan, Rector, Pest/PHPUnit) by hand; `quality status` shows the
-  last recorded run.
+- `quality [full]` runs the quality gate by hand; `quality status` shows the last recorded run.
 
 ### Git and GitHub
 
@@ -125,8 +124,7 @@ Call a skill in Claude Code with `/<name>`, for example `/review`. Codex can use
 - `quality` runs the PHP and Laravel [quality gate](home/.claude/hooks/README.md) and reports only checks that
   actually ran.
 
-The other skills live in [`home/.claude/skills/`](home/.claude/skills/). Third-party skills are declared in
-[`support/setup/claude/claude-skills.sh`](support/setup/claude/claude-skills.sh).
+The other skills, including third-party ones, live in [`home/.claude/skills/`](home/.claude/skills/).
 
 ## Keeping It Up to Date
 
@@ -141,9 +139,9 @@ Homebrew entries and Mac App Store apps, global Composer and npm packages, user-
 models, Claude Code skills and plugins, and user-level MCP servers without asking. Project dependencies and
 project-level Claude Code integrations are not affected.
 
-The update does not reapply symlinks or setup scripts, and reminds you of that when it finishes. When it pulled
+The update does not reapply symlinks or setup scripts, and reminds you of that when it finishes. When it has pulled
 changes to them, reapply symlinks, services, Herd and tinkerbench setup, and macOS preferences without touching
-packages:
+packages (the `reconfigure` alias runs the same script):
 
 ```zsh
 bin/reconfigure.sh
@@ -174,11 +172,11 @@ this repository. The one exception is [`home/.claude/AGENTS.md`](home/.claude/AG
 
 ### Machine Profile
 
-The profile is saved as `private` or `work` in `~/.config/dotfiles/profile`.
+[`bin/install.sh`](bin/install.sh) saves the profile as `private` or `work` in `~/.config/dotfiles/profile`.
 [`support/setup/machine-profile.sh`](support/setup/machine-profile.sh) reads and validates it for install,
 reconfigure, and update. Later installs reuse it. Reconfigure and update never prompt and default to private without
-a saved profile. To change the profile, remove `~/.config/dotfiles/profile` and run install again, entering the
-email for the new profile.
+a saved profile. To change the profile, remove `~/.config/dotfiles/profile` and run `bin/install.sh` again, entering
+the email for the new profile.
 
 The work profile excludes AusweisApp, Discord, OneCast, and WhatsApp from
 [`support/config/Brewfile`](support/config/Brewfile). Install and update use the same list, so update also removes
@@ -186,13 +184,13 @@ these apps from a work machine. System setup and all other packages are the same
 
 ### Git Identity
 
-Your Git name stays in [`home/.gitconfig`](home/.gitconfig). The email differs per machine and lives in the untracked
-`~/.gitconfig-local`, which `home/.gitconfig` includes last. On a private machine, install offers your existing
-global email as a default, which you can accept with Enter or replace. Later installs ask again only if the local
-email is missing or blank. Existing local settings are preserved.
+Your Git name is set in [`home/.gitconfig`](home/.gitconfig). The email differs per machine and lives in the untracked
+`~/.gitconfig-local`, which `home/.gitconfig` includes last. On a private machine, `bin/install.sh` offers your
+existing global email as a default, which you can accept with Enter or replace. Later installs ask again only if the
+local email is missing or blank. Existing local settings are preserved.
 
 `home/.gitconfig` has no fallback email and sets `user.useConfigOnly = true`, so Git refuses to commit until an
-email is configured. If a machine has no local email yet, run install again or save it directly:
+email is configured. If a machine has no local email yet, run `bin/install.sh` again or save it directly:
 `git config --file ~/.gitconfig-local user.email "YOUR_EMAIL"`. Repository settings and Git environment variables
 can still set the identity for individual commits.
 
@@ -218,9 +216,9 @@ first update.
 Claude Code and Codex share the same global instructions: [`home/.claude/AGENTS.md`](home/.claude/AGENTS.md) is
 linked as `~/.claude/CLAUDE.md` and as `~/.codex/AGENTS.md`.
 
-Harness-neutral skills keep their source under `home/.claude/skills/` or Claude's installed plugin cache and are
-linked individually into Codex's documented user skill directory, `~/.agents/skills/`. Claude remains the only
-installer and updater. The explicit allowlists in
+Skills that also work in Codex keep their source under `home/.claude/skills/` or Claude Code's installed plugin cache
+and are linked individually into `~/.agents/skills/`, Codex's documented user skill directory. Only Claude Code
+installs and updates them. The explicit allowlists in
 [`support/setup/codex/codex-skills.sh`](support/setup/codex/codex-skills.sh) prevent Claude-specific skills and
 duplicates of Codex's built-in skills from being shared accidentally.
 
