@@ -240,3 +240,20 @@ teardown() {
     assert_output_contains "Could not list the plugin marketplaces, plugins not updated"
     assert_output_contains "Update complete!"
 }
+
+@test "a failed Homebrew cleanup is reported instead of swallowed" {
+    # Arrange
+    given_clean_repository_on_main
+    given_repository_with_real_setup_scripts
+    given_bare_origin_remote
+    git -C "$repository" push -q origin main
+    given_every_external_tool_update_touches_is_faked
+    given_homebrew_cleanup_fails
+
+    # Act
+    run call_update
+
+    # Assert
+    assert_success
+    assert_output_contains "Could not remove every undeclared Homebrew package"
+}

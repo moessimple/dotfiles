@@ -103,7 +103,7 @@ fallback and sets `user.useConfigOnly = true`, so Git refuses commits without a 
 Later installs reuse the profile and ask only for the email if the local setting is missing or blank.
 All profile selection and email setup logic lives directly in `bin/install.sh`. Reconfigure and update never
 prompt and default to private without a saved profile. `support/config/Brewfile`
-reads the same profile and excludes Discord, OneCast and WhatsApp on work machines, including from the desired state
+reads the same profile and excludes AusweisApp, Discord, OneCast and WhatsApp on work machines, including from the desired state
 used by update's cleanup. Other packages and sudo steps are shared.
 
 **Claude Code plugin and skill updates (`support/setup/claude/update-cooldown.sh`).** Neither Claude Code nor the
@@ -121,8 +121,9 @@ itself; `claude-plugins.sh` sets it again after `claude plugin marketplace add`.
 **Declared list = desired state.** The Brewfile (`support/config/Brewfile`), global Composer/npm/Python package lists
 and Ollama models (`support/setup/packages/`), Claude Code skills/plugins (`support/setup/claude/claude-skills.sh`,
 `claude-plugins.sh`), and Codex-compatible skills (`support/setup/codex/codex-skills.sh`) are each treated as the full
-desired state. After each update step, `bin/update.sh` removes anything installed but not declared: Homebrew via
-`brew bundle cleanup --force`, the others via a `*_cleanup` function in the declaring file, while `codex-skills.sh`
+desired state. After each update step, `bin/update.sh` removes anything installed but not declared: Homebrew and
+Mac App Store apps (the Brewfile's `mas` entries) via `brew bundle cleanup --force`, the others via a
+`*_cleanup` function in the declaring file, while `codex-skills.sh`
 prunes its own stale links on every run. When adding a package or skill, add it to the declaration; do not
 install it out of band, or the next `update.sh` run removes it. `claude-skills.sh` documents a manual vetting checklist
 to run before adding any third-party skill. Add a source to `CODEX_COMPATIBLE_SKILLS` or

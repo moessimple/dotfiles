@@ -44,7 +44,8 @@ brew update
 brew upgrade
 brew bundle --file=~/.dotfiles/support/config/Brewfile
 # Without --force this only prompts, and an unattended prompt does nothing.
-brew bundle cleanup --force --file=~/.dotfiles/support/config/Brewfile || true
+brew bundle cleanup --force --file=~/.dotfiles/support/config/Brewfile \
+    || warn "Could not remove every undeclared Homebrew package, see the output above"
 # --prune=all: update, upgrade and bundle just downloaded every declared package they
 # needed, so the whole download cache is stale. The default 120-day window lets casks
 # like Docker.dmg pile up GBs between prunes.

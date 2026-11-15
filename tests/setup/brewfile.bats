@@ -20,6 +20,10 @@ list_casks() {
     brew bundle list --cask --file="$dotfiles_dir/support/config/Brewfile"
 }
 
+list_mas_apps() {
+    brew bundle list --mas --file="$dotfiles_dir/support/config/Brewfile"
+}
+
 @test "without a profile the Brewfile still includes private apps" {
     run list_casks
     assert_success
@@ -41,6 +45,18 @@ list_casks() {
     run comm -23 "$fixture/private" "$fixture/work"
     assert_success
     [ "$output" = $'discord\nonecast\nwhatsapp' ]
+    run comm -13 "$fixture/private" "$fixture/work"
+    assert_success
+    [ -z "$output" ]
+}
+
+@test "work profile excludes only AusweisApp from the Mac App Store apps" {
+    list_mas_apps | LC_ALL=C sort > "$fixture/private"
+    echo work > "$HOME/.config/dotfiles/profile"
+    list_mas_apps | LC_ALL=C sort > "$fixture/work"
+    run comm -23 "$fixture/private" "$fixture/work"
+    assert_success
+    [ "$output" = "AusweisApp" ]
     run comm -13 "$fixture/private" "$fixture/work"
     assert_success
     [ -z "$output" ]

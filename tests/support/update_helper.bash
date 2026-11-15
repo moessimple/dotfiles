@@ -43,6 +43,11 @@ given_every_external_tool_update_touches_is_faked() {
     given_fake_ollama_listing ''
 }
 
+given_homebrew_cleanup_fails() {
+    write_fake_binary brew '[[ "$*" == "bundle cleanup"* ]] && exit 1
+exit 0'
+}
+
 # The skills CLI reinstalls Clarity's whole repository on every add or update of it,
 # so this fake brings the repository extras back the same way.
 given_skills_update_restoring_clarity_extras() {

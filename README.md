@@ -28,6 +28,10 @@ Install the Xcode Command Line Tools if Git is not available yet:
 xcode-select --install
 ```
 
+Sign in to the App Store with your Apple ID. The installer installs the App Store apps listed in
+[`support/config/Brewfile`](support/config/Brewfile) through `mas`, which can only install apps your Apple ID already
+owns.
+
 Generate a GitHub SSH key with [`bin/setup-ssh.sh`](bin/setup-ssh.sh). Both this repository and tinkerbench are
 cloned over SSH. Run this before cloning:
 
@@ -49,6 +53,8 @@ does `bin/reconfigure.sh`. Review
 If you fork the repository, adjust these personal defaults first:
 
 - Git name in [`home/.gitconfig`](home/.gitconfig); each machine's email is configured locally during install
+- Mac App Store apps (`mas` entries) in [`support/config/Brewfile`](support/config/Brewfile), which must be owned by
+  your Apple ID
 - Absolute working directory in [`home/.config/ghostty/config`](home/.config/ghostty/config)
 - Locale and time zone in
   [`support/setup/macos/osx-defaults.sh`](support/setup/macos/osx-defaults.sh), if they don't match yours
@@ -83,7 +89,7 @@ Choose SSH when `gh` asks for the Git protocol.
 
 ## What's Included
 
-The complete list of Homebrew formulae, applications, fonts, and Quick Look plugins is in
+The complete list of Homebrew formulae, applications, fonts, Quick Look plugins, and Mac App Store apps is in
 [`support/config/Brewfile`](support/config/Brewfile). The setup also includes:
 
 - Oh My Zsh, shell aliases, functions, paths, exports, and Git helpers
@@ -124,7 +130,7 @@ profile.
 configured, Git refuses to commit. When upgrading an existing machine, save its email locally before pulling
 this change: `git config --file ~/.gitconfig-local user.email "YOUR_EMAIL"`.
 
-The work profile excludes Discord, OneCast and WhatsApp from [`support/config/Brewfile`](support/config/Brewfile).
+The work profile excludes AusweisApp, Discord, OneCast and WhatsApp from [`support/config/Brewfile`](support/config/Brewfile).
 Installation and updates use that same list; update's existing cleanup also removes these apps if installed on
 a work machine. System setup and all other packages remain the same for both profiles.
 Repository settings and Git environment variables can still set the identity for individual commits.
@@ -183,9 +189,9 @@ bin/update.sh
 ```
 
 The update treats the repository's package and Claude Code declarations as the desired state. It removes undeclared
-Homebrew entries, global Composer and npm packages, user-installed Python packages, Ollama models, Claude Code skills
-and plugins, and user-level MCP servers without asking. Project dependencies and project-level Claude Code
-integrations are not affected.
+Homebrew entries and Mac App Store apps, global Composer and npm packages, user-installed Python packages, Ollama
+models, Claude Code skills and plugins, and user-level MCP servers without asking. Project dependencies and
+project-level Claude Code integrations are not affected.
 
 Composer and npm skip releases younger than 3 days. The setup sets this in their user-level configuration
 ([`support/setup/packages/composer-packages.sh`](support/setup/packages/composer-packages.sh),

@@ -31,6 +31,7 @@ brew "jpeg"
 brew "libpng"
 brew "librsvg"
 brew "libxml2"
+brew "mas"
 brew "nano"
 brew "ncdu"
 brew "node"
@@ -114,9 +115,14 @@ unless work_machine
   cask "discord"
   cask "onecast"
   cask "whatsapp"
+  mas "AusweisApp", id: 948660805
 end
 
 # === QuickLook Plugins ===
 cask "betterzip"
 cask "qlmarkdown"
 cask "suspicious-package"
+
+# === Mac App Store ===
+mas "1Password for Safari", id: 1569813296
+mas "Amphetamine", id: 937984704
