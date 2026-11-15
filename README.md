@@ -80,52 +80,57 @@ If you forked this repository, adjust the personal defaults listed under [Make I
 
 ## Daily Usage
 
-These are the commands I use most often. The full list lives in [`home/.aliases`](home/.aliases),
-[`home/.functions`](home/.functions), and [`support/git/`](support/git/).
+A selection of the commands I use most. The full list lives in [`home/.aliases`](home/.aliases),
+[`home/.functions`](home/.functions), and [`support/git/`](support/git/). The Git helpers and most functions that take
+arguments print their usage with `--help`.
 
 ### PHP and Testing
 
-- `p` runs Pest or PHPUnit.
-- `pp` runs the test suite in parallel.
-- `pf <filter>` runs tests matching a name.
-- `pw` watches files and reruns the test suite.
-- `quality [full]` runs the PHP/Laravel quality gate (Pint, PHPStan, Rector, Pest/PHPUnit) by hand; `quality status`
-  shows the last recorded run.
+- `p` runs Pest or PHPUnit, `pp` runs the suite in parallel, and `pf <filter>` runs matching tests.
+- `pc` runs the tests with code coverage.
+- `puff <filter>` reruns a test until it fails, to reproduce a flaky test.
+- `quality [full]` runs the quality gate (Pint, PHPStan, Rector, Pest/PHPUnit) by hand; `quality status` shows the
+  last recorded run.
 
 ### Git and GitHub
 
-- `commit [message]` stages and commits the repository. Without a message, Claude generates one, falling back to
-  Codex and then an interactive prompt.
-- `wip` commits everything with the message `wip`.
-- `sync` synchronizes long-lived branches from an `upstream` remote and force-pushes them to `origin`.
+- `commit [message]` stages and commits everything. Without a message, Claude writes one, falling back to Codex and
+  then an interactive prompt.
+- `switch <branch>` switches or creates a branch and asks whether uncommitted changes come along or stay behind.
+- `review [base]` and `compare [base]` browse the branch's changes against a base branch with fzf.
+- `search <term>` finds the commits that added or removed a string.
+- `sync` resets long-lived branches to an `upstream` remote and force-pushes them to `origin`.
 - `nah` aborts an in-progress Git operation, discards local changes, and removes untracked files.
 
-`sync` and `nah` are destructive commands. Use them only when that behavior is intended.
+`sync` and `nah` are destructive. Use them only when that is what you want.
 
 ### Databases and Tools
 
 - `db <refresh|create|drop|list> [name]` manages local MySQL databases.
-- `opendb` opens the current project's database in a GUI client, using credentials from its `.env`.
 - `mf` / `mfa` fresh-migrates the current project's database, or all of its databases (main, test, and parallel test
   shards).
-- `code` opens VS Code.
+- `opendb` opens the current project's database in a GUI client, using credentials from its `.env`.
+- `code [path]` opens VS Code, in the current directory when no path is given.
 - `https://tinkerbench.test` runs PHP snippets against Herd-linked projects.
 
-### Shared Agent Skills
+### Skills
 
-Claude Code invokes these workflows as `/debug`, `/pr`, `/review`, and `/quality`. Codex uses `$debug`, `$pr`,
-`$review`, and `$quality` against the same source files.
+Call a skill in Claude Code with `/<name>`, for example `/review`. Codex can use the same skills as `$<name>`.
 
 - `debug` finds and fixes the root cause of a bug through a reproduce-first diagnosis loop.
-- `pr` prepares or refreshes a pull request and waits for approval before pushing or changing GitHub.
-- `review` reviews code across technical and customer-facing concerns, then reports the verdict without changing
-  files or posting to GitHub.
-- `quality` runs the recorded PHP and Laravel [quality gate](home/.claude/hooks/README.md) and reports only checks
-  that actually ran.
+- `review` reviews a pull request or the local changes and reports the verdict without changing files or posting to
+  GitHub.
+- `pr` turns the current branch into a pull request with a description of the problem, outcome, and evidence, and
+  waits for approval before creating or updating it.
+- `quality` runs the PHP and Laravel [quality gate](home/.claude/hooks/README.md) and reports only checks that
+  actually ran.
+
+The other skills live in [`home/.claude/skills/`](home/.claude/skills/). Third-party skills are declared in
+[`support/setup/claude/claude-skills.sh`](support/setup/claude/claude-skills.sh).
 
 ## Keeping It Up to Date
 
-Update the repository and all managed packages:
+Update the repository and all managed packages (the `update` alias runs the same script):
 
 ```zsh
 bin/update.sh
