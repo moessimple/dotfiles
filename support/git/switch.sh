@@ -124,9 +124,7 @@ function switch() {
     fi
 
     if [ "$stashed" -eq 1 ] && [ "$leaving" -eq 0 ]; then
-        git stash pop --index
-        exit_code=$?
-        [ "$exit_code" -eq 0 ] || return "$exit_code"
+        git stash pop --index || return
     fi
 
     if [ -n "$(_switch_find_stash "$branch")" ]; then

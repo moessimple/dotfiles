@@ -32,17 +32,17 @@ function sync() {
 
     local branch exit_code=0
     for branch in "${long_lived_branches[@]}"; do
-        if git show-ref --verify --quiet "refs/remotes/upstream/$branch"; then
-            if git show-ref --verify --quiet "refs/heads/$branch"; then
-                git switch "$branch"
-            else
-                git switch -c "$branch" "upstream/$branch"
-            fi \
-                && git reset --hard "upstream/$branch" \
-                && git push origin "$branch" --force
-            exit_code=$?
-            [ "$exit_code" -eq 0 ] || break
-        fi
+        git show-ref --verify --quiet "refs/remotes/upstream/$branch" || continue
+
+        if git show-ref --verify --quiet "refs/heads/$branch"; then
+            git switch "$branch"
+        else
+            git switch -c "$branch" "upstream/$branch"
+        fi \
+            && git reset --hard "upstream/$branch" \
+            && git push origin "$branch" --force
+        exit_code=$?
+        [ "$exit_code" -eq 0 ] || break
     done
 
     if [ "$exit_code" -eq 0 ]; then
