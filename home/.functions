@@ -85,18 +85,12 @@ cmdp() {
         return 0
     fi
 
-    if [[ $# -eq 0 ]]; then
-        echo "cmdp: n must be a positive integer" >&2
-        return 1
-    fi
-
-    local n="$1"
-    shift
-
+    local n="${1:-}"
     if [[ "$n" != <-> || "$n" -lt 1 ]]; then
         echo "cmdp: n must be a positive integer" >&2
         return 1
     fi
+    shift
 
     if (( $# == 0 )); then
         echo "cmdp: command required" >&2
@@ -269,7 +263,7 @@ pp() {
 
 # Watch for file changes and re-run tests automatically
 pw()  { PHP_OPTIONS="-d memory_limit=2G" herd php "$(which phpunit-watcher)" watch --testdox "$@"; }
-pwf() { PHP_OPTIONS="-d memory_limit=2G" herd php "$(which phpunit-watcher)" watch --testdox --filter "$@"; }
+pwf() { pw --filter "$@"; }
 
 _run_until_fail() {
     local count=0
@@ -585,10 +579,9 @@ db() {
 # Drop and recreate each given database, then run skeema or Laravel migrations
 _migrate_databases() {
     _require_local_database || return
-    local databases=("$@")
     local failed=0
     local db
-    for db in "${databases[@]}"; do
+    for db in "$@"; do
         _mysql_cmd -e "DROP DATABASE IF EXISTS \`$db\`; CREATE DATABASE \`$db\`;" || return
         if [ -d "database/skeema" ]; then
             DB_DATABASE=$db herd php artisan skeema:push --allow-unsafe --force --skip-lint --env=local || failed=1
