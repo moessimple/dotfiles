@@ -90,6 +90,9 @@ touching package managers. `update.sh` pulls the repo, then updates Homebrew, gl
 user-level Python packages, Claude Code skills/plugins (after a cooldown, see below), Codex skill links, and
 Ollama models.
 
+`support/setup/herd-debug-ini.sh` reapplies both managed Xdebug ini files on every install/reconfigure run,
+replacing local changes.
+
 `bin/setup-ssh.sh` runs before cloning on a fresh Mac. It generates an Ed25519 key, adds it to the SSH agent and
 macOS Keychain, and copies the public key for manual registration on GitHub. It refuses to overwrite existing keys
 and does not run as part of `bin/install.sh`.

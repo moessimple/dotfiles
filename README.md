@@ -139,16 +139,15 @@ Homebrew entries and Mac App Store apps, global Composer and npm packages, user-
 models, Claude Code skills and plugins, and user-level MCP servers without asking. Project dependencies and
 project-level Claude Code integrations are not affected.
 
-After changing the configuration, apply it without the slower package update (the `reconfigure` alias runs the same
-script):
+After changing symlink declarations or setup scripts, apply them without the slower package update (the
+`reconfigure` alias runs the same script):
 
 ```zsh
 bin/reconfigure.sh
 ```
 
-It reapplies symlinks, services, Herd and tinkerbench setup, and macOS preferences, and installs or updates no
-packages. Edits to files that are already linked need no reconfigure run, since the symlink points at the changed
-file.
+It reapplies symlinks, services, Herd and tinkerbench setup, and macOS preferences without running package updates.
+Edits to files that are already linked need no reconfigure run, since the symlink points at the changed file.
 
 ## Make It Your Own
 

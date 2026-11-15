@@ -72,7 +72,7 @@ teardown() {
     assert_no_ini_files_for 74
 }
 
-@test "re-running the setup does not overwrite an existing xdebug.ini or debug.ini" {
+@test "re-running the setup replaces drift in both managed Xdebug ini files" {
     # Arrange
     given_herd_reports_installed_php_versions 8.4
     given_herd_ships_xdebug_build_for 84
@@ -85,8 +85,8 @@ teardown() {
 
     # Assert
     assert_success
-    assert_file_content "$(ini_path 84/xdebug.ini)" "xdebug.mode=develop"
-    assert_file_content "$(ini_path 84/debug/debug.ini)" "hand-tuned by herd"
+    assert_file_content "$(ini_path 84/xdebug.ini)" "$(printf 'zend_extension=%s\nxdebug.mode=off' "$herd_resources/xdebug/xdebug-84-arm64.so")"
+    assert_file_content "$(ini_path 84/debug/debug.ini)" "$(sed "s#XDEBUG_PATH#$herd_resources/xdebug/xdebug-84-arm64.so#" "$herd_resources/config/php/debug.ini")"
 }
 
 @test "a failing herd php:list is reported instead of claiming the ini files were installed" {

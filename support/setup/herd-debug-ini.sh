@@ -4,6 +4,7 @@
 # Unattended setup instead copies Herd's template for every installed PHP
 # version. The configuration is shared by all Herd projects using that version,
 # so it must not depend on one project's setup order.
+# Both ini files are managed here and rewritten on every run to correct drift.
 #
 # It also drops an always-loaded xdebug.ini in each version's ini scan dir with
 # xdebug.mode=off: Xdebug is then present in every PHP process (including the
@@ -39,18 +40,14 @@ else
             continue
         fi
 
-        if [ ! -f "$debug_ini" ]; then
-            mkdir -p "$debug_dir" \
-                || error "Could not create the Herd debug configuration directory for PHP $version"
-            sed "s#XDEBUG_PATH#$xdebug_extension#" "$HERD_DEBUG_TEMPLATE" > "$debug_ini" \
-                || error "Could not install the Herd debug configuration for PHP $version"
-        fi
+        mkdir -p "$debug_dir" \
+            || error "Could not create the Herd debug configuration directory for PHP $version"
+        sed "s#XDEBUG_PATH#$xdebug_extension#" "$HERD_DEBUG_TEMPLATE" > "$debug_ini" \
+            || error "Could not install the Herd debug configuration for PHP $version"
 
         always_ini="$HERD_PHP_CONFIG_DIR/$version_slug/xdebug.ini"
-        if [ ! -f "$always_ini" ]; then
-            printf 'zend_extension=%s\nxdebug.mode=off\n' "$xdebug_extension" > "$always_ini" \
-                || error "Could not install the always-loaded Xdebug ini for PHP $version"
-        fi
+        printf 'zend_extension=%s\nxdebug.mode=off\n' "$xdebug_extension" > "$always_ini" \
+            || error "Could not install the always-loaded Xdebug ini for PHP $version"
     done <<< "$installed_versions"
     success "Herd Xdebug ini files installed"
 fi
