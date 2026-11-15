@@ -4,136 +4,79 @@
 
 ![Terminal](images/terminal.jpg)
 
-Personal, opinionated dotfiles for Laravel and PHP development on macOS. One script sets up Laravel Herd, Oh My Zsh,
-modern command-line tools, macOS preferences, and shared Claude Code and Codex workflows on a fresh Mac.
-
-These dotfiles reflect my personal workflow and are meant to be forked and adapted to your own setup.
-
-## Highlights
-
-- Develop Laravel projects locally with Herd
-- Navigate, search, and work faster with Oh My Zsh and modern command-line tools
-- Keep Claude Code settings, agents, hooks, rules, and shared agent skills version-controlled
-- Keep Claude Code changes disciplined with Addy Osmani's [agent-skills](https://skills.addy.ie) workflow and an
-  automatic quality gate (Pint, PHPStan, Rector, Pest/PHPUnit)
-- Install, update, and reconfigure the whole setup with one script each
-
-## Requirements
-
-Update macOS via System Settings → General → Software Update.
-
-Install the Xcode Command Line Tools if Git is not available yet:
-
-```zsh
-xcode-select --install
-```
-
-Sign in to the App Store with your Apple ID. The Mac App Store apps listed in
-[`support/config/Brewfile`](support/config/Brewfile) are installed through `mas`, which can only install apps your
-Apple ID already owns.
-
-Generate a GitHub SSH key with [`bin/setup-ssh.sh`](bin/setup-ssh.sh). Both this repository and tinkerbench are
-cloned over SSH. Run this before cloning:
-
-```zsh
-curl -fsSL https://raw.githubusercontent.com/moessimple/dotfiles/HEAD/bin/setup-ssh.sh | bash -s -- "your@github-email.com"
-```
-
-The script asks for a passphrase, adds the key to the SSH agent and macOS Keychain, and copies the public key.
-Add it at [github.com/settings/keys](https://github.com/settings/keys). If you already have an SSH key configured
-for GitHub, skip this step. The script refuses to overwrite existing keys.
-
-## Before You Install
-
-The installer replaces existing files with symlinks in place; it does not back them up. It also clears five Claude
-Code directories under `~/.claude/` (`agents`, `commands`, `hooks`, `rules`, `skills`) before linking them, and so
-does `bin/reconfigure.sh`. Review
-[`support/setup/clean-state.sh`](support/setup/clean-state.sh) and preserve anything you need there first.
-
-If you fork the repository, adjust these personal defaults first:
-
-- Git name in [`home/.gitconfig`](home/.gitconfig); each machine's email is configured locally during install
-- Mac App Store apps (`mas` entries) in [`support/config/Brewfile`](support/config/Brewfile), which must be owned by
-  your Apple ID
-- Absolute working directory in [`home/.config/ghostty/config`](home/.config/ghostty/config)
-- Locale and time zone in
-  [`support/setup/macos/osx-defaults.sh`](support/setup/macos/osx-defaults.sh), if they don't match yours
-- Absolute paths to my home directory in the lines Herd added to [`home/.zshrc`](home/.zshrc) and Docker Desktop
-  added to [`home/.zprofile`](home/.zprofile)
-
-The macOS setup enables FileVault and the application firewall, disables hibernation on Macs without a battery,
-changes Finder and Dock behavior, applies German regional settings, and configures several bundled applications. The
-installer asks for confirmation before applying these preferences. Review
-[`support/setup/macos/osx-defaults.sh`](support/setup/macos/osx-defaults.sh) if you do not want those choices.
-
-## Installation
-
-Clone the repository to the path expected by the scripts and run the installer:
-
-```zsh
-git clone git@github.com:moessimple/dotfiles.git ~/.dotfiles
-cd ~/.dotfiles
-bin/install.sh
-```
-
-Follow the prompts and restart the Mac when the installation finishes.
-
-Authenticate GitHub CLI after installation:
-
-```zsh
-gh auth login -s user:email -w
-gh auth status
-```
-
-Choose SSH when `gh` asks for the Git protocol.
+Opinionated dotfiles for Laravel and PHP development on macOS, built around my own workflow and meant to be forked
+and adapted. One script sets up a fresh Mac, one keeps it up to date, and one reapplies the configuration.
 
 ## What's Included
 
-The complete list of Homebrew formulae, applications, fonts, Quick Look plugins, and Mac App Store apps is in
-[`support/config/Brewfile`](support/config/Brewfile). The setup also includes:
-
-- Oh My Zsh, shell aliases, functions, paths, exports, and Git helpers
 - Laravel Herd, MySQL, Mailpit, and development applications
-- Ollama with local models listed in [`support/setup/packages/ollama-models.sh`](support/setup/packages/ollama-models.sh)
+- Oh My Zsh, modern command-line tools, shell aliases, functions, paths, exports, Git configuration, and Git helpers
+- Claude Code settings, agents, hooks, rules, skills, plugins, and MCP servers, kept under version control, with Addy
+  Osmani's [agent-skills](https://skills.addy.ie) workflow and an automatic quality gate (Pint, PHPStan, Rector,
+  Pest/PHPUnit)
+- Global instructions and agent skills shared between Claude Code and Codex
 - Global Composer and npm tools, and the Python packages the PDF skill needs
-- Claude Code configuration, skills, plugins, and MCP servers
+- Ollama with local models listed in [`support/setup/packages/ollama-models.sh`](support/setup/packages/ollama-models.sh)
 - [tinkerbench](https://github.com/moessimple/tinkerbench), installed at `~/Code/tinkerbench`
 - Ghostty configuration and macOS preferences
 
-## How It Works
+The complete list of Homebrew formulae, applications, fonts, Quick Look plugins, and Mac App Store apps is in
+[`support/config/Brewfile`](support/config/Brewfile).
 
-Files under [`home/`](home/) mirror their locations below `$HOME`. For example, `home/.zshrc` is linked to
-`~/.zshrc`, and `home/.claude/skills` is linked to `~/.claude/skills`. Editing either path changes the file stored in
-this repository. The one exception is [`home/.claude/AGENTS.md`](home/.claude/AGENTS.md), described under
-[Claude Code and Codex](#claude-code-and-codex).
+## Before You Start
 
-The managed files cover the shell, Git, Ghostty, and Claude Code. Machine-specific shell configuration that should
-not be committed belongs in `~/.extra`.
+> [!WARNING]
+> The installer replaces existing files with symlinks and does not back them up. It also clears five Claude Code
+> directories under `~/.claude/` (`agents`, `commands`, `hooks`, `rules`, `skills`) before linking them, and so does
+> `bin/reconfigure.sh`. Review [`support/setup/clean-state.sh`](support/setup/clean-state.sh) and save anything you
+> need there first.
 
-### Machine Profile
+The macOS setup enables FileVault and the application firewall, disables hibernation on Macs without a battery,
+changes Finder and Dock behavior, applies German regional settings, and configures several bundled applications.
+Review [`support/setup/macos/osx-defaults.sh`](support/setup/macos/osx-defaults.sh) if you do not want those choices.
 
-On its first run, [`bin/install.sh`](bin/install.sh) asks whether the machine is private or for work and saves the
-choice as `private` or `work` in `~/.config/dotfiles/profile`.
-[`support/setup/machine-profile.sh`](support/setup/machine-profile.sh) reads and validates it for install,
-reconfigure, and update. Later installs reuse it. Reconfigure and update never prompt and default to private without
-a saved profile. To change the choice, remove `~/.config/dotfiles/profile` and run install again, entering the email
-for the new profile.
+If you forked this repository, adjust the personal defaults listed under [Make It Your Own](#make-it-your-own) first.
 
-The work profile excludes AusweisApp, Discord, OneCast, and WhatsApp from
-[`support/config/Brewfile`](support/config/Brewfile). Install and update use the same list, so update also removes
-these apps from a work machine. System setup and all other packages are the same for both profiles.
+## Setting Up Your Mac
 
-### Git Identity
+1. Update macOS via System Settings → General → Software Update.
+2. Install the Xcode Command Line Tools if Git is not available yet:
 
-Both profiles ask for your Git email and write it to the untracked `~/.gitconfig-local`. Private setup offers your
-existing global email as a default, which you can accept with Enter or replace. Later installs ask again only if the
-local email is missing or blank. Your name stays in [`home/.gitconfig`](home/.gitconfig), which includes the local
-file last. Existing local settings are preserved.
+   ```zsh
+   xcode-select --install
+   ```
 
-[`home/.gitconfig`](home/.gitconfig) has no fallback email and sets `user.useConfigOnly = true`, so Git refuses to
-commit until an email is configured. If a machine has no local email yet, run install again or save it directly:
-`git config --file ~/.gitconfig-local user.email "YOUR_EMAIL"`. Repository settings and Git environment variables
-can still set the identity for individual commits.
+3. Sign in to the App Store with your Apple ID. The Mac App Store apps are installed through `mas`, which can only
+   install apps your Apple ID already owns.
+4. Create a GitHub SSH key, unless you already have one for GitHub. [`bin/setup-ssh.sh`](bin/setup-ssh.sh) asks for
+   a passphrase, adds the key to the SSH agent and macOS Keychain, copies the public key, and refuses to overwrite
+   existing keys:
+
+   ```zsh
+   curl -fsSL https://raw.githubusercontent.com/moessimple/dotfiles/HEAD/bin/setup-ssh.sh | bash -s -- "your@github-email.com"
+   ```
+
+   Add the copied key at [github.com/settings/keys](https://github.com/settings/keys).
+5. Clone this repository to `~/.dotfiles`, the path the scripts expect, and run the installer:
+
+   ```zsh
+   git clone git@github.com:moessimple/dotfiles.git ~/.dotfiles
+   cd ~/.dotfiles && bin/install.sh
+   ```
+
+   The installer asks whether the machine is private or for work ([Machine Profile](#machine-profile)), for this
+   machine's Git email ([Git Identity](#git-identity)), and for your administrator password. On a fresh Mac it waits
+   until you complete Herd's onboarding in the Herd app. Before the macOS preferences, it asks you to close System
+   Settings and confirm.
+6. Restart your Mac.
+7. Authenticate GitHub CLI, and choose SSH when `gh` asks for the Git protocol:
+
+   ```zsh
+   gh auth login -s user:email -w
+   gh auth status
+   ```
+
+8. Put machine-specific settings and secrets in `~/.extra` ([Make It Your Own](#make-it-your-own)).
 
 ## Daily Usage
 
@@ -180,9 +123,9 @@ Claude Code invokes these workflows as `/debug`, `/pr`, `/review`, and `/quality
 - `quality` runs the recorded PHP and Laravel [quality gate](home/.claude/hooks/README.md) and reports only checks
   that actually ran.
 
-## Maintenance
+## Keeping It Up to Date
 
-Update the repository and managed packages with:
+Update the repository and all managed packages:
 
 ```zsh
 bin/update.sh
@@ -193,13 +136,62 @@ Homebrew entries and Mac App Store apps, global Composer and npm packages, user-
 models, Claude Code skills and plugins, and user-level MCP servers without asking. Project dependencies and
 project-level Claude Code integrations are not affected.
 
-The update does not reapply symlinks or setup scripts. When it pulls changes to them, also run
-[`bin/reconfigure.sh`](bin/reconfigure.sh), which reapplies symlinks, services, Herd and tinkerbench setup, and macOS
-preferences without reinstalling packages:
+The update does not reapply symlinks or setup scripts, and reminds you of that when it finishes. When it pulled
+changes to them, reapply symlinks, services, Herd and tinkerbench setup, and macOS preferences without touching
+packages:
 
 ```zsh
 bin/reconfigure.sh
 ```
+
+## Make It Your Own
+
+Use `~/.extra` for machine-specific environment variables, secrets, aliases, or other shell configuration that should
+not be committed. Open it with the `extra` alias. Changes intended for every machine belong in this repository and
+reach the other machines through Git.
+
+If you fork this repository, adjust these personal defaults before installing:
+
+- Git name in [`home/.gitconfig`](home/.gitconfig)
+- Mac App Store apps (`mas` entries) in [`support/config/Brewfile`](support/config/Brewfile)
+- Absolute working directory in [`home/.config/ghostty/config`](home/.config/ghostty/config)
+- Locale and time zone in [`support/setup/macos/osx-defaults.sh`](support/setup/macos/osx-defaults.sh), if they
+  don't match yours
+- Absolute paths to my home directory in the lines Herd added to [`home/.zshrc`](home/.zshrc) and Docker Desktop
+  added to [`home/.zprofile`](home/.zprofile)
+
+## How It Works
+
+Files under [`home/`](home/) mirror their locations below `$HOME`. For example, `home/.zshrc` is linked to
+`~/.zshrc`, and `home/.claude/skills` is linked to `~/.claude/skills`. Editing either path changes the file stored in
+this repository. The one exception is [`home/.claude/AGENTS.md`](home/.claude/AGENTS.md), described under
+[Claude Code and Codex](#claude-code-and-codex).
+
+### Machine Profile
+
+The profile is saved as `private` or `work` in `~/.config/dotfiles/profile`.
+[`support/setup/machine-profile.sh`](support/setup/machine-profile.sh) reads and validates it for install,
+reconfigure, and update. Later installs reuse it. Reconfigure and update never prompt and default to private without
+a saved profile. To change the profile, remove `~/.config/dotfiles/profile` and run install again, entering the
+email for the new profile.
+
+The work profile excludes AusweisApp, Discord, OneCast, and WhatsApp from
+[`support/config/Brewfile`](support/config/Brewfile). Install and update use the same list, so update also removes
+these apps from a work machine. System setup and all other packages are the same for both profiles.
+
+### Git Identity
+
+Your Git name stays in [`home/.gitconfig`](home/.gitconfig). The email differs per machine and lives in the untracked
+`~/.gitconfig-local`, which `home/.gitconfig` includes last. On a private machine, install offers your existing
+global email as a default, which you can accept with Enter or replace. Later installs ask again only if the local
+email is missing or blank. Existing local settings are preserved.
+
+`home/.gitconfig` has no fallback email and sets `user.useConfigOnly = true`, so Git refuses to commit until an
+email is configured. If a machine has no local email yet, run install again or save it directly:
+`git config --file ~/.gitconfig-local user.email "YOUR_EMAIL"`. Repository settings and Git environment variables
+can still set the identity for individual commits.
+
+### Release Cooldown
 
 Composer and npm skip releases younger than 3 days. The setup sets this in their user-level configuration
 ([`support/setup/packages/composer-packages.sh`](support/setup/packages/composer-packages.sh),
@@ -218,10 +210,7 @@ first update.
 
 ## Claude Code and Codex
 
-Claude Code settings, agents, hooks, rules, and skills live under `home/.claude/` and are linked into
-`~/.claude/` during installation.
-
-Claude Code and Codex reuse the same global instructions: [`home/.claude/AGENTS.md`](home/.claude/AGENTS.md) is
+Claude Code and Codex share the same global instructions: [`home/.claude/AGENTS.md`](home/.claude/AGENTS.md) is
 linked as `~/.claude/CLAUDE.md` and as `~/.codex/AGENTS.md`.
 
 Harness-neutral skills keep their source under `home/.claude/skills/` or Claude's installed plugin cache and are
@@ -237,13 +226,6 @@ servers are managed in [`support/setup/claude/claude-plugins.sh`](support/setup/
 under `extraKnownMarketplaces` in [`home/.claude/settings.json`](home/.claude/settings.json), so that Claude Code
 does not update its plugins on its own, outside `bin/update.sh`. `claude plugin marketplace add` removes that
 setting, so `claude-plugins.sh` sets it again after adding a marketplace.
-
-## Customization
-
-Use `~/.extra` for machine-specific environment variables, secrets, aliases, or other shell configuration that should
-not be committed. Open it with the `extra` alias.
-
-Changes intended for every machine belong in this repository and can be synchronized through Git.
 
 ## Tests
 
@@ -266,3 +248,7 @@ aliases, the Git helpers, and the update and setup scripts.
 Inspired by [Freek Van der Herten's dotfiles](https://github.com/freekmurze/dotfiles) and
 [Dries Vints's dotfiles](https://github.com/driesvints/dotfiles), adapted for my own Laravel, Herd, and Claude Code
 workflow.
+
+## License
+
+MIT. See [`LICENSE.md`](LICENSE.md).

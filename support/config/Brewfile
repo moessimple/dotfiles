@@ -126,3 +126,6 @@ cask "suspicious-package"
 # === Mac App Store ===
 mas "1Password for Safari", id: 1569813296
 mas "Amphetamine", id: 937984704
+mas "Keynote Creator Studio", id: 361285480
+mas "Numbers Creator Studio", id: 361304891
+mas "Pages Creator Studio", id: 361309726
