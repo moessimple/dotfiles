@@ -51,11 +51,11 @@ python_packages_cleanup() {
         [ -n "$name" ] || continue
         # Case-insensitive, because pip reports a package under the capitalization its
         # metadata uses (e.g. Pillow), which need not match the declared name.
-        if ! printf '%s\n' "${PYTHON_PACKAGES[@]}" | grep -qixF "$name"; then
-            found_undeclared=1
-            warn "Removing undeclared Python package: $name (not in python-packages.sh)"
-            python_pip uninstall --yes --quiet "$name" || warn "Could not remove $name, remove it manually"
-        fi
+        printf '%s\n' "${PYTHON_PACKAGES[@]}" | grep -qixF "$name" && continue
+
+        found_undeclared=1
+        warn "Removing undeclared Python package: $name (not in python-packages.sh)"
+        python_pip uninstall --yes --quiet "$name" || warn "Could not remove $name, remove it manually"
     done <<< "$installed"
 
     # An `if`, not `&&`, which would return 1 after a removal and trip `set -e` in bin/update.sh

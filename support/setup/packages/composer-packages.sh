@@ -43,11 +43,11 @@ composer_packages_cleanup() {
     local name found_undeclared=0
     while IFS= read -r name; do
         [ -n "$name" ] || continue
-        if ! printf '%s\n' "${COMPOSER_PACKAGES[@]}" | grep -qxF "$name"; then
-            found_undeclared=1
-            warn "Removing undeclared Composer package: $name (not in composer-packages.sh)"
-            composer global remove "$name" || warn "Could not remove $name, remove it manually"
-        fi
+        printf '%s\n' "${COMPOSER_PACKAGES[@]}" | grep -qxF "$name" && continue
+
+        found_undeclared=1
+        warn "Removing undeclared Composer package: $name (not in composer-packages.sh)"
+        composer global remove "$name" || warn "Could not remove $name, remove it manually"
     done <<< "$installed"
 
     # An `if`, not `&&`, which would return 1 after a removal and trip `set -e` in bin/update.sh

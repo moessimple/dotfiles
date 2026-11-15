@@ -105,11 +105,11 @@ claude_plugins_cleanup() {
     else
         while IFS= read -r name; do
             [ -n "$name" ] || continue
-            if ! printf '%s\n' "${CLAUDE_PLUGINS[@]}" "${LOCAL_PLUGINS[@]}" | grep -qxF "$name"; then
-                found_undeclared=1
-                warn "Uninstalling undeclared plugin: $name (not in claude-plugins.sh)"
-                claude plugin uninstall "$name" || warn "Could not uninstall $name, remove it manually"
-            fi
+            printf '%s\n' "${CLAUDE_PLUGINS[@]}" "${LOCAL_PLUGINS[@]}" | grep -qxF "$name" && continue
+
+            found_undeclared=1
+            warn "Uninstalling undeclared plugin: $name (not in claude-plugins.sh)"
+            claude plugin uninstall "$name" || warn "Could not uninstall $name, remove it manually"
         done <<< "$installed_plugins"
     fi
 
@@ -127,11 +127,11 @@ claude_plugins_cleanup() {
             # Only user-scope servers are ours to manage. Project-scoped ones belong to
             # whatever project added them, `claude mcp add` defaults to project scope.
             claude mcp get "$name" 2>/dev/null | grep -q "Scope: User config" || continue
-            if ! printf '%s\n' "${CLAUDE_MCP_SERVERS[@]}" | grep -qxF "$name"; then
-                found_undeclared=1
-                warn "Removing undeclared MCP server: $name (not in claude-plugins.sh)"
-                claude mcp remove "$name" -s user || warn "Could not remove $name, remove it manually"
-            fi
+            printf '%s\n' "${CLAUDE_MCP_SERVERS[@]}" | grep -qxF "$name" && continue
+
+            found_undeclared=1
+            warn "Removing undeclared MCP server: $name (not in claude-plugins.sh)"
+            claude mcp remove "$name" -s user || warn "Could not remove $name, remove it manually"
         done <<< "$mcp_names"
     fi
 

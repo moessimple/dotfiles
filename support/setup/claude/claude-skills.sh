@@ -110,13 +110,13 @@ claude_skills_cleanup() {
     local name found_undeclared=0
     while IFS= read -r name; do
         [ -n "$name" ] || continue
-        if ! printf '%s\n' "${declared_names[@]}" | grep -qxF "$name"; then
-            found_undeclared=1
-            warn "Removing undeclared skill: $name (not in claude-skills.sh)"
-            # No --agent: with it, the CLI removes only that agent's copy and keeps the lock
-            # entry, so the skill stays listed as installed. -y keeps the run unattended.
-            skills_cli remove "$name" --global -y 2>/dev/null || warn "Could not remove $name, remove it manually"
-        fi
+        printf '%s\n' "${declared_names[@]}" | grep -qxF "$name" && continue
+
+        found_undeclared=1
+        warn "Removing undeclared skill: $name (not in claude-skills.sh)"
+        # No --agent: with it, the CLI removes only that agent's copy and keeps the lock
+        # entry, so the skill stays listed as installed. -y keeps the run unattended.
+        skills_cli remove "$name" --global -y 2>/dev/null || warn "Could not remove $name, remove it manually"
     done <<< "$installed"
 
     # An `if`, not `&&`, which would return 1 after a removal and trip `set -e` in bin/update.sh

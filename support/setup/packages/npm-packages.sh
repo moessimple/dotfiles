@@ -71,11 +71,11 @@ npm_packages_cleanup() {
     local name found_undeclared=0
     while IFS= read -r name; do
         [ -n "$name" ] || continue
-        if ! printf '%s\n' "${NPM_PACKAGES[@]}" "${NPM_PACKAGES_KEEP[@]}" | grep -qxF "$name"; then
-            found_undeclared=1
-            warn "Removing undeclared global npm package: $name (not in npm-packages.sh)"
-            global_npm uninstall -g "$name" || warn "Could not remove $name, remove it manually"
-        fi
+        printf '%s\n' "${NPM_PACKAGES[@]}" "${NPM_PACKAGES_KEEP[@]}" | grep -qxF "$name" && continue
+
+        found_undeclared=1
+        warn "Removing undeclared global npm package: $name (not in npm-packages.sh)"
+        global_npm uninstall -g "$name" || warn "Could not remove $name, remove it manually"
     done <<< "$installed"
 
     # An `if`, not `&&`, which would return 1 after a removal and trip `set -e` in bin/update.sh
