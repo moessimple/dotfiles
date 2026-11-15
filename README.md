@@ -57,7 +57,7 @@ If you fork this repository, adjust the personal defaults listed under [Make It 
    [`bin/setup-ssh.sh`](bin/setup-ssh.sh) asks for a passphrase, adds the key to the SSH agent and macOS Keychain,
    copies the public key, and refuses to overwrite existing keys. Add the copied key at
    [github.com/settings/keys](https://github.com/settings/keys).
-5. Clone this repository to `~/.dotfiles`, the path the scripts expect, and run the installer:
+5. Clone this repository, or your fork, to `~/.dotfiles`, the path the scripts expect, and run the installer:
 
    ```zsh
    git clone git@github.com:moessimple/dotfiles.git ~/.dotfiles
@@ -118,11 +118,11 @@ Call a skill in Claude Code with `/<name>`, for example `/review`. Codex can use
 
 - `debug` finds and fixes the root cause of a bug through a reproduce-first diagnosis loop.
 - `review` reviews a pull request or the local changes and reports the verdict without changing files or posting to
-  GitHub.
+  GitHub. The `review` shell command only browses the changes.
 - `pr` turns the current branch into a pull request with a description of the problem, outcome, and evidence, and
   waits for approval before creating or updating it.
-- `quality` runs the PHP and Laravel [quality gate](home/.claude/hooks/README.md) and reports only checks that
-  actually ran.
+- `quality` runs the `quality` command for the [quality gate](home/.claude/hooks/README.md) and reports only checks
+  that actually ran.
 
 The other skills, including third-party ones, live in [`home/.claude/skills/`](home/.claude/skills/).
 
@@ -139,13 +139,16 @@ Homebrew entries and Mac App Store apps, global Composer and npm packages, user-
 models, Claude Code skills and plugins, and user-level MCP servers without asking. Project dependencies and
 project-level Claude Code integrations are not affected.
 
-The update does not reapply symlinks or setup scripts, and reminds you of that when it finishes. When it has pulled
-changes to them, reapply symlinks, services, Herd and tinkerbench setup, and macOS preferences without touching
-packages (the `reconfigure` alias runs the same script):
+After changing the configuration, apply it without the slower package update (the `reconfigure` alias runs the same
+script):
 
 ```zsh
 bin/reconfigure.sh
 ```
+
+It reapplies symlinks, services, Herd and tinkerbench setup, and macOS preferences, and installs or updates no
+packages. Edits to files that are already linked need no reconfigure run, since the symlink points at the changed
+file.
 
 ## Make It Your Own
 
