@@ -1,12 +1,12 @@
 #!/usr/bin/env bats
 
-load ../../support/test_helper
-load ../../support/osx_defaults_helper
+load ../support/test_helper
+load ../support/macos_defaults_helper
 
 setup() {
     new_dotfiles_fixture
     given_path_without_system_commands
-    target="$dotfiles_dir/support/setup/macos/osx-defaults.sh"
+    target="$dotfiles_dir/bin/macos-defaults.sh"
 }
 
 teardown() {

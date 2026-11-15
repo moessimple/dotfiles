@@ -34,7 +34,7 @@ The complete list of Homebrew formulae, applications, fonts, Quick Look plugins,
 
 The macOS setup enables FileVault and the application firewall, disables hibernation on Macs without a battery,
 changes Finder and Dock behavior, applies German regional settings, and configures several bundled applications.
-Review [`support/setup/macos/osx-defaults.sh`](support/setup/macos/osx-defaults.sh) if you do not want those choices.
+Review [`bin/macos-defaults.sh`](bin/macos-defaults.sh) if you do not want those choices.
 
 If you fork this repository, adjust the personal defaults listed under [Make It Your Own](#make-it-your-own) first.
 
@@ -144,9 +144,9 @@ asking. Project dependencies and project-level Claude Code integrations are not 
 Edits to already-linked configuration files take effect directly. Run `reconfigure` after changing symlink
 declarations or setup scripts if you do not need package updates.
 
-`macos-defaults` asks for confirmation and administrator access before applying
-[`support/setup/macos/osx-defaults.sh`](support/setup/macos/osx-defaults.sh) and quits affected applications, including
-Terminal. [`bin/install.sh`](bin/install.sh) also applies these settings during initial setup.
+[`macos-defaults`](bin/macos-defaults.sh) asks for confirmation and administrator access before applying
+macOS preferences and quits affected applications, including Terminal. [`bin/install.sh`](bin/install.sh) also applies
+these settings during initial setup.
 
 ## Make It Your Own
 
@@ -159,7 +159,7 @@ If you fork this repository, adjust these personal defaults before installing:
 - Git name in [`home/.gitconfig`](home/.gitconfig)
 - Mac App Store apps (`mas` entries) in [`support/config/Brewfile`](support/config/Brewfile)
 - Absolute working directory in [`home/.config/ghostty/config`](home/.config/ghostty/config)
-- Locale and time zone in [`support/setup/macos/osx-defaults.sh`](support/setup/macos/osx-defaults.sh), if they
+- Locale and time zone in [`bin/macos-defaults.sh`](bin/macos-defaults.sh), if they
   don't match yours
 - Absolute paths to my home directory in the lines Herd added to [`home/.zshrc`](home/.zshrc) and Docker Desktop
   added to [`home/.zprofile`](home/.zprofile)

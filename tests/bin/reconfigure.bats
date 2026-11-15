@@ -6,7 +6,7 @@ setup() {
     new_dotfiles_fixture
     test_home="$fixture/home"
     repository="$test_home/.dotfiles"
-    mkdir -p "$repository"
+    mkdir -p "$repository/bin"
     cp -R "$dotfiles_dir/support" "$dotfiles_dir/home" "$repository/"
     given_fake_bin_on_path
     write_fake_binary sudo
@@ -16,7 +16,7 @@ setup() {
     for script in codex/codex-skills.sh herd-onboarding.sh herd-debug-ini.sh tinkerbench/tinkerbench.sh services.sh; do
         printf 'touch "$HOME/%s.applied"\n' "$(basename "$script")" > "$repository/support/setup/$script"
     done
-    printf 'echo "macOS settings must stay separate"\nexit 89\n' > "$repository/support/setup/macos/osx-defaults.sh"
+    printf 'echo "macOS settings must stay separate"\nexit 89\n' > "$repository/bin/macos-defaults.sh"
 }
 
 teardown() {

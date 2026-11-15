@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Output helpers for the entry points in bin/ and for osx-defaults.sh, which also runs on its
-# own. The other setup scripts do not source this file: their tests stub these helpers first.
+# Output helpers for the entry points in bin/.
+# The other setup scripts do not source this file: their tests stub these helpers first.
 
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'

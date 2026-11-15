@@ -1,4 +1,4 @@
-# Runs osx-defaults.sh with a PATH that holds only `dirname`, which it needs to find
+# Runs bin/macos-defaults.sh with a PATH that holds only `dirname`, which it needs to find
 # output.sh, so a regression past the confirmation prompt fails on the first missing
 # command (osascript, sudo) instead of changing this machine's settings.
 given_path_without_system_commands() {
@@ -7,7 +7,7 @@ given_path_without_system_commands() {
     ln -s /usr/bin/dirname "$restricted_path/dirname"
 }
 
-# Sources <script> under set -e, as bin/macos-defaults.sh does, answering
+# Sources <script> under set -e, answering
 # its confirmation prompt with <answer>, then prints a line only a still-running caller reaches.
 source_from_setup_script_answering() {
     local answer="$1" script="$2"

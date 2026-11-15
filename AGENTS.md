@@ -88,8 +88,8 @@ with agent-specific tools, paths, or runtime behavior stay exclusive to that age
   updates or an unconditional sudo request.
 - `bin/update.sh` pulls the repo, updates managed packages, skills, plugins, and Ollama models, then runs
   `bin/reconfigure.sh`. It reports completion only if that succeeds.
-- `bin/macos-defaults.sh` (alias `macos-defaults` in `home/.aliases`) runs `support/setup/macos/osx-defaults.sh`
-  separately, retaining its confirmation, sudo, and application termination behavior.
+- `bin/macos-defaults.sh` (alias `macos-defaults` in `home/.aliases`) applies macOS preferences directly,
+  with confirmation, sudo, and application termination.
 
 `support/setup/herd-debug-ini.sh` reapplies both managed Xdebug ini files on every install/reconfigure/update run,
 replacing local changes.
@@ -189,7 +189,7 @@ place that logic lives; callers never re-derive it. Its priority order is covere
 - `tests/setup/claude/*.bats`, `tests/setup/codex/*.bats`, `tests/setup/packages/*.bats`: the setup/cleanup
   declarations in `support/setup/claude/`, `support/setup/codex/`, and `support/setup/packages/`
 - `tests/setup/herd/*.bats`: `support/setup/herd-debug-ini.sh`
-- `tests/setup/macos/*.bats`: `support/setup/macos/osx-defaults.sh`
+- `tests/bin/macos-defaults.bats`: `bin/macos-defaults.sh`
 - `tests/bin/update.bats`: a full `bin/update.sh` run across all package cleanups
 - `tests/bin/reconfigure.bats`: configuration application without macOS defaults or an unconditional sudo request
 - `tests/bin/setup-ssh.bats`: standalone SSH key setup and protection of existing keys
