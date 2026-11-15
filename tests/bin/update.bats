@@ -83,12 +83,32 @@ teardown() {
     # reached, not just individually correct in isolation.
     assert_success
     assert_output_contains "Update complete!"
+    assert_file_exists "$test_home/reconfigured"
+    [[ "$output" == *"Configuration applied"*"Update complete!"* ]]
     assert_output_contains "No undeclared global Composer packages found"
     assert_output_contains "No undeclared global npm packages found"
     assert_output_contains "No undeclared Python packages found"
     assert_output_contains "No undeclared Claude Code skills found"
     assert_output_contains "No undeclared Claude Code plugins or MCP servers found"
     assert_output_contains "No undeclared Ollama models found"
+}
+
+@test "a failed configuration step fails the update without reporting completion" {
+    # Arrange
+    given_clean_repository_on_main
+    given_repository_with_real_setup_scripts
+    printf '#!/bin/bash\nexit 17\n' > "$repository/bin/reconfigure.sh"
+    git -C "$repository" commit -qam "make reconfigure fail"
+    given_bare_origin_remote
+    git -C "$repository" push -q origin main
+    given_every_external_tool_update_touches_is_faked
+
+    # Act
+    run call_update
+
+    # Assert
+    [ "$status" -eq 17 ]
+    assert_output_does_not_contain "Update complete!"
 }
 
 @test "Clarity is trimmed again after the skills are installed or updated" {

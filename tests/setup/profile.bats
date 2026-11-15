@@ -176,8 +176,8 @@ configure_profile() (
 @test "reconfigure and update accept a saved work profile without identity checks or prompts" {
     mkdir -p "$(dirname "$profile_file")"
     echo work > "$profile_file"
-    sudo() { exit 73; }
-    export -f sudo
+    mkdir -p "$HOME/.dotfiles/support/setup"
+    printf 'exit 73\n' > "$HOME/.dotfiles/support/setup/clean-state.sh"
     run /bin/bash "$dotfiles_dir/bin/reconfigure.sh" </dev/null
     [ "$status" -eq 73 ]
     run /bin/bash "$dotfiles_dir/bin/update.sh" </dev/null
@@ -195,11 +195,9 @@ configure_profile() (
     [[ "$output" != *'Pulling latest changes'* ]]
 }
 
-@test "reconfigure rejects an invalid profile before sudo or machine changes" {
+@test "reconfigure rejects an invalid profile before machine changes" {
     mkdir -p "$(dirname "$profile_file")"
     echo invalid > "$profile_file"
-    sudo() { exit 73; }
-    export -f sudo
     run /bin/bash "$dotfiles_dir/bin/reconfigure.sh" </dev/null
     [ "$status" -eq 1 ]
     assert_output_contains 'Invalid machine profile'

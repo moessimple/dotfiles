@@ -30,3 +30,13 @@ teardown() {
     assert_success
     assert_output_contains "Cancelled."
 }
+
+@test "the macos-defaults entry point keeps the confirmation prompt and cancellation" {
+    # Act
+    run run_standalone_answering n "$dotfiles_dir/bin/macos-defaults.sh"
+
+    # Assert
+    assert_success
+    assert_output_contains "This will change macOS system settings."
+    assert_output_contains "Cancelled."
+}

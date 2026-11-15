@@ -21,10 +21,18 @@ assert_update_side_effect_was_not_reached() {
 # Commits the real support/setup/ tree into the fixture repository, so update.sh's `source
 # ~/.dotfiles/support/setup/...` calls resolve against the actual production files instead of
 # a synthetic stand-in, proving the real wiring rather than a copy of it.
+# Reconfigure is isolated here; tests/bin/reconfigure.bats covers its own setup wiring.
 given_repository_with_real_setup_scripts() {
     cp -R "$dotfiles_dir/support" "$repository/support"
+    mkdir -p "$repository/bin"
+    cat > "$repository/bin/reconfigure.sh" <<'SCRIPT'
+#!/bin/bash
+touch "$HOME/reconfigured"
+echo 'Configuration applied'
+SCRIPT
+    chmod +x "$repository/bin/reconfigure.sh"
     find "$repository/support" -name ".DS_Store" -delete
-    git -C "$repository" add support
+    git -C "$repository" add support bin
     git -C "$repository" commit -qm "add support"
 }
 

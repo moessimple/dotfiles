@@ -7,8 +7,6 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/output.sh"
 # Validate the saved profile before changing machine configuration.
 source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/machine-profile.sh"
 
-sudo -v  # Request the administrator password up front
-
 # Prepare clean state: creates the directories later steps write into and removes the five
 # ~/.claude/ directories linked next, because `ln -sfn` cannot replace a real directory.
 step "Prepare clean state"
@@ -40,7 +38,3 @@ source ~/.dotfiles/support/setup/tinkerbench/tinkerbench.sh
 step "Starting background services"
 source ~/.dotfiles/support/setup/services.sh
 success "Background services started"
-
-# macOS defaults: run last because they quit the affected apps, Terminal among them.
-step "Applying macOS defaults"
-source ~/.dotfiles/support/setup/macos/osx-defaults.sh

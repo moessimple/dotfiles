@@ -148,7 +148,7 @@ touch ~/.extra
 
 # macOS defaults: run last because they quit the affected apps, Terminal among them.
 step "Applying macOS defaults"
-source ~/.dotfiles/support/setup/macos/osx-defaults.sh
+~/.dotfiles/bin/macos-defaults.sh
 
 echo ""
 success "Installation complete!"

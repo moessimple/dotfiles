@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Runs both sourced from bin/install.sh and bin/reconfigure.sh and on its own.
+# Sourced by bin/macos-defaults.sh, which bin/install.sh also runs.
 source "$(dirname -- "${BASH_SOURCE[0]}")/../output.sh"
 
 echo ""
@@ -11,7 +11,7 @@ read -p "Continue? (y/n) " -n 1 -r
 echo ""
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     echo "Cancelled."
-    # Sourced from bin/install.sh and bin/reconfigure.sh, where exit would end the whole run.
+    # Return to a sourcing caller, or exit cleanly when run directly.
     return 0 2>/dev/null || exit 0
 fi
 

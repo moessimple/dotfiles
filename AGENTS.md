@@ -19,8 +19,9 @@ Backups may preserve previous state, but must not become an alternative source o
 declared state from being applied.
 
 The current implementation does not fully enforce this goal: `bin/install.sh`, `bin/reconfigure.sh`, and
-`bin/update.sh` have different scopes, documented below. Gaps in synchronization are implementation limitations,
-not exceptions to the goal or reasons to preserve drift. Only reconcile explicitly managed
+`bin/update.sh` have different scopes, documented below. macOS defaults are deliberately applied only during install
+or through `bin/macos-defaults.sh`, not during update or reconfigure. Other gaps in synchronization are
+implementation limitations, not exceptions to the goal or reasons to preserve drift. Only reconcile explicitly managed
 state. Machine-specific settings and secrets (such as `~/.extra`, `~/.gitconfig-local`, and the saved machine
 profile), runtime data, and independently managed installations stay outside that scope unless explicitly declared.
 
@@ -80,17 +81,17 @@ Claude's installed plugin cache into `~/.agents/skills`.
 Claude remains the only installer and updater. Shared workflows keep their instructions in one `SKILL.md`. Skills
 with agent-specific tools, paths, or runtime behavior stay exclusive to that agent.
 
-**Entry points vs. setup logic.** `bin/install.sh`, `bin/reconfigure.sh`, and `bin/update.sh` are the setup scripts a
-user runs directly (besides `bin/test.sh` and the standalone `bin/setup-ssh.sh`); each sources scripts under
-`support/setup/` in a specific order (documented by comments at each `source` call in the entry-point scripts)
-rather than duplicating logic. `install.sh`
-does a full fresh setup (Homebrew, Oh My Zsh, symlinks, packages, Herd, tinkerbench, macOS defaults).
-`reconfigure.sh` reapplies symlinks, Codex skill links, service setup, Herd/tinkerbench, and macOS defaults without
-touching package managers. `update.sh` pulls the repo, then updates Homebrew, global Composer/npm packages,
-user-level Python packages, Claude Code skills/plugins (after a cooldown, see below), Codex skill links, and
-Ollama models.
+**Entry points vs. setup logic.** Scripts under `bin/` orchestrate the shared scripts in `support/setup/`:
 
-`support/setup/herd-debug-ini.sh` reapplies both managed Xdebug ini files on every install/reconfigure run,
+- `bin/install.sh` performs a full fresh setup, ending with `bin/macos-defaults.sh`.
+- `bin/reconfigure.sh` reapplies symlinks, Codex skill links, services, and Herd/tinkerbench setup without package
+  updates or an unconditional sudo request.
+- `bin/update.sh` pulls the repo, updates managed packages, skills, plugins, and Ollama models, then runs
+  `bin/reconfigure.sh`. It reports completion only if that succeeds.
+- `bin/macos-defaults.sh` (alias `macos-defaults` in `home/.aliases`) runs `support/setup/macos/osx-defaults.sh`
+  separately, retaining its confirmation, sudo, and application termination behavior.
+
+`support/setup/herd-debug-ini.sh` reapplies both managed Xdebug ini files on every install/reconfigure/update run,
 replacing local changes.
 
 `bin/setup-ssh.sh` runs before cloning on a fresh Mac. It generates an Ed25519 key, adds it to the SSH agent and
@@ -105,7 +106,7 @@ Private setup offers the existing global email as a default. Only `user.email` i
 fallback and sets `user.useConfigOnly = true`, so Git refuses commits without a configured email.
 Later installs reuse the profile and ask only for the email if the local setting is missing or blank.
 All profile selection and email setup logic lives directly in `bin/install.sh`. Reconfigure and update never
-prompt and default to private without a saved profile. `support/config/Brewfile`
+prompt for profile or email and default to private without a saved profile. `support/config/Brewfile`
 reads the same profile and excludes AusweisApp, Discord, OneCast and WhatsApp on work machines, including from the desired state
 used by update's cleanup. Other packages and sudo steps are shared.
 
@@ -190,6 +191,7 @@ place that logic lives; callers never re-derive it. Its priority order is covere
 - `tests/setup/herd/*.bats`: `support/setup/herd-debug-ini.sh`
 - `tests/setup/macos/*.bats`: `support/setup/macos/osx-defaults.sh`
 - `tests/bin/update.bats`: a full `bin/update.sh` run across all package cleanups
+- `tests/bin/reconfigure.bats`: configuration application without macOS defaults or an unconditional sudo request
 - `tests/bin/setup-ssh.bats`: standalone SSH key setup and protection of existing keys
 
 `tests/support/test_helper.bash` provides shared fixtures (`new_dotfiles_fixture`, `call_dotfiles_function`,

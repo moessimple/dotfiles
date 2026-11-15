@@ -28,7 +28,8 @@ The complete list of Homebrew formulae, applications, fonts, Quick Look plugins,
 > [!WARNING]
 > The installer replaces existing files with symlinks and does not back them up. It also clears five Claude Code
 > directories under `~/.claude/` (`agents`, `commands`, `hooks`, `rules`, `skills`) before linking them, and so does
-> `bin/reconfigure.sh`. Review [`support/setup/clean-state.sh`](support/setup/clean-state.sh) and save anything you
+> `bin/reconfigure.sh`, including when called by `bin/update.sh`. Review
+> [`support/setup/clean-state.sh`](support/setup/clean-state.sh) and save anything you
 > need there first.
 
 The macOS setup enables FileVault and the application firewall, disables hibernation on Macs without a battery,
@@ -128,26 +129,24 @@ The other skills, including third-party ones, live in [`home/.claude/skills/`](h
 
 ## Keeping It Up to Date
 
-Update the repository and all managed packages (the `update` alias runs the same script):
+Use these aliases, or run the linked scripts directly:
 
-```zsh
-bin/update.sh
-```
+| Command | What it does |
+| --- | --- |
+| [update](bin/update.sh) | Pull the repository, update managed packages, then run `reconfigure`. |
+| [reconfigure](bin/reconfigure.sh) | Reapply symlinks, Codex skill links, services, and Herd/tinkerbench setup without package updates. |
+| [macos-defaults](bin/macos-defaults.sh) | Apply macOS preferences separately. |
 
-The update treats the repository's package and Claude Code declarations as the desired state. It removes undeclared
-Homebrew entries and Mac App Store apps, global Composer and npm packages, user-installed Python packages, Ollama
-models, Claude Code skills and plugins, and user-level MCP servers without asking. Project dependencies and
-project-level Claude Code integrations are not affected.
+`update` removes undeclared Homebrew entries and Mac App Store apps, global Composer and npm packages,
+user-installed Python packages, Ollama models, Claude Code skills and plugins, and user-level MCP servers without
+asking. Project dependencies and project-level Claude Code integrations are not affected.
 
-After changing symlink declarations or setup scripts, apply them without the slower package update (the
-`reconfigure` alias runs the same script):
+Edits to already-linked configuration files take effect directly. Run `reconfigure` after changing symlink
+declarations or setup scripts if you do not need package updates.
 
-```zsh
-bin/reconfigure.sh
-```
-
-It reapplies symlinks, services, Herd and tinkerbench setup, and macOS preferences without running package updates.
-Edits to files that are already linked need no reconfigure run, since the symlink points at the changed file.
+`macos-defaults` asks for confirmation and administrator access before applying
+[`support/setup/macos/osx-defaults.sh`](support/setup/macos/osx-defaults.sh) and quits affected applications, including
+Terminal. [`bin/install.sh`](bin/install.sh) also applies these settings during initial setup.
 
 ## Make It Your Own
 

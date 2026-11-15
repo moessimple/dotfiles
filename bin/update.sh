@@ -94,9 +94,6 @@ update_plugins_after_cooldown
 success "Claude Code plugins updated"
 claude_plugins_cleanup
 
-# Refresh links after Claude has updated both standalone and plugin-provided skills.
-source ~/.dotfiles/support/setup/codex/codex-skills.sh
-
 # Pull newer versions of the declared Ollama models, then remove undeclared ones
 source ~/.dotfiles/support/setup/packages/ollama-models.sh
 ollama_models_cleanup
@@ -132,9 +129,11 @@ step "Checking pinned npm packages"
 raise_npm_pin chrome-devtools-mcp ~/.dotfiles/support/setup/claude/claude-plugins.sh CHROME_DEVTOOLS_MCP_VERSION
 raise_npm_pin skills ~/.dotfiles/support/setup/claude/claude-skills.sh SKILLS_CLI_VERSION
 
+step "Applying dotfiles configuration"
+"$HOME/.dotfiles/bin/reconfigure.sh"
+
 echo ""
 success "Update complete!"
 echo ""
 warn "Restart your terminal or run: exec zsh"
-warn "Run bin/reconfigure.sh after changes to symlink declarations or setup scripts."
 echo ""

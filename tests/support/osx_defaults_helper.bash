@@ -7,7 +7,7 @@ given_path_without_system_commands() {
     ln -s /usr/bin/dirname "$restricted_path/dirname"
 }
 
-# Sources <script> under set -e, as bin/install.sh and bin/reconfigure.sh do, answering
+# Sources <script> under set -e, as bin/macos-defaults.sh does, answering
 # its confirmation prompt with <answer>, then prints a line only a still-running caller reaches.
 source_from_setup_script_answering() {
     local answer="$1" script="$2"

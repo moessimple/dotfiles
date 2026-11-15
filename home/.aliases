@@ -121,6 +121,7 @@ alias flushdns="sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder"
 
 # === macOS ===
 
+alias macos-defaults='~/.dotfiles/bin/macos-defaults.sh'
 alias chrome='/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome'
 alias show="defaults write com.apple.finder AppleShowAllFiles -bool true && killall Finder"
 alias hide="defaults write com.apple.finder AppleShowAllFiles -bool false && killall Finder"
