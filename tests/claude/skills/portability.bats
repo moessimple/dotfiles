@@ -126,3 +126,12 @@ setup() {
     grep -Fq '| Capabilities |' "$skills_dir/characterize-behavior/references/characterization-format.md"
     grep -Fq '`Capabilities`' "$skills_dir/raise-quality-gate/SKILL.md"
 }
+
+@test "document-product and characterize-behavior choose the next area by the same risk weights" {
+    # Arrange
+    weights='weight 3 for high, 2 for medium, and 1 for low risk; on a tie, the higher risk goes first'
+
+    # Assert
+    grep -Fq "$weights" "$skills_dir/document-product/references/document-format.md"
+    grep -Fq "$weights" "$skills_dir/characterize-behavior/references/characterization-format.md"
+}

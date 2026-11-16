@@ -23,7 +23,7 @@
 
 A planned change:
 
-- The report names the touched classes and capabilities at the top, or the run stopped and asked for paths
+- The report names the touched classes and capabilities right after the Security section, or the run stopped and asked for paths
 - Every touched capability is `secured`, every line of the touched classes is covered or listed with its reason, and every surviving mutation of those classes is caught or recorded as equivalent
 - Every confirmed rule those capabilities reach has a passed acceptance test or an intended ≠ current entry under Notable behaviour
 - The area's `Capabilities` count is current, and an area whose last capability the run secured went through the closing steps of `area`

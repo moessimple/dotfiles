@@ -25,6 +25,8 @@ Updated by every run, so the way to the gate is visible at a glance.
 |---|---|---|---|
 | {area, as in tests/CHARACTERIZATION.md} | {secured}/{all}, from its `Capabilities` column | {files taken out of the skip list}/{the area's PHP files} | open / improved |
 
+An area is `improved` after its `area` run, or once planned changes have taken its last file out of the skip list and fixed its last baseline entry.
+
 ### Values
 | Value | Start | Now | Target |
 |---|---|---|---|

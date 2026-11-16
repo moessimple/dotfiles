@@ -1,6 +1,6 @@
 ---
 name: document-product
-description: Derives the product behaviour of an unfamiliar application or package from its code, its documentation, and any reachable knowledge sources, one area at a time, and writes it into the repository as PRODUCT.md (what must stay true, purpose, positioning, principles, vocabulary) and KNOWLEDGE_BASE.md (one self-contained entry per feature, for every role including administrators and operators), describes how it is built and operated in ARCHITECTURE.md, keeps the areas, their status, and the questions for review in PRODUCT_REVIEW.md, and writes a short section in the project's agent instructions with the commands and links agents need. Modes: overview of the whole system, one area in depth, or update after code changes. Runs without questions, does not commit, and leaves review and correction to people.
+description: Derives the product behaviour of an unfamiliar application or package from its code, its documentation, and any reachable knowledge sources, one area at a time, and writes it into the repository as PRODUCT.md (what must stay true, purpose, positioning, principles, vocabulary) and KNOWLEDGE_BASE.md (one self-contained entry per feature, for every role including administrators and operators), describes how it is built and operated in ARCHITECTURE.md, keeps the areas, their status, and the questions for review in PRODUCT_REVIEW.md, and writes a short section in the project's agent instructions with the commands and links agents need. Modes: overview of the whole system, one area in depth, update after code changes, or only the features a planned change will touch. Runs without questions, does not commit, and leaves review and correction to people.
 disable-model-invocation: true
 ---
 
@@ -106,15 +106,15 @@ The area has to be in the table in `PRODUCT_REVIEW.md`. Without the table, run `
 
 ### `update`
 
-1. **Find what changed.** For each area past `overview`, run `git diff --name-only {area sha}..HEAD` and compare the result with the area's paths and the `Sources:` lines of its entries. Mark each area with a match as `stale`. Then collect the entry points again: one that no area's paths cover joins the area a user would place it in, with its path added (an area past `overview` becomes `stale`), or becomes a new area as `overview`. Refresh `Changes` for every area.
+1. **Find what changed.** For each area past `overview` or with at least one entry, run `git diff --name-only {area sha}..HEAD` and compare the result with the area's paths and the `Sources:` lines of its entries. Mark each area with a match as `stale`. Then collect the entry points again: one that no area's paths cover joins the area a user would place it in, with its path added (an area past `overview` becomes `stale`), or becomes a new area as `overview`. Refresh `Changes` for every area.
 2. **Bring it up to date.** For each `stale` area, trace again only the features whose sources changed or that are new, and write or adjust their entries and the other documents as in `area`. When changed code no longer meets a rule under `Confirmed rules:`, keep the rule as it stands and record a finding, `RULE-{nnn}: intended ≠ current`. Then set the area to `confirmed` if no P0 rule of it is `open` or `clarify`, otherwise to `drafted`, with the current SHA.
 
 ### A planned change
 
-Any argument that is neither a mode name nor a decision on a rule describes a change someone is about to make, such as `discounts also apply to reduced items`. Documenting the features it touches first gives the change a description to be checked against. Without `PRODUCT_REVIEW.md`, run `overview` first. Then determine the features the change touches, by their entry points and the code behind them, and name them at the top of the report. If none is found, stop and ask for paths.
+Any argument that is neither a mode name nor a decision on a rule describes a change someone is about to make, such as `discounts also apply to reduced items`. Documenting the features it touches first gives the change a description to be checked against. Without `PRODUCT_REVIEW.md`, run `overview` first. Then determine the features the change touches, by their entry points and the code behind them, and name them in the report. If none is found, stop and ask for paths.
 
-1. **Each touched feature** goes through step 1 of `area`, and its P0 rules through step 3. Other features stay as they are. Raise the area's `Drafted` count: an area whose features all have their entry becomes `drafted` with the current SHA, even when several planned changes got it there.
-2. **Report** the touched features, the new rules with their questions, the security gaps, and the next step in one line.
+1. **Each touched feature** goes through steps 1 to 3 of `area`, limited to that feature. Other features stay as they are. Raise the area's `Drafted` count and set its SHA to the current one: an area whose features all have their entry becomes `drafted`, even when several planned changes got it there.
+2. **Report** the security gaps first, then the touched features, the new rules with their questions, and the next step in one line: commit the documents, then the change.
 
 ### Every mode
 

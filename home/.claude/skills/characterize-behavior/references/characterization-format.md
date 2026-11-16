@@ -37,7 +37,7 @@ What has to be closed before the repository is made public, and passed to whoeve
 |---|---|---|---|---|---|---|---|
 | {area, as a user would name it} | `{path}`, ... | high / medium / low | {commits in the last 12 months} | {secured}/{all} | open / in progress / secured | {percent of the area's lines} | {score}, {n} equivalent |
 
-`Changes` counts the commits of the last twelve months that touch a path of the area: `git log --since="12 months ago" --format=%H -- {paths} | sort -u | wc -l`. Often changed, risky code holds most of the defects, so the next area is the one with the highest weight × Changes, with weight 3 for high, 2 for medium, and 1 for low risk; on a tie, the higher risk goes first. `Capabilities` counts the area's capabilities that are `secured`, out of all it has, and is `0/0` until a run groups them.
+`Changes` counts the commits of the last twelve months that touch a path of the area: `git log --since="12 months ago" --format=%H -- {paths} | sort -u | wc -l`. `setup` fills it, and a run without an argument refreshes it before choosing. Often changed, risky code holds most of the defects, so the next area is the one with the highest weight × Changes, with weight 3 for high, 2 for medium, and 1 for low risk; on a tie, the higher risk goes first. `Capabilities` counts the area's capabilities that are `secured`, out of all it has, and is `0/0` until a run groups them.
 
 ## Capabilities
 | Area | Capability | Risk | Status | Tests |

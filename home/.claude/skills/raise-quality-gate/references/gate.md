@@ -199,6 +199,8 @@ it('does not let the Rector skip list grow', function (): void {
 
 Add `declare(strict_types=1);` when the project's files use it. The test is written to pass PHPStan at `max`, Rector, and Pint as it stands, so the `tests` run has nothing to change in it. Once the `tests` run deletes the baseline and empties the skip list, both values are 0 and stay there.
 
+A planned change on a feature branch can run while a `quality-gate/*` run is open, so both may edit `phpstan-baseline.neon`, `rector-skip.php`, and the lock. Resolve a merge conflict by regenerating the baseline, keeping only skip entries both sides still have, and taking the lower value of each lock entry; the guard then shows that nothing grew.
+
 ## tests/Unit/ArchTest.php
 
 Pest's built-in architecture presets, run by `test:unit` like any other test:

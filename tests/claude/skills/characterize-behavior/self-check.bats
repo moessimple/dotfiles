@@ -135,3 +135,42 @@ teardown() {
     assert_success
     assert_output_contains "No hits."
 }
+
+@test "a deleted acceptance lock is a hit for every entry" {
+    # Arrange
+    delete_project_file tests/acceptance.lock.json
+
+    # Act
+    run_self_check
+
+    # Assert
+    assert_failure
+    assert_output_contains "## Acceptance guard or lock entries changed"
+    assert_output_contains "tests/Feature/OrderRulesTest.php"
+}
+
+@test "a deleted acceptance guard test is a hit" {
+    # Arrange
+    delete_project_file tests/Unit/AcceptanceGuardTest.php
+
+    # Act
+    run_self_check
+
+    # Assert
+    assert_failure
+    assert_output_contains "## Acceptance guard or lock entries changed"
+    assert_output_contains "tests/Unit/AcceptanceGuardTest.php"
+}
+
+@test "a first acceptance lock in a project without one is not a hit" {
+    # Arrange
+    given_acceptance_lock_not_committed
+    write_project_file tests/acceptance.lock.json "{\n    \"tests/Feature/OrderRulesTest.php\": \"$order_rules_hash\"\n}\n"
+
+    # Act
+    run_self_check
+
+    # Assert
+    assert_success
+    assert_output_contains "No hits."
+}

@@ -37,3 +37,9 @@ run_self_check() {
     run bash -c 'cd "$1" && "$2"' bash "$project" \
         "$dotfiles_dir/home/.claude/skills/characterize-behavior/scripts/self-check.sh"
 }
+
+# The state of a project set up before the acceptance guard existed: no lock file in HEAD.
+given_acceptance_lock_not_committed() {
+    git -C "$project" rm -q tests/acceptance.lock.json
+    git -C "$project" commit -qm "remove acceptance lock"
+}
