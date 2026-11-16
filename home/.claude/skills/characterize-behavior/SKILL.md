@@ -87,7 +87,7 @@ Give each area, and later each capability, a risk read from the code: **high** w
 1. **Read** the code behind the entry point: who may reach it, what it validates, which decisions it takes, what it changes, what the actor sees, how it fails. Each is a behaviour to pin.
 2. **Data:** create the factories the tests need. A model without `HasFactory` keeps it that way: its factory sets `protected $model`, and tests use `{Model}Factory::new()`.
 3. **Write the test** following [references/test-style.md](references/test-style.md): one file per entry point, the real application behind it, fakes only for what leaves the process.
-4. **Pin the actual value.** Write the assertion you expect and run the test. If the code behaves differently, assert what it actually does. Keep a test only if it would survive a refactoring that keeps behaviour, asserts what an actor observes, and pins something no other test already pins.
+4. **Pin the actual value.** Write the assertion you expect and run the test. If the code behaves differently, assert what it actually does. Keep a test only if it would survive a refactoring that keeps behaviour, asserts what an actor observes, and passes the check under Keeping a new test in the test style.
 5. **Mark what looks unintended** with one note on the test, `->note('Notable: ...')`, or `->note('Security: ...')` for access, authentication, or exposed data. Record it in `tests/CHARACTERIZATION.md` with what the repository says about intent (`git log -L`, whether the interface links to it). Never fix it.
 6. **Keep it green.** Run the whole suite and the new file on its own. After the first test file, also run the project's lint and static analysis over it: what they reject shapes every following file. Mark the capability `secured`.
 

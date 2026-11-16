@@ -77,6 +77,7 @@ What the tests of an area do not check, so nobody reads a secured area as fully 
 
 ## Open
 - {blocker and cause, or a question for a person, such as an unconfirmed equivalent mutation of a high-risk capability | none}
+- Flaky, deleted: `{file}` ({test name}): {the failure}
 ```
 
 Equivalent mutations name the file, never the line or Pest's ID: Pest hashes the whole mutated file into the ID, and lines move with any edit, so later runs match an entry by file, mutator, and the code before and after.

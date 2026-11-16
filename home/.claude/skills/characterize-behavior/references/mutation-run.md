@@ -16,7 +16,7 @@ Pest mutates only PHP files under `<source>`. Blade views, routes, configuration
 
 The goal is that every behaviour an actor can observe is pinned, not a score: mutants are highly redundant, and killing every one produces tests that exist only for the metric. For each survivor, ask whether the change alters something a user, an API client, the scheduler, the queue, or an operator can observe.
 
-- **Yes, and no test pins it:** add the test that observes it at the entry point, under the admission check in the skill.
+- **Yes, and no test pins it:** add the test that observes it at the entry point, under the check in [test-style.md](test-style.md), Keeping a new test.
 - **Only a test of an implementation detail would catch it** (an internal cache key, which model event fires, a constant no actor sees): do not write it; record the mutation with that reason.
 - **No actor can observe it** (for example a default every caller overrides, naming those callers): record it as equivalent with the reason. Check that no entry point exposes it before calling it equivalent.
 
