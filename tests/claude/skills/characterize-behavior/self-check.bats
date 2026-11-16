@@ -35,7 +35,7 @@ teardown() {
 
 @test "a changed committed acceptance test is a hit" {
     # Arrange
-    write_project_file tests/Acceptance/OrderTest.php "<?php\n\nit('RULE-001: deducts 5 %% from an order of 500.00', function () {\n    expect(480.0)->toBe(480.0);\n});\n"
+    write_project_file tests/Acceptance/OrderTest.php "<?php\n\nit('RULE-001: deducts 5 % from an order of 500.00', function () {\n    expect(480.0)->toBe(480.0);\n});\n"
 
     # Act
     run_self_check

@@ -1,6 +1,6 @@
 # Coverage gaps
 
-Code the usual loop cannot pin: code that reaches outside past the framework, and code no entry point reaches. Both still count towards the 100 % gate.
+Code the usual loop cannot pin: code that reaches outside past the framework, and code no entry point reaches. Both still count towards the coverage gate.
 
 ## Code without a seam
 
