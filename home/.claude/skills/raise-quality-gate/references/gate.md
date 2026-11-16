@@ -56,11 +56,13 @@ parameters:
         - tests/
     level: max
     phpVersion: 80300   # from the project's php requirement, e.g. ^8.3 -> 80300
+    excludePaths:
+        - tests/Acceptance
     reportUnmatchedIgnoredErrors: true
     reportIgnoresWithoutComments: true
 ```
 
-Add `vendor/phpstan/phpstan-mockery/extension.neon` to `includes` when Mockery is installed. When no `pestphp/pest-plugin-phpstan` release supports the installed Pest major, leave out its include and `tests/`, with a comment in `phpstan.neon` naming that reason. `reportUnmatchedIgnoredErrors` makes PHPStan fail when a baseline entry or ignore no longer matches, so the baseline can only shrink. `reportIgnoresWithoutComments` requires a reason in parentheses on every `@phpstan-ignore` and forbids `@phpstan-ignore-line` and `@phpstan-ignore-next-line`.
+Add `vendor/phpstan/phpstan-mockery/extension.neon` to `includes` when Mockery is installed. When no `pestphp/pest-plugin-phpstan` release supports the installed Pest major, leave out its include and `tests/`, with a comment in `phpstan.neon` naming that reason. `reportUnmatchedIgnoredErrors` makes PHPStan fail when a baseline entry or ignore no longer matches, so the baseline can only shrink. `excludePaths` keeps the acceptance tests out for good, as in Rector and Pint: no tool may change them, so an error in them could be neither fixed nor ignored. `reportIgnoresWithoutComments` requires a reason in parentheses on every `@phpstan-ignore` and forbids `@phpstan-ignore-line` and `@phpstan-ignore-next-line`.
 
 `tools` starts at `level: max` without `tests/` in `paths`, and includes `phpstan-baseline.neon` with every error the code has today. Area runs shrink the baseline; the `tests` run adds `tests/` and deletes it.
 
