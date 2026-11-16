@@ -1,12 +1,25 @@
 # Definition of Done
 
+`setup`:
+
 - Pest is set up after the reference, and the existing tests give the same result as before
 - Every precondition was checked in order, and the run stopped at the first failure
-- Every capability from the inventory has a risk and is `secured`, or the report says why not
+- Every entry point belongs to an area with its paths, a risk, and the status `open`
+- `composer test` runs the coverage gate with the coverage of the existing tests as its floor
+- For a package, the suite also ran with the lowest versions, and every difference is in the report
+
+`area`, for the area of the run:
+
+- Every capability of the area has a risk and is `secured`, or the report says why not
 - The suite passes apart from the existing failures from the baseline, and every new test file also passes on its own
-- `pest --coverage --exactly=100.0` passes, or every missing line is in the report with its reason, and `composer test` runs that gate
-- Every surviving mutation is caught by a test or recorded as equivalent with its reason
+- Every line of the area's files is covered, or listed in the record with its reason, and the floor of `composer test` is raised to the new total
+- Every surviving mutation of the area's classes is caught by a test or recorded as equivalent with its reason
+- Every confirmed rule the area's entry points reach has an acceptance test that passed in the JUnit report, or an intended ≠ current entry under Notable behaviour; no committed acceptance test changed without a request for its rule ID
 - The self-check found no hit, or every hit is fixed or in the report, and the diff in application code is empty
 - Every test that pins behaviour that looks unintended carries a `Notable:` or `Security:` note and is listed in `tests/CHARACTERIZATION.md`, every `Security:` finding and audit advisory also in its Security section at the top
-- For a package, the suite also ran with the lowest versions, and every difference is in the report
+- Not secured names everything of the area the test environment cannot check: calls past the framework, locks and races, behaviour that needs a real commit, and queued jobs
+- The area is `secured` as the record defines it, or `in progress` with its reason under Open
+
+Every mode:
+
 - `tests/CHARACTERIZATION.md` is complete enough for someone else to continue the run or work with the tests

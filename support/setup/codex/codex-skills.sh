@@ -8,7 +8,6 @@ CODEX_COMPATIBLE_SKILLS=(
     clarity
     code-review-dispatch
     codebase-design
-    codebase-onboarding
     debug
     diagnosing-bugs
     document-product

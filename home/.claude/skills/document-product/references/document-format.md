@@ -2,6 +2,8 @@
 
 `PRODUCT.md`, `KNOWLEDGE_BASE.md`, and `ARCHITECTURE.md` read like documentation written by the people who build the product: plain prose for a reader, no status markers, no line numbers, no SHAs. Evidence lives in one `Sources:` line per knowledge base entry or architecture part and in `PRODUCT_REVIEW.md`. In `PRODUCT.md` and `KNOWLEDGE_BASE.md`, code names appear only where the product itself uses them, in sources, and in the vocabulary; `ARCHITECTURE.md` names classes and files, since there they are the subject.
 
+Some terms stay as they are in every documentation language, because other skills and tools search for them: file names, rule IDs (`RULE-012`), `Confirmed rules:`, `Sources:`, `History:`, and the headings, column names, status values, and decision values of `PRODUCT_REVIEW.md`.
+
 ## Contents
 
 - PRODUCT.md
@@ -100,6 +102,10 @@ This file documents the product's features and stories. Feature entries describe
 
 {Further paragraphs for edge cases, related settings, and what the product deliberately does not do here.}
 
+Confirmed rules:
+
+- RULE-{nnn}: Given {concrete state}, When {action}, Then {concrete outcome}. Confirmed on {date}.
+
 Sources: [{what it is}]({path}), [{what it is}]({path}).
 
 {History: {the reason or decision behind it, as a source states it}, with a link. Only when a source states it.}
@@ -113,10 +119,11 @@ Sources: [{what it is}]({path}), [{what it is}]({path}).
 - **Sources** link to files relative to the repository root, named by what they are (`[wishlist validation](app/Http/Requests/WishlistItemRequest.php)`), without line numbers.
 - **Access** is part of the entry: who can use it, what a guest sees, and what an administrator can do in addition.
 - **Lifecycles:** an entry about a record with states names each state with the label users see, and who moves it from one to the next.
+- **Confirmed rules:** only rules people confirmed, moved here from `PRODUCT_REVIEW.md` with their ID and wording. A confirmed rule lives in this one place. The block stays out of an entry without confirmed rules.
 
 ## ARCHITECTURE.md
 
-The technical reference for the people who develop and run the product: what a new developer needs to find their way and what an operator needs to keep it running. It describes the structure the code actually has, not one it should have; where the code departs from its framework's conventions, that is stated, because a reader would otherwise assume the convention. It links to code instead of copying it, and names classes and files, since here they are the subject. A section without content stays out.
+The technical reference for the people who develop and run the product: what a new developer needs to find their way and what an operator needs to keep it running. It describes the structure the code actually has, not one it should have; where the code departs from its framework's conventions, that is stated, including naming and error-handling patterns, because a reader would otherwise assume the convention. It links to code instead of copying it, and names classes and files, since here they are the subject. A section without content stays out.
 
 ```md
 # {Name} architecture
@@ -163,32 +170,72 @@ Sources: [{what it is}]({path}).
 
 ## PRODUCT_REVIEW.md
 
-Material for the review, in the repository root, until people have worked through it.
+Material for the review and the state of the documentation, in the repository root. It stays in the repository: the area table tells every later run which areas are documented at which SHA, and the rules carry what people still have to decide.
 
 ```md
 # Product review
 
-Derived from {sha} on {date}. Repository: {path}. Knowledge sources used: {sources or none}.
+Repository: {path}. Knowledge sources used: {sources or none}.
 
 ## Security
 What has to be closed before the repository is made public, and passed to whoever runs the product now.
 - **{Security gap, in one sentence}.** {Who is affected and how.} `{path:line@sha}` | none
 
-## Coverage
-| Feature | Status | Read |
-|---|---|---|
-| {feature} | not studied / drafted / stale since {sha} | `{path:line}`, ... |
+## Areas
+| Area | Risk | Status | Sha | Paths | Features |
+|---|---|---|---|---|---|
+| {area} | high / medium / low | overview / drafted / confirmed / stale | {sha} | `{path}`, ... | {feature}, ... |
 
-## To confirm
-- {Statement in the documents that rests on a single reading of complex code, or on a source the code does not show}: `{path:line@sha}`
+## Rules
+{Open rules and rules to clarify, in the format below.}
 
 ## Findings
 - **{Finding}.** {What is wrong or contradictory, and the consequence for whom.} `{path:line@sha}`
+- **RULE-{nnn}: intended ≠ current.** {What the code does, and what is intended instead, in the words of the decision.}
 
 ## Review list
 Where reviewers should start, most important first:
-- {Section left out for lack of a source, a finding, or a statement to confirm, and why it matters}
+- {Section left out for lack of a source, a finding, or a rule to confirm, and why it matters}
 ```
+
+- **Area:** named as a user would, one row per area. Paths are the directories and files of its entry points, models, jobs, and commands; Features lists its knowledge base entries by heading.
+- **Risk:** high when the area controls access, moves money, or writes or deletes other people's data; medium when it writes data or reaches outside the system; low when it only reads.
+- **Status:** `overview` when the area is listed but its features are not traced yet; `drafted` when every feature has its entry; `confirmed` when it is drafted and no P0 rule of the area is still `open` or `clarify`; `stale` when its sources changed after its SHA.
+- **Sha:** the commit the area was last read at. `update` compares it with `HEAD`.
+
+### Rules
+
+A rule is a business statement that people have to confirm: a statement that rests on a single reading of complex code, on names or structure only, or on a source the code does not show, and every business decision of a P0 feature.
+
+```md
+### RULE-012: {Short statement}
+- Area: {area}
+- Priority: P0 | P1 | P2
+- Confidence: high | medium | low
+- Current: Given {concrete state}, When {action}, Then {concrete outcome}.
+- Source: `{path:line@sha}`
+- Question: {concrete question} (to: {role}, blocking: yes | no)
+- Decision: open
+```
+
+- **ID:** `RULE-` and three digits, counted up across the whole project. An ID is never given out again, not even after its rule is removed.
+- **Priority:** P0 when the rule moves money, concerns access or data integrity, binds legally, or is the core of its area; at most about one rule in four is P0. P2 for display and convenience. P1 otherwise.
+- **Confidence:** below high when the statement rests only on names or structure. Then a question is required.
+- **Given, When, Then:** concrete values taken from the code, so that a test can take them over unchanged.
+- **One rule per business decision,** not one per branch in the code.
+
+### Decisions
+
+People decide on rules in the invocation (`RULE-004 confirmed`, `RULE-007 wrong: rounds down on purpose`), in any language. The decision is recorded with its value, the date, and the note in the words of the person who decided; who decided is in the Git history of the commit.
+
+| Value | Meaning | Consequence |
+|---|---|---|
+| `open` | not decided yet | stays under Rules |
+| `confirmed` | the current behaviour is intended | moves to the feature's `Confirmed rules:` in `KNOWLEDGE_BASE.md` and is removed from `PRODUCT_REVIEW.md` |
+| `wrong` | the current behaviour is not intended; the note says what is | moves to Findings as intended ≠ current; the documents keep describing the current behaviour |
+| `clarify` | needs a discussion | stays under Rules, with the note |
+
+An area whose features are all drafted and that has no P0 rule left `open` or `clarify` is `confirmed`.
 
 ## Agent instructions
 
@@ -214,6 +261,11 @@ Commands:
 - All checks: `{command}`
 - One test: `{command}`
 - {Lint, static analysis, frontend build: `{command}`}
+
+Changes:
+
+- Code named in a `Sources:` line changes together with that entry, in the same commit. A change to a confirmed rule is a business decision, never part of a refactoring.
+- {Commits and branches: the convention `git log` shows, only where it departs from the usual.}
 
 {Not visible in the code, only when a source states it:}
 

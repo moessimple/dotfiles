@@ -34,7 +34,6 @@
 # secrets before `skills_cli add` runs, so review does not rely on memory.
 THIRD_PARTY_SKILLS=(
     "addyosmani/clarity:clarity"
-    "affaan-m/ecc:codebase-onboarding"
     "anthropics/skills:pdf"
     "anthropics/skills:skill-creator"
     "wshobson/agents:bash-defensive-patterns"

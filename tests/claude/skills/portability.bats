@@ -88,3 +88,26 @@ setup() {
     grep -Fqx '## Project knowledge' "$skills_dir/document-product/references/document-format.md"
     grep -Fq '`## Project knowledge`' "$skills_dir/raise-quality-gate/SKILL.md"
 }
+
+@test "document-product records confirmed rules in the format characterize-behavior searches for" {
+    # Assert
+    grep -Fqx 'Confirmed rules:' "$skills_dir/document-product/references/document-format.md"
+    grep -Eq 'RULE-[0-9]{3}' "$skills_dir/document-product/references/document-format.md"
+}
+
+@test "characterize-behavior finds confirmed rules by the terms document-product writes" {
+    # Assert
+    grep -Fq '`Confirmed rules:`' "$skills_dir/characterize-behavior/SKILL.md"
+    grep -Fq '`RULE-`' "$skills_dir/characterize-behavior/SKILL.md"
+}
+
+@test "raise-quality-gate reads the areas and acceptance tests that characterize-behavior records" {
+    # Assert
+    grep -Fq '## Areas' "$skills_dir/characterize-behavior/references/characterization-format.md"
+    grep -Fq 'open / in progress / secured' "$skills_dir/characterize-behavior/references/characterization-format.md"
+    grep -Fq '`## Areas`' "$skills_dir/raise-quality-gate/SKILL.md"
+    grep -Fq '`secured`' "$skills_dir/raise-quality-gate/SKILL.md"
+    grep -Fq "group('acceptance')" "$skills_dir/characterize-behavior/SKILL.md"
+    grep -Fq "group('acceptance')" "$skills_dir/raise-quality-gate/SKILL.md"
+    ! grep -rFq 'tests/Acceptance' "$skills_dir/characterize-behavior" "$skills_dir/raise-quality-gate" || false
+}

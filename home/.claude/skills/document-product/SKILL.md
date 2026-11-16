@@ -1,6 +1,6 @@
 ---
 name: document-product
-description: Derives the complete product behaviour of an unfamiliar application or package from its code, its documentation, and any reachable knowledge sources, and writes it into the repository as PRODUCT.md (what must stay true, purpose, positioning, principles, vocabulary) and KNOWLEDGE_BASE.md (one self-contained entry per feature, for every role including administrators and operators), describes how it is built and operated in ARCHITECTURE.md, with the questions for its review in PRODUCT_REVIEW.md, and a short section in the project's agent instructions with the commands and links agents need. Runs without questions, does not commit, and leaves review and correction to people.
+description: Derives the product behaviour of an unfamiliar application or package from its code, its documentation, and any reachable knowledge sources, one area at a time, and writes it into the repository as PRODUCT.md (what must stay true, purpose, positioning, principles, vocabulary) and KNOWLEDGE_BASE.md (one self-contained entry per feature, for every role including administrators and operators), describes how it is built and operated in ARCHITECTURE.md, keeps the areas, their status, and the questions for review in PRODUCT_REVIEW.md, and writes a short section in the project's agent instructions with the commands and links agents need. Modes: overview of the whole system, one area in depth, or update after code changes. Runs without questions, does not commit, and leaves review and correction to people.
 disable-model-invocation: true
 ---
 
@@ -19,10 +19,10 @@ Code shows what the system does, not why. The documents state only what a source
 | `PRODUCT.md` | repository root | Platform, users, purpose, positioning, operating context, capabilities and the rules every feature keeps, brand and vocabulary, evidence, principles |
 | `KNOWLEDGE_BASE.md` | repository root | One user-facing entry per feature, with its sources and history |
 | `ARCHITECTURE.md` | repository root | Stack, parts and their responsibilities, main flows, data model, external systems, operations, configuration |
-| `PRODUCT_REVIEW.md` | repository root | SHA studied, coverage, statements to confirm, findings, review list |
+| `PRODUCT_REVIEW.md` | repository root | Security gaps, the areas with their risk, status, and SHA, statements to confirm, findings, review list |
 | `AGENTS.md`, or `CLAUDE.md` | repository root | One section: the commands, links to the documents, and what a source states that the code does not show |
 
-`PRODUCT_REVIEW.md` holds the line-level evidence and the questions for the review. It stays out of the documents, which read as finished documentation, but lives in the repository, so that anyone on the team can answer its questions or continue a run. Delete it once people have worked through it. It is written on the assumption that security gaps it records are closed before the repository is made public.
+`PRODUCT_REVIEW.md` holds the line-level evidence, the state of each area, and the questions for the review. It stays out of the documents, which read as finished documentation, but lives in the repository for good, so that anyone on the team can answer its questions and every later run knows which areas are documented at which SHA. It is written on the assumption that security gaps it records are closed before the repository is made public.
 
 If `PRODUCT.md`, `KNOWLEDGE_BASE.md`, or `ARCHITECTURE.md` already exist, read them first and extend them in their structure: keep what people wrote, add what is missing, and record where the code contradicts them as a finding instead of overwriting it.
 
@@ -30,13 +30,25 @@ Use the formats in [references/document-format.md](references/document-format.md
 
 Determine the documentation language before drafting, following the applicable output-language rules. Translate
 human-readable headings and labels in the format templates into that language; preserve filenames, code
-identifiers, and machine-readable syntax.
+identifiers, machine-readable syntax, and the terms the format reference lists as fixed.
+
+## Modes
+
+| Invocation | Does |
+|---|---|
+| `overview` | Inventory of the whole system: areas with risk, document skeletons. The default without an argument when `PRODUCT_REVIEW.md` does not exist. |
+| `area <name>` | Documents every feature of one area. |
+| `update` | Brings areas whose sources changed up to date. The default without an argument when `PRODUCT_REVIEW.md` exists. |
+
+An area is what a user would name as one part of the product, and holds several features.
+
+Decisions on rules passed with the invocation, such as `RULE-004 confirmed` or `RULE-007 wrong: rounds down on purpose`, are recorded first in every mode, as the format reference describes under Decisions. A `drafted` area with no P0 rule left `open` or `clarify` becomes `confirmed`. The skill asks no questions during a run, so a decision it needs becomes a rule with a question instead.
 
 ## Evidence
 
 - A statement goes into the documents only when a source establishes it: code, documentation, history, or a knowledge source. Check documentation and knowledge sources against the code before relying on them.
 - Each knowledge base entry ends with a `Sources:` line linking the files it was derived from, and a `History:` line when a source states the reason behind it.
-- `PRODUCT_REVIEW.md` holds what a reviewer needs to check the documents: per feature the code locations read (`path:line@sha`), the statements that rest on a single reading of complex code, and the sections left out for lack of a source.
+- `PRODUCT_REVIEW.md` holds what a reviewer needs to check the documents: each area with its paths and the SHA it was read at, the rules people have to confirm with their code location (`path:line@sha`), and the sections left out for lack of a source.
 - What no source establishes, typically intent, positioning, and principles, stays out of the documents and goes into the review list as a concrete question. A missing reason is a result, not a gap to fill.
 
 ## Describing behaviour
@@ -76,15 +88,30 @@ Take only what describes the product, never personal data. Check every statement
 
 ## Process
 
-1. **Inventory.** Record the SHA. Derive the list of features from the entry points, grouped and named as a user would. Run the product pass over the knowledge sources. Write the `PRODUCT.md` skeleton (platform, users, purpose, operating context, capability list) and `PRODUCT_REVIEW.md` with every feature as `not studied`.
-2. **One feature at a time.** Trace it from its entry point through access, validation, decisions, state changes, what the user sees, failure paths, and external systems, and run the feature pass. Write its `KNOWLEDGE_BASE.md` entry, add the rules and terms it reveals to `PRODUCT.md`, record the code locations and statements to confirm in `PRODUCT_REVIEW.md`, and mark it `drafted` before moving on. Writing after each feature keeps the work resumable.
-3. **Complete.** When every feature is drafted, write the rules every feature keeps, the vocabulary, and the sections only sources can fill, run the rule pass, and write the contents list of the knowledge base.
-4. **Architecture.** Write `ARCHITECTURE.md` from what the feature traces read: the parts the features pass through, the main flows, the data model, the external systems, and what runs outside a request. Record its code locations in `PRODUCT_REVIEW.md` like a feature's.
-5. **Agent instructions.** Write the section described under Agent instructions in the format reference.
-6. **Edit.** Rewrite the three documents with `clarity` (REQUIRED SUB-SKILL) in its rewrite mode for documentation and reference: keep every fact, value, link, label, and the entry structure, and make the prose specific and plain. Run its lint mode on each file: its hits are diagnostics, so read each in context and change only what is a real problem.
-7. **Report.** Start with the security gaps, each with the advice to pass it to whoever runs the product and to close it before the repository is made public. Then give the user a short summary: what the product is, how many features were documented, which knowledge sources were used, the sections left out for lack of a source, the other findings, where the review should start, and that the files are uncommitted changes in the repository. The agent instructions link the documents instead of importing them, so agents read them when a task needs them; people should review `PRODUCT.md` and answer the review list before agents rely on it, because what makes it worth reading is exactly what the code cannot tell.
+### `overview`
 
-If `PRODUCT_REVIEW.md` already exists, compare its SHA with `git rev-parse HEAD`, mark features whose sources changed as `stale`, and continue with the first feature that is not `drafted`.
+1. **Inventory.** Record the SHA. Derive the features from the entry points and group them into areas, named as a user would. For each area, record its features, its paths (controllers, jobs, commands, models), and its risk as the format reference defines it. The risk only orders the area runs. For a package, the areas are what a consuming application uses. Run the product pass over the knowledge sources.
+2. **Skeletons.** Write `PRODUCT.md` (platform, users, operating context, capability list), `ARCHITECTURE.md` (stack, parts, external systems, running it, and the main flows as a list without detail), and `PRODUCT_REVIEW.md` with every area as `overview` and the security gaps and findings already visible. `KNOWLEDGE_BASE.md` is not written in this mode.
+3. **Agent instructions.** Write the section described under Agent instructions in the format reference.
+
+### `area <name>`
+
+The area has to be in the table in `PRODUCT_REVIEW.md`. Without the table, run `overview` first. When the table exists but no area matches the name, stop and list the areas it holds.
+
+1. **One feature at a time.** Trace it from its entry point through access, validation, decisions, state changes, what the user sees, failure paths, and external systems, and run the feature pass. Write its `KNOWLEDGE_BASE.md` entry, add a rule with an ID to `PRODUCT_REVIEW.md` for every statement that is uncertain or needs a business decision, and update the area row before moving on. Writing after each feature keeps the work resumable.
+2. **Product and architecture.** Add the terms and the rules that hold across areas to `PRODUCT.md`, and the area's parts and main flows to `ARCHITECTURE.md`. Run the rule pass, and update the contents list of the knowledge base.
+3. **Check P0 rules.** Read every code location a P0 rule of the area cites again. A rule that only a comment, a string, or documentation supports is removed, and the gap becomes a finding.
+4. **Status.** Set the area to `drafted` with the current SHA.
+
+### `update`
+
+1. **Find what changed.** For each area past `overview`, run `git diff --name-only {area sha}..HEAD` and compare the result with the area's paths and the `Sources:` lines of its entries. Mark each area with a match as `stale`. Then collect the entry points again: one that no area's paths cover joins the area a user would place it in, with its path added (an area past `overview` becomes `stale`), or becomes a new area as `overview`.
+2. **Bring it up to date.** For each `stale` area, trace again only the features whose sources changed or that are new, and write or adjust their entries and the other documents as in `area`. When changed code no longer meets a rule under `Confirmed rules:`, keep the rule as it stands and record a finding, `RULE-{nnn}: intended ≠ current`. Then set the area to `confirmed` if no P0 rule of it is `open` or `clarify`, otherwise to `drafted`, with the current SHA.
+
+### Every mode
+
+1. **Edit.** Rewrite the sections this run changed with `clarity` (REQUIRED SUB-SKILL) in its rewrite mode for documentation and reference: keep every fact, value, link, label, and the entry structure, and make the prose specific and plain. Run its lint mode on the same sections: its hits are diagnostics, so read each in context and change only what is a real problem.
+2. **Report.** Start with the security gaps, each with the advice to pass it to whoever runs the product and to close it before the repository is made public. Then give the user a short summary: what the product is, the areas and their status, what this run documented, which knowledge sources were used, the sections left out for lack of a source, the other findings, where the review should start, the next area to document by risk, and that the files are uncommitted changes in the repository. People should review `PRODUCT.md` and answer the review list before agents rely on it, because what makes it worth reading is exactly what the code cannot tell.
 
 ## Findings
 
@@ -97,10 +124,19 @@ A defect, a security gap, or a contradiction between code, documentation, and kn
 
 ## Definition of Done
 
-- Every feature in `PRODUCT_REVIEW.md` is `drafted`, or the report says which are not and why
-- Every knowledge base entry stands on its own, describes the feature from the side of each role that uses it with its access and limits, holds no secret, credential, or personal data, and has a `Sources:` line
-- `ARCHITECTURE.md` names every part the feature entries pass through, every external system, and everything that runs outside a request (schedule, queues, listeners), each with a `Sources:` line
+Every mode:
+
+- Every statement in the documents rests on a source; `PRODUCT_REVIEW.md` holds every security gap in its Security section at the top, the areas with their status and SHA, the open rules, the other findings, and the review list with every section left out
+- Every decision passed with the invocation is recorded with its value, date, and note, and a confirmed rule stands only under `Confirmed rules:` in its feature's entry
 - The agent instructions section names only commands the project defines and links only files that exist, and contains no directory tree, architecture overview, or generic advice
-- Every statement in the documents rests on a source; `PRODUCT_REVIEW.md` holds every security gap in its Security section at the top, the code locations, the statements to confirm, the other findings, and the review list with every section left out
-- The three documents went through `clarity`, and every hit of its lint was read in context
+- The sections this run changed went through `clarity`, and every hit of its lint was read in context
 - `git status --porcelain` in the repository shows only `PRODUCT.md`, `KNOWLEDGE_BASE.md`, `ARCHITECTURE.md`, `PRODUCT_REVIEW.md`, and the agent instructions file
+
+`overview`: every entry point belongs to an area, and every area has its features, paths, and risk.
+
+`area` and `update`, for each area the run worked on:
+
+- Every feature of the area has a knowledge base entry that stands on its own, describes the feature from the side of each role that uses it with its access and limits, holds no secret, credential, or personal data, and has a `Sources:` line; the report names any feature left out and why
+- `ARCHITECTURE.md` names every part the area's entries pass through, every external system they reach, and everything of the area that runs outside a request (schedule, queues, listeners), each with a `Sources:` line
+- Every uncertain or open business statement of the area is a rule with an ID, a concrete Given, When, Then, and its source; every P0 rule cites code that was read again
+- The area's status and SHA in `PRODUCT_REVIEW.md` match the state of its documents

@@ -30,7 +30,7 @@ The gate every project reaches. Adjust paths to what the project has and the PHP
 ]
 ```
 
-With pcov instead of Xdebug, drop `XDEBUG_MODE=coverage`. If the project has a JavaScript frontend with its own lint and audit scripts, add `npm run lint` to `lint`, `npm run test:lint` to `test:lint`, and `npm audit` to `test:audit`. While a threshold is still being raised, the script carries the current value (`--min={current}`), and `phpstan.neon` carries the current level. A check joins `test` only once it passes, so `test` passes after every commit.
+With pcov instead of Xdebug, drop `XDEBUG_MODE=coverage`. If the project has a JavaScript frontend with its own lint and audit scripts, add `npm run lint` to `lint`, `npm run test:lint` to `test:lint`, and `npm audit` to `test:audit`. While a threshold is still being raised, the script carries the current value (`--min={current}`, for line coverage the floor characterize-behavior raises), and `phpstan-baseline.neon` holds the errors not fixed yet. A check joins `test` only once it passes, so `test` passes after every commit.
 
 ## Dev dependencies
 
@@ -61,6 +61,8 @@ parameters:
 ```
 
 Add `vendor/phpstan/phpstan-mockery/extension.neon` to `includes` when Mockery is installed. When no `pestphp/pest-plugin-phpstan` release supports the installed Pest major, leave out its include and `tests/`, with a comment in `phpstan.neon` naming that reason. `reportUnmatchedIgnoredErrors` makes PHPStan fail when a baseline entry or ignore no longer matches, so the baseline can only shrink. `reportIgnoresWithoutComments` requires a reason in parentheses on every `@phpstan-ignore` and forbids `@phpstan-ignore-line` and `@phpstan-ignore-next-line`.
+
+`tools` starts at `level: max` without `tests/` in `paths`, and includes `phpstan-baseline.neon` with every error the code has today. Area runs shrink the baseline; the `tests` run adds `tests/` and deletes it.
 
 ## rector.php
 
@@ -103,10 +105,10 @@ return RectorConfig::configure()
     ->withPreparedSets(
         deadCode: true,
         codeQuality: true,
-        codingStyle: true,
+        // codingStyle: true,   only after a decision under Decisions in QUALITY_GATE.md
         typeDeclarations: true,
         privatization: true,
-        earlyReturn: true,
+        // earlyReturn: true,   only after a decision under Decisions in QUALITY_GATE.md
     )
     ->withPhpSets()
     ->withSkip([
@@ -119,10 +121,19 @@ return RectorConfig::configure()
         SeparateMultiUseImportsRector::class,
         // Adds HasFactory to models that have no factory class.
         AddHasFactoryToModelsRector::class,
+        // Not improved yet: removed per area run, see the skip list below.
+        // __DIR__.'/app/Http/Controllers/Billing',
     ]);
 ```
 
-Leave out a skipped rule class that does not exist in the installed Rector version. While raising, the sets are added one at a time, as the skill describes, until the configuration matches the one above.
+Leave out a skipped rule class that does not exist in the installed Rector version. `codingStyle` and `earlyReturn` are optional: they mostly produce large diffs without a shown benefit for the error rate, so they are on only where `QUALITY_GATE.md` records that decision. `tools` writes this configuration whole, without `tests` in the paths until the `tests` run, and with the skip list below, so Rector has nothing to change on the first day.
+
+### Skip list
+
+Rector applies its sets to every path it is given on the command line, even one outside `withPaths()`; only `withSkip()` holds there too. So code whose area has not had its run yet stays in `withSkip()`, and neither `rector --dry-run` in `composer test` nor a call for a single file reports changes in it. `tools` builds the list from the paths of the area table in `tests/CHARACTERIZATION.md`, and adds every other PHP directory under the gate's paths at the same granularity.
+
+- **It only shrinks.** An area run removes the paths it takes over; nothing is ever added after `tools`.
+- **Code outside every area** stays in the list until an area takes it over, and is listed in `QUALITY_GATE.md` under Open decisions.
 
 ## tests/Unit/ArchTest.php
 
@@ -187,12 +198,12 @@ The formatting rules, applied in one go:
 }
 ```
 
-Two rules of the set above can still change behaviour, and the review of the Pint commit checks both:
+`tools` starts with `"exclude": ["tests"]` and without two rules of the set above, which can still change behaviour and which the tests only reliably catch at full coverage. Both are recorded under Deferred, and the `tests` run turns them on one at a time:
 
 - `ordered_traits` sorts a class's traits alphabetically, and Laravel boots a model's traits (`boot{Trait}`, `initialize{Trait}`) in the order they are used, so the order in which model events and global scopes are registered can change.
 - `ordered_class_elements` reorders properties across visibilities, which changes the order of `(array)` casts, `get_object_vars($this)`, and `serialize()`.
 
-Where either changes what the tests observe, undo that part. Pint cannot turn a rule off for one file: either keep the file out of Pint with `notPath` (it is then not formatted at all) or leave the rule out of `pint.json`. Both depart from the gate and go into the report as decisions.
+When turning one on, run the mutation check over every class it changed. Where either changes what the tests observe, undo that part. Pint cannot turn a rule off for one file: either keep the file out of Pint with `notPath` (it is then not formatted at all) or leave the rule out of `pint.json`. Both depart from the gate and go into the report as decisions.
 
 Four further rules of the gate change behaviour at runtime. Each is added on its own, only after a decision:
 

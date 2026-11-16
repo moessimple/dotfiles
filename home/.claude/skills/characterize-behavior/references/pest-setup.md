@@ -132,18 +132,25 @@ Tests pin what the database engine does, and engines differ in ways a characteri
 - Use a database of its own, `{name}_testing`, where `{name}` is the database `.env.example` names. Never use the database the project's `.env` points to: `LazilyRefreshDatabase` drops every table in it. Create the testing database when it is missing; with `--parallel`, Laravel creates one per process from it.
 - Set `DB_CONNECTION` and `DB_DATABASE` in `phpunit.xml`, and nothing else: host, port, and credentials come from the environment.
 - If no server for that engine answers, or the project already uses SQLite, use SQLite in memory as in `phpunit.xml` above, and say in the report that the tests ran on SQLite while production uses another engine.
+- On MySQL or MariaDB, record the server version and SQL mode of the testing database (`SELECT VERSION(), @@sql_mode`) under Setup, next to the version production runs: from the deployment, Docker, or CI files when one names it, otherwise `unknown`, with the question under Open. Both decide behaviour the tests pin, such as strict mode and grouping rules.
+
+The tests run inside a transaction and with `QUEUE_CONNECTION=sync`, which stays as it is. What that setup cannot check is recorded under Not secured, not worked around.
 
 ## Composer scripts
 
-`composer test` runs the coverage gate. Replace the project's `test` script and add `test:unit`, leaving every other script as it is:
+`composer test` runs the coverage gate. Replace the project's `test` script and add `test:unit`, leaving every other script as it is. The gate is a floor that only rises:
 
 ```json
 "test": [
     "@php artisan config:clear --ansi",
     "@test:unit"
 ],
-"test:unit": "XDEBUG_MODE=coverage pest --parallel --coverage --exactly=100.0 --fail-on-incomplete"
+"test:unit": "XDEBUG_MODE=coverage pest --parallel --coverage --min={floor} --fail-on-incomplete"
 ```
+
+- **Start:** `{floor}` is the total coverage `setup` measures over the existing tests, rounded down to one decimal (`0` without tests).
+- **Raise:** after each secured area, set it to the new total, rounded down to one decimal. It never drops: a lower total means a test or a covered line went missing.
+- **End:** when every area is `secured` and the total is 100 %, replace `--min={floor}` with `--exactly=100.0`.
 
 With pcov instead of Xdebug, drop `XDEBUG_MODE=coverage`. For a package, drop the `artisan` line. Later quality steps (audit, lint, static analysis, browser tests) belong into `test` as further `@test:*` entries, not into this skill. Edit only these entries and keep the rest of `composer.json` formatted as it was.
 
@@ -152,7 +159,7 @@ With pcov instead of Xdebug, drop `XDEBUG_MODE=coverage`. For a package, drop th
 ```bash
 vendor/bin/pest                                                   # suite
 vendor/bin/pest --filter="{test name}"                            # one test
-XDEBUG_MODE=coverage vendor/bin/pest --coverage --exactly=100.0   # coverage gate
+XDEBUG_MODE=coverage vendor/bin/pest --coverage --min={floor}      # coverage gate
 ```
 
 With pcov instead of Xdebug, drop `XDEBUG_MODE=coverage`.
