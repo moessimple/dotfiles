@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Lists the hits a characterization run can find mechanically in its own uncommitted changes, staged or
-# not: files it must not touch, changed production packages, tests made easier, checks silenced, coverage
-# exclusions. Each hit needs a look: fix it or explain it in the report. Exits 1 when
+# not: files it must not touch, changed or deleted acceptance tests, changed production packages, tests made
+# easier, checks silenced, coverage exclusions. Each hit needs a look: fix it or explain it in the report. Exits 1 when
 # there is any hit; a run that made the coverage gate the test command always has that one. Run it from
 # the project root.
 
@@ -58,6 +58,9 @@ changed_production_packages() {
 
 report "Changed files the skill must not touch" \
     "$(git status --porcelain -- app src routes config resources bootstrap database/migrations database/seeders public docs .env .env.example ':(glob)*.md')"
+
+report "Acceptance tests changed or deleted (only an explicit request for that rule allows it)" \
+    "$(git diff HEAD --name-status --diff-filter=DMR -- tests/Acceptance)"
 
 report "Production packages changed in composer.lock" \
     "$(changed_production_packages)"
