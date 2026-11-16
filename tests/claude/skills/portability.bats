@@ -120,3 +120,9 @@ setup() {
     grep -Fq "$changes_command" "$skills_dir/document-product/references/document-format.md"
     grep -Fq "$changes_command" "$skills_dir/characterize-behavior/references/characterization-format.md"
 }
+
+@test "raise-quality-gate reads the secured capabilities that characterize-behavior counts per area" {
+    # Assert
+    grep -Fq '| Capabilities |' "$skills_dir/characterize-behavior/references/characterization-format.md"
+    grep -Fq '`Capabilities`' "$skills_dir/raise-quality-gate/SKILL.md"
+}
