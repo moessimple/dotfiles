@@ -105,8 +105,8 @@ The area has to be in the table in `PRODUCT_REVIEW.md`. Without the table, run `
 
 ### `update`
 
-1. **Find what changed.** For each area past `overview`, run `git diff --name-only {area sha}..HEAD` and compare the result with the area's paths and the `Sources:` lines of its entries. Mark each area with a match as `stale`.
-2. **Bring it up to date.** For each `stale` area, trace again only the features whose sources changed, and adjust their entries and the other documents as in `area`. Then set the area back to its earlier status with the current SHA.
+1. **Find what changed.** For each area past `overview`, run `git diff --name-only {area sha}..HEAD` and compare the result with the area's paths and the `Sources:` lines of its entries. Mark each area with a match as `stale`. Then collect the entry points again: one that no area's paths cover joins the area a user would place it in, with its path added (an area past `overview` becomes `stale`), or becomes a new area as `overview`.
+2. **Bring it up to date.** For each `stale` area, trace again only the features whose sources changed or that are new, and write or adjust their entries and the other documents as in `area`. Then set the area back to its earlier status with the current SHA.
 
 ### Every mode
 
