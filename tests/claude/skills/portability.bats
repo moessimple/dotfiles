@@ -111,3 +111,12 @@ setup() {
     grep -Fq "group('acceptance')" "$skills_dir/raise-quality-gate/SKILL.md"
     ! grep -rFq 'tests/Acceptance' "$skills_dir/characterize-behavior" "$skills_dir/raise-quality-gate" || false
 }
+
+@test "document-product and characterize-behavior count area changes with the same git log command" {
+    # Arrange
+    changes_command='git log --since="12 months ago" --format=%H -- {paths} | sort -u | wc -l'
+
+    # Assert
+    grep -Fq "$changes_command" "$skills_dir/document-product/references/document-format.md"
+    grep -Fq "$changes_command" "$skills_dir/characterize-behavior/references/characterization-format.md"
+}

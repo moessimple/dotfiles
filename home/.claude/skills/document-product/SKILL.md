@@ -39,6 +39,7 @@ identifiers, machine-readable syntax, and the terms the format reference lists a
 | `overview` | Inventory of the whole system: areas with risk, document skeletons. The default without an argument when `PRODUCT_REVIEW.md` does not exist. |
 | `area <name>` | Documents every feature of one area. |
 | `update` | Brings areas whose sources changed up to date. The default without an argument when `PRODUCT_REVIEW.md` exists. |
+| any other argument that is no decision on a rule: a planned change, which may name paths | Documents the features the change will touch, before it is made. |
 
 An area is what a user would name as one part of the product, and holds several features.
 
@@ -90,7 +91,7 @@ Take only what describes the product, never personal data. Check every statement
 
 ### `overview`
 
-1. **Inventory.** Record the SHA. Derive the features from the entry points and group them into areas, named as a user would. For each area, record its features, its paths (controllers, jobs, commands, models), and its risk as the format reference defines it. The risk only orders the area runs. For a package, the areas are what a consuming application uses. Run the product pass over the knowledge sources.
+1. **Inventory.** Record the SHA. Derive the features from the entry points and group them into areas, named as a user would. For each area, record its features, its paths (controllers, jobs, commands, models), its risk, and its `Changes` as the format reference defines them. Both only order the area runs. For a package, the areas are what a consuming application uses. Run the product pass over the knowledge sources.
 2. **Skeletons.** Write `PRODUCT.md` (platform, users, operating context, capability list), `ARCHITECTURE.md` (stack, parts, external systems, running it, and the main flows as a list without detail), and `PRODUCT_REVIEW.md` with every area as `overview` and the security gaps and findings already visible. `KNOWLEDGE_BASE.md` is not written in this mode.
 3. **Agent instructions.** Write the section described under Agent instructions in the format reference.
 
@@ -105,13 +106,20 @@ The area has to be in the table in `PRODUCT_REVIEW.md`. Without the table, run `
 
 ### `update`
 
-1. **Find what changed.** For each area past `overview`, run `git diff --name-only {area sha}..HEAD` and compare the result with the area's paths and the `Sources:` lines of its entries. Mark each area with a match as `stale`. Then collect the entry points again: one that no area's paths cover joins the area a user would place it in, with its path added (an area past `overview` becomes `stale`), or becomes a new area as `overview`.
+1. **Find what changed.** For each area past `overview`, run `git diff --name-only {area sha}..HEAD` and compare the result with the area's paths and the `Sources:` lines of its entries. Mark each area with a match as `stale`. Then collect the entry points again: one that no area's paths cover joins the area a user would place it in, with its path added (an area past `overview` becomes `stale`), or becomes a new area as `overview`. Refresh `Changes` for every area.
 2. **Bring it up to date.** For each `stale` area, trace again only the features whose sources changed or that are new, and write or adjust their entries and the other documents as in `area`. When changed code no longer meets a rule under `Confirmed rules:`, keep the rule as it stands and record a finding, `RULE-{nnn}: intended ≠ current`. Then set the area to `confirmed` if no P0 rule of it is `open` or `clarify`, otherwise to `drafted`, with the current SHA.
+
+### A planned change
+
+Any argument that is neither a mode name nor a decision on a rule describes a change someone is about to make, such as `discounts also apply to reduced items`. Documenting the features it touches first gives the change a description to be checked against. Without `PRODUCT_REVIEW.md`, run `overview` first. Then determine the features the change touches, by their entry points and the code behind them, and name them at the top of the report. If none is found, stop and ask for paths.
+
+1. **Each touched feature** goes through step 1 of `area`, and its P0 rules through step 3. Other features stay as they are. Raise the area's `Drafted` count: an area whose features all have their entry becomes `drafted` with the current SHA, even when several planned changes got it there.
+2. **Report** the touched features, the new rules with their questions, the security gaps, and the next step in one line.
 
 ### Every mode
 
 1. **Edit.** Rewrite the sections this run changed with `clarity` (REQUIRED SUB-SKILL) in its rewrite mode for documentation and reference: keep every fact, value, link, label, and the entry structure, and make the prose specific and plain. Run its lint mode on the same sections: its hits are diagnostics, so read each in context and change only what is a real problem.
-2. **Report.** Start with the security gaps, each with the advice to pass it to whoever runs the product and to close it before the repository is made public. Then give the user a short summary: what the product is, the areas and their status, what this run documented, which knowledge sources were used, the sections left out for lack of a source, the other findings, where the review should start, the next area to document by risk, and that the files are uncommitted changes in the repository. People should review `PRODUCT.md` and answer the review list before agents rely on it, because what makes it worth reading is exactly what the code cannot tell.
+2. **Report.** Start with the security gaps, each with the advice to pass it to whoever runs the product and to close it before the repository is made public. Then give the user a short summary: what the product is, the areas and their status, what this run documented, which knowledge sources were used, the sections left out for lack of a source, the other findings, where the review should start, the next area to document by weight × Changes, and that the files are uncommitted changes in the repository. People should review `PRODUCT.md` and answer the review list before agents rely on it, because what makes it worth reading is exactly what the code cannot tell.
 
 ## Findings
 
@@ -132,7 +140,7 @@ Every mode:
 - The sections this run changed went through `clarity`, and every hit of its lint was read in context
 - `git status --porcelain` in the repository shows only `PRODUCT.md`, `KNOWLEDGE_BASE.md`, `ARCHITECTURE.md`, `PRODUCT_REVIEW.md`, and the agent instructions file
 
-`overview`: every entry point belongs to an area, and every area has its features, paths, and risk.
+`overview`: every entry point belongs to an area, and every area has its features, paths, risk, and `Changes`.
 
 `area` and `update`, for each area the run worked on:
 

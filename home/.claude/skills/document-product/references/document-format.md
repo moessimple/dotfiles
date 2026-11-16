@@ -182,9 +182,9 @@ What has to be closed before the repository is made public, and passed to whoeve
 - **{Security gap, in one sentence}.** {Who is affected and how.} `{path:line@sha}` | none
 
 ## Areas
-| Area | Risk | Status | Sha | Paths | Features |
-|---|---|---|---|---|---|
-| {area} | high / medium / low | overview / drafted / confirmed / stale | {sha} | `{path}`, ... | {feature}, ... |
+| Area | Risk | Changes | Drafted | Status | Sha | Paths | Features |
+|---|---|---|---|---|---|---|---|
+| {area} | high / medium / low | {commits in the last 12 months} | {documented features}/{features} | overview / drafted / confirmed / stale | {sha} | `{path}`, ... | {feature}, ... |
 
 ## Rules
 {Open rules and rules to clarify, in the format below.}
@@ -200,7 +200,10 @@ Where reviewers should start, most important first:
 
 - **Area:** named as a user would, one row per area. Paths are the directories and files of its entry points, models, jobs, and commands; Features lists its knowledge base entries by heading.
 - **Risk:** high when the area controls access, moves money, or writes or deletes other people's data; medium when it writes data or reaches outside the system; low when it only reads.
-- **Status:** `overview` when the area is listed but its features are not traced yet; `drafted` when every feature has its entry; `confirmed` when it is drafted and no P0 rule of the area is still `open` or `clarify`; `stale` when its sources changed after its SHA.
+- **Changes:** the commits of the last twelve months that touch a path of the area: `git log --since="12 months ago" --format=%H -- {paths} | sort -u | wc -l`. `overview` fills it, `update` refreshes it.
+- **Drafted:** the features that have their entry, out of all features of the area. A planned change raises it feature by feature.
+- **Next area:** the one with the highest weight × Changes, with weight 3 for high, 2 for medium, and 1 for low risk; on a tie, the higher risk goes first. Often changed, risky code holds most of the defects, so its documentation pays off first.
+- **Status:** `overview` when the area is listed but its features are not traced yet; `drafted` when every feature has its entry, across runs and planned changes; `confirmed` when it is drafted and no P0 rule of the area is still `open` or `clarify`; `stale` when its sources changed after its SHA.
 - **Sha:** the commit the area was last read at. `update` compares it with `HEAD`.
 
 ### Rules
