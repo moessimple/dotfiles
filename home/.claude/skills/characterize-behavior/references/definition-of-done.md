@@ -17,6 +17,7 @@
 - Every confirmed rule the area's entry points reach has an acceptance test that passed in the JUnit report, or an intended ≠ current entry under Notable behaviour; no committed acceptance test changed without a request for its rule ID
 - The self-check found no hit, or every hit is fixed or in the report, and the diff in application code is empty
 - Every test that pins behaviour that looks unintended carries a `Notable:` or `Security:` note and is listed in `tests/CHARACTERIZATION.md`, every `Security:` finding and audit advisory also in its Security section at the top
+- Not secured names everything of the area the test environment cannot check: calls past the framework, locks and races, behaviour that needs a real commit, and queued jobs
 - The area is `secured` as the record defines it, or `in progress` with its reason under Open
 
 Every mode:
