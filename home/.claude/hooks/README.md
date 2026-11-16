@@ -116,6 +116,11 @@ Set any opt-out in the project's uncommitted `.claude/settings.local.json` under
 Manual `quality full` runs ignore the last two flags. For pre-existing PHPStan findings, use the project's own PHPStan
 baseline rather than disabling another check.
 
+A project that is already red before Claude starts (failing tests or PHPStan errors) fails `quality fast` after any PHP
+or `composer.json` edit, writing tests included. The Stop hook then blocks every response and reruns PHPStan and the
+whole suite on each attempt, until Claude Code overrides it after eight blocks without progress. When working on such
+a project, set `CLAUDE_QUALITY_SKIP_TESTS` and put the existing PHPStan errors into the project's baseline.
+
 ## Manual Usage
 
 Run these commands inside a Git-backed Composer project:
