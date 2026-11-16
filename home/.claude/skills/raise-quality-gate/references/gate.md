@@ -30,7 +30,7 @@ The gate every project reaches. Adjust paths to what the project has and the PHP
 ]
 ```
 
-With pcov instead of Xdebug, drop `XDEBUG_MODE=coverage`. If the project has a JavaScript frontend with its own lint and audit scripts, add `npm run lint` to `lint`, `npm run test:lint` to `test:lint`, and `npm audit` to `test:audit`. While a threshold is still being raised, the script carries the current value (`--min={current}`), and `phpstan.neon` carries the current level. A check joins `test` only once it passes, so `test` passes after every commit.
+With pcov instead of Xdebug, drop `XDEBUG_MODE=coverage`. If the project has a JavaScript frontend with its own lint and audit scripts, add `npm run lint` to `lint`, `npm run test:lint` to `test:lint`, and `npm audit` to `test:audit`. While a threshold is still being raised, the script carries the current value (`--min={current}`, for line coverage the floor characterize-behavior raises), and `phpstan-baseline.neon` holds the errors not fixed yet. A check joins `test` only once it passes, so `test` passes after every commit.
 
 ## Dev dependencies
 
@@ -105,10 +105,10 @@ return RectorConfig::configure()
     ->withPreparedSets(
         deadCode: true,
         codeQuality: true,
-        codingStyle: true,
+        // codingStyle: true,   only after a decision under Decisions in QUALITY_GATE.md
         typeDeclarations: true,
         privatization: true,
-        earlyReturn: true,
+        // earlyReturn: true,   only after a decision under Decisions in QUALITY_GATE.md
     )
     ->withPhpSets()
     ->withSkip([
@@ -128,7 +128,7 @@ return RectorConfig::configure()
     ]);
 ```
 
-Leave out a skipped rule class that does not exist in the installed Rector version. `tools` writes this configuration whole, without `tests` in the paths until the `tests` run, and with the skip list below, so Rector has nothing to change on the first day.
+Leave out a skipped rule class that does not exist in the installed Rector version. `codingStyle` and `earlyReturn` are optional: they mostly produce large diffs without a shown benefit for the error rate, so they are on only where `QUALITY_GATE.md` records that decision. `tools` writes this configuration whole, without `tests` in the paths until the `tests` run, and with the skip list below, so Rector has nothing to change on the first day.
 
 ### Skip list
 
