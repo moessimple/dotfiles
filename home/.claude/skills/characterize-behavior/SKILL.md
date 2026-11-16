@@ -20,7 +20,7 @@ The run asks no questions. It stops only on a blocker, and everything it writes 
 |---|---|
 | `setup` | Sets up Pest, the testing database, isolation, the baseline, and the preconditions once, and lists the areas with their risk. The default without an argument when `tests/CHARACTERIZATION.md` does not exist. |
 | `area <name>` or `area <path> [<path> ...]` | Secures one area. |
-| no argument, when `tests/CHARACTERIZATION.md` exists | Continues the area that is `in progress`, otherwise the `open` area with the highest risk. |
+| no argument, when `tests/CHARACTERIZATION.md` exists | Continues the area that is `in progress`, otherwise the `open` area with the highest weight × Changes, as the record defines it. |
 
 An area is what a user would name as one part of the product, and holds several capabilities. Its paths are its entry points and the application code they reach that no area listed before it holds (models, actions, services, jobs, mail), so every application file belongs to exactly one area.
 
@@ -70,9 +70,9 @@ A failed precondition is a blocker: report it with its cause and stop. Do not re
 
 ### Areas
 
-Collect the entry points mechanically: for an application, run `scripts/inventory.sh` from this skill's directory in the project root; for a package, follow the package reference. Group them into areas as a user would name them, each with its paths and the status `open`.
+Collect the entry points mechanically: for an application, run `scripts/inventory.sh` from this skill's directory in the project root; for a package, follow the package reference. Group them into areas as a user would name them, each with its paths, the status `open`, and its `Changes` from the `git log` command in the record format, counted by this run.
 
-Give each area, and later each capability, a risk read from the code: **high** where it decides access, moves money, or writes or deletes data others rely on; **medium** where it writes data or reaches outside (mail, notifications, APIs, queues); **low** where it only reads. This skill always reads the risk from the code itself, never from other documents in the repository. Work from high to low, so that the riskiest areas are secured first.
+Give each area, and later each capability, a risk read from the code: **high** where it decides access, moves money, or writes or deletes data others rely on; **medium** where it writes data or reaches outside (mail, notifications, APIs, queues); **low** where it only reads. This skill always reads the risk and the changes itself, never from other documents in the repository. Areas are secured by weight × Changes, so the riskiest, most changed code comes first.
 
 `setup` secures no area. It ends with the setup, the baseline, and the area table in `tests/CHARACTERIZATION.md`.
 
