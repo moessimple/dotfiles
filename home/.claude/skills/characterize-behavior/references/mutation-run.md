@@ -29,4 +29,4 @@ Record each one under Equivalent mutations in `tests/CHARACTERIZATION.md`. Recor
 
 ## After the characterization
 
-Later changes check only the classes they touch: `--mutate --class={changed classes} --covered-only`. Mutating only changed code keeps mutation testing affordable.
+Later changes check only the classes they touch: `--mutate --class={changed classes} --covered-only`, which is what a planned change does before the change is made. Mutating only changed code keeps mutation testing affordable.

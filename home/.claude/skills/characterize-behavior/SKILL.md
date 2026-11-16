@@ -20,6 +20,7 @@ The run asks no questions. It stops only on a blocker, and everything it writes 
 |---|---|
 | `setup` | Sets up Pest, the testing database, isolation, the baseline, and the preconditions once, and lists the areas with their risk. The default without an argument when `tests/CHARACTERIZATION.md` does not exist. |
 | `area <name>` or `area <path> [<path> ...]` | Secures one area. |
+| any other argument: a planned change, which may name paths | Secures what the change will touch, before it is made. |
 | no argument, when `tests/CHARACTERIZATION.md` exists | Continues the area that is `in progress`, otherwise the `open` area with the highest weight × Changes, as the record defines it. |
 
 An area is what a user would name as one part of the product, and holds several capabilities. Its paths are its entry points and the application code they reach that no area listed before it holds (models, actions, services, jobs, mail), so every application file belongs to exactly one area.
@@ -101,8 +102,18 @@ Give each area, and later each capability, a risk read from the code: **high** w
 
 **Status.** The area is `secured` when the record's definition holds. Otherwise it stays `in progress`, with the reason under Open.
 
+## A planned change
+
+Any argument that is not a mode name describes a change someone is about to make. Securing exactly the code it touches makes the change itself checkable, and each change moves the project towards fully secured areas. It starts as `area` does: `tests/CHARACTERIZATION.md` exists and the working tree is clean.
+
+**Scope.** Determine the classes the change touches and the capabilities whose entry points reach them, and name both at the top of the report. If none is found, stop and ask for paths. An area of a touched capability that is still `open` gets its capabilities grouped and becomes `in progress`.
+
+**Run.** Each touched capability that is not `secured` goes through One capability at a time, followed by the acceptance tests of the confirmed rules these capabilities reach. Every line of the touched classes is covered or listed with its reason. Mutate only those classes, `XDEBUG_MODE=coverage vendor/bin/pest --mutate --covered-only --parallel --class={touched classes}`, and handle survivors as in the area's mutation run. Then raise the floor and run the self-check.
+
+**Progress.** The capabilities become `secured`, and their area's `Capabilities` count rises. When the run secures an area's last capability, it closes the area as the `area` mode does (gaps, mutation run, self-check) and sets the status the record defines.
+
 ## Report
 
 Check every item in [references/definition-of-done.md](references/definition-of-done.md) first; it is read here so a long run still sees the full list after its context was compacted.
 
-Then report, in this order: the Security section of `tests/CHARACTERIZATION.md` (each item to be passed to whoever runs the application, and closed before the repository is made public), the blocker if there is one, the area and its status, capabilities secured per risk, the area's coverage and mutation score, the coverage floor, the other findings, the self-check result, and the changed files from `git status --porcelain`.
+For a planned change, the report starts with the touched classes and capabilities and ends with the next step in one line. Then report, in this order: the Security section of `tests/CHARACTERIZATION.md` (each item to be passed to whoever runs the application, and closed before the repository is made public), the blocker if there is one, the area and its status, capabilities secured per risk, the area's coverage and mutation score, the coverage floor, the other findings, the self-check result, and the changed files from `git status --porcelain`.

@@ -21,6 +21,14 @@
 - Not secured names everything of the area the test environment cannot check: calls past the framework, locks and races, behaviour that needs a real commit, and queued jobs
 - The area is `secured` as the record defines it, or `in progress` with its reason under Open
 
+A planned change:
+
+- The report names the touched classes and capabilities at the top, or the run stopped and asked for paths
+- Every touched capability is `secured`, every line of the touched classes is covered or listed with its reason, and every surviving mutation of those classes is caught or recorded as equivalent
+- Every confirmed rule those capabilities reach has a passed acceptance test or an intended ≠ current entry under Notable behaviour
+- The area's `Capabilities` count is current, and an area whose last capability the run secured went through the closing steps of `area`
+- The self-check found no hit, or every hit is fixed or in the report, and the diff in application code is empty
+
 Every mode:
 
 - Every new test passed three runs in a row and covers a line or catches a mutation no other test did, apart from acceptance and guard tests; every deleted flaky test is under Open
