@@ -3,8 +3,10 @@
 Coverage shows which lines ran, not whether a test checks what they do. Run it once per area, after its coverage gaps are closed, on the area's classes only:
 
 ```bash
-XDEBUG_MODE=coverage vendor/bin/pest --mutate --everything --covered-only --parallel --class={the area's classes or namespaces, comma-separated}
+XDEBUG_MODE=coverage vendor/bin/pest --mutate --covered-only --parallel --class={the area's classes or namespaces, comma-separated}
 ```
+
+Never add `--everything`: it overrides `--class` and mutates the whole project.
 
 Where the installed Pest version documents an option that selects files by path, it may take the area's paths instead of `--class`.
 

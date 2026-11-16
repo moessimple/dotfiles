@@ -60,7 +60,7 @@ If `AGENTS.md` or `CLAUDE.md` has a `## Project knowledge` section, add a link t
 1. `tools` is merged: the default branch has `pint.json`, `rector.php`, and `phpstan.neon` with `level: max`.
 2. The area is listed in `tests/CHARACTERIZATION.md` under `## Areas` with the status `secured`.
 3. `composer test` passes with exit code 0.
-4. `XDEBUG_MODE=coverage vendor/bin/pest --mutate --everything --covered-only --parallel --class={the area's classes}` leaves no surviving mutation other than the equivalent ones listed in `tests/CHARACTERIZATION.md`. Match by file, mutator, and the code before and after, never by ID or line: Pest hashes the whole file into the ID, so any edit changes it. The code may have changed since the area was secured, so this run is needed every time.
+4. `XDEBUG_MODE=coverage vendor/bin/pest --mutate --covered-only --parallel --class={the area's classes, comma-separated}` (never with `--everything`, which overrides `--class`) leaves no surviving mutation other than the equivalent ones listed in `tests/CHARACTERIZATION.md`. Match by file, mutator, and the code before and after, never by ID or line: Pest hashes the whole file into the ID, so any edit changes it. The code may have changed since the area was secured, so this run is needed every time.
 
 **Steps:**
 
@@ -87,7 +87,7 @@ The four Pint rules `declare_strict_types`, `date_time_immutable`, `mb_str_funct
 
 ## Applying a Rector set
 
-1. Run the set alone over the area's paths with `--dry-run`, through a temporary configuration outside the repository that holds the gate's skipped rules and that one set (`vendor/bin/rector process {paths} --config={file} --dry-run`). Do not use the level methods (`withPhpLevel()` and the like): most levels change nothing, and they do not hold every rule of their set.
+1. Run the set alone over the area's paths with `--dry-run`, through a temporary configuration outside the repository that holds the gate's skipped rules and that one set (`vendor/bin/rector process {paths} --config={file} --dry-run`, from the project root). It replaces `rector.php` for that call, so without the skipped rules `SafeDeclareStrictTypesRector` would apply. Do not use the level methods (`withPhpLevel()` and the like): most levels change nothing, and they do not hold every rule of their set.
 2. Review the diff as code you wrote yourself:
    - A rule the gate skips must not apply.
    - Types are the narrowest the framework documents: `view('name')` returns `View`, not `Factory|View`.
