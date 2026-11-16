@@ -1,6 +1,6 @@
 # tests/CHARACTERIZATION.md
 
-The record of the characterization, so that anyone on the team, or a later run, can see what is pinned, continue where a run stopped, and work with the tests. Written in the language of the project's documentation. Update it after every capability, and commit it together with the tests.
+The record of the characterization, so that anyone on the team, or a later run, can see what is pinned, continue where a run stopped, and work with the tests. Written in the language of the project's documentation, except for the headings `## Areas` and `## Capabilities`, the column names of their tables, and the status values, which stay in English because other skills read them. Update it after every capability, and commit it together with the tests.
 
 ```md
 # Characterization
@@ -31,13 +31,18 @@ What has to be closed before the repository is made public, and passed to whoeve
 - Repaired existing tests: {test: missing setup that was added}
 - Failing existing tests: {test: cause}
 
+## Areas
+| Area | Paths | Risk | Status | Coverage | Mutations |
+|---|---|---|---|---|---|
+| {area, as a user would name it} | `{path}`, ... | high / medium / low | open / in progress / secured | {percent of the area's lines} | {score}, {n} equivalent |
+
 ## Capabilities
-| Capability | Risk | Status | Tests |
-|---|---|---|---|
-| {capability, as a user would name it} | high / medium / low | open / in progress / secured | `{test file}` |
+| Area | Capability | Risk | Status | Tests |
+|---|---|---|---|---|
+| {area} | {capability, as a user would name it} | high / medium / low | open / in progress / secured | `{test file}` |
 
 ## Coverage
-- Reached: {percent} with `composer test`
+- Floor of `composer test`: {percent}, the total after the last secured area
 - Not covered by this run: {JavaScript frontend under `{path}` | none}
 - Excluded files: `{file}`: {reason}
 - Uncovered lines: `{file}:{lines}`: {reason}
@@ -65,3 +70,5 @@ Each entry is a test with a `->note()`. Security first.
 ```
 
 Equivalent mutations name the file, never the line or Pest's ID: Pest hashes the whole mutated file into the ID, and lines move with any edit, so later runs match an entry by file, mutator, and the code before and after.
+
+An area is `secured` when every line of its files is covered or listed under Coverage with its reason, every surviving mutation of its classes is caught by a test or listed under Equivalent mutations, and the self-check shows no hit without an explanation in the report. Until then it is `in progress`.

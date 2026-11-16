@@ -73,9 +73,13 @@ Give each area, and later each capability, a risk read from the code: **high** w
 
 `setup` secures no area. It ends with the setup, the baseline, and the area table in `tests/CHARACTERIZATION.md`.
 
-## Characterize
+## Mode `area`
 
-**One capability at a time:**
+**Start.** `tests/CHARACTERIZATION.md` has to exist; without it, run `setup` first. `git status --porcelain` must be empty, unless its changes come from an interrupted run of the same area, which the record shows as `in progress`. Otherwise stop and ask for the changes to be committed or stashed: the self-check compares against the last commit, so the work of every earlier run has to be committed first.
+
+**The area.** A name has to be in the area table; otherwise stop and list the areas it holds. Paths create a new area with those paths, named as a user would name it, with its risk read as in `setup`. Set the area to `in progress`, and group its entry points into capabilities, each with its risk. Where tests already exist, measure the coverage of the area's files first and plan only what they leave open.
+
+**One capability at a time,** highest risk first:
 
 1. **Read** the code behind the entry point: who may reach it, what it validates, which decisions it takes, what it changes, what the actor sees, how it fails. Each is a behaviour to pin.
 2. **Data:** create the factories the tests need. A model without `HasFactory` keeps it that way: its factory sets `protected $model`, and tests use `{Model}Factory::new()`.
@@ -84,14 +88,16 @@ Give each area, and later each capability, a risk read from the code: **high** w
 5. **Mark what looks unintended** with one note on the test, `->note('Notable: ...')`, or `->note('Security: ...')` for access, authentication, or exposed data. Record it in `tests/CHARACTERIZATION.md` with what the repository says about intent (`git log -L`, whether the interface links to it). Never fix it.
 6. **Keep it green.** Run the whole suite and the new file on its own. After the first test file, also run the project's lint and static analysis over it: what they reject shapes every following file. Mark the capability `secured`.
 
-**Close the gaps.** When every capability is secured, run `XDEBUG_MODE=coverage vendor/bin/pest --coverage` (without `XDEBUG_MODE` for pcov). Pest prints no coverage while any test fails, so if a failing test from the baseline remains, measure over the suites that pass with `--testsuite={suites}` and say so in the report. For each uncovered line, find the behaviour that executes it and pin it the same way. Code that reaches outside past the framework, or that no entry point reaches, follows [references/coverage-gaps.md](references/coverage-gaps.md). Then raise the coverage floor of `composer test` to the new total, as the setup reference describes.
+**Close the gaps in the area.** When every capability is secured, run `XDEBUG_MODE=coverage vendor/bin/pest --coverage` (without `XDEBUG_MODE` for pcov) and read the coverage of each file of the area from its per-file output, or from a Clover report (`--coverage-clover={file}`). Pest prints no coverage while any test fails, so if a failing test from the baseline remains, measure over the suites that pass with `--testsuite={suites}` and say so in the report. For each uncovered line in the area's files, find the behaviour that executes it and pin it the same way. Code that reaches outside past the framework, or that no entry point reaches, follows [references/coverage-gaps.md](references/coverage-gaps.md). Then raise the coverage floor of `composer test` to the new total, as the setup reference describes.
 
-**Mutation run.** Coverage shows which lines ran, not whether a test checks them. Follow [references/mutation-run.md](references/mutation-run.md): every surviving mutation an actor can observe becomes a test; the rest is recorded as equivalent with its reason.
+**Mutation run of the area.** Coverage shows which lines ran, not whether a test checks them. Follow [references/mutation-run.md](references/mutation-run.md) for the area's classes: every surviving mutation an actor can observe becomes a test; the rest is recorded as equivalent with its reason.
 
 **Self-check.** Run `scripts/self-check.sh` from this skill's directory in the project root. It lists forbidden files, moved production packages, skipped or deleted tests, removed assertions, silenced checks, and changed coverage settings. Then read for what it cannot see: tests without assertions. Fix or report every hit.
+
+**Status.** The area is `secured` when the record's definition holds. Otherwise it stays `in progress`, with the reason under Open.
 
 ## Report
 
 Check every item in [references/definition-of-done.md](references/definition-of-done.md) first; it is read here so a long run still sees the full list after its context was compacted.
 
-Then report, in this order: the Security section of `tests/CHARACTERIZATION.md` (each item to be passed to whoever runs the application, and closed before the repository is made public), the blocker if there is one, capabilities secured per risk, coverage and mutation score, the other findings, the self-check result, and the changed files from `git status --porcelain`.
+Then report, in this order: the Security section of `tests/CHARACTERIZATION.md` (each item to be passed to whoever runs the application, and closed before the repository is made public), the blocker if there is one, the area and its status, capabilities secured per risk, the area's coverage and mutation score, the coverage floor, the other findings, the self-check result, and the changed files from `git status --porcelain`.
