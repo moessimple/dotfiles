@@ -30,7 +30,7 @@ Use the formats in [references/document-format.md](references/document-format.md
 
 Determine the documentation language before drafting, following the applicable output-language rules. Translate
 human-readable headings and labels in the format templates into that language; preserve filenames, code
-identifiers, and machine-readable syntax.
+identifiers, machine-readable syntax, and the terms the format reference lists as fixed.
 
 ## Modes
 
@@ -42,11 +42,13 @@ identifiers, and machine-readable syntax.
 
 An area is what a user would name as one part of the product, and holds several features.
 
+Decisions on rules passed with the invocation, such as `RULE-004 confirmed` or `RULE-007 wrong: rounds down on purpose`, are recorded first in every mode, as the format reference describes under Decisions. An area whose last open P0 rule is decided becomes `confirmed`. The skill asks no questions during a run, so a decision it needs becomes a rule with a question instead.
+
 ## Evidence
 
 - A statement goes into the documents only when a source establishes it: code, documentation, history, or a knowledge source. Check documentation and knowledge sources against the code before relying on them.
 - Each knowledge base entry ends with a `Sources:` line linking the files it was derived from, and a `History:` line when a source states the reason behind it.
-- `PRODUCT_REVIEW.md` holds what a reviewer needs to check the documents: each area with its paths and the SHA it was read at, the statements that rest on a single reading of complex code with their code location (`path:line@sha`), and the sections left out for lack of a source.
+- `PRODUCT_REVIEW.md` holds what a reviewer needs to check the documents: each area with its paths and the SHA it was read at, the rules people have to confirm with their code location (`path:line@sha`), and the sections left out for lack of a source.
 - What no source establishes, typically intent, positioning, and principles, stays out of the documents and goes into the review list as a concrete question. A missing reason is a result, not a gap to fill.
 
 ## Describing behaviour
@@ -96,9 +98,10 @@ Take only what describes the product, never personal data. Check every statement
 
 The area has to be in the table in `PRODUCT_REVIEW.md`. Without the table, run `overview` first. When the table exists but no area matches the name, stop and list the areas it holds.
 
-1. **One feature at a time.** Trace it from its entry point through access, validation, decisions, state changes, what the user sees, failure paths, and external systems, and run the feature pass. Write its `KNOWLEDGE_BASE.md` entry and update `PRODUCT_REVIEW.md` before moving on. Writing after each feature keeps the work resumable.
+1. **One feature at a time.** Trace it from its entry point through access, validation, decisions, state changes, what the user sees, failure paths, and external systems, and run the feature pass. Write its `KNOWLEDGE_BASE.md` entry, add a rule with an ID to `PRODUCT_REVIEW.md` for every statement that is uncertain or needs a business decision, and update the area row before moving on. Writing after each feature keeps the work resumable.
 2. **Product and architecture.** Add the terms and the rules that hold across areas to `PRODUCT.md`, and the area's parts and main flows to `ARCHITECTURE.md`. Run the rule pass, and update the contents list of the knowledge base.
-3. **Status.** Set the area to `drafted` with the current SHA.
+3. **Check P0 rules.** Read every code location a P0 rule of the area cites again. A rule that only a comment, a string, or documentation supports is removed, and the gap becomes a finding.
+4. **Status.** Set the area to `drafted` with the current SHA.
 
 ### `update`
 
@@ -123,7 +126,8 @@ A defect, a security gap, or a contradiction between code, documentation, and kn
 
 Every mode:
 
-- Every statement in the documents rests on a source; `PRODUCT_REVIEW.md` holds every security gap in its Security section at the top, the areas with their status and SHA, the statements to confirm, the other findings, and the review list with every section left out
+- Every statement in the documents rests on a source; `PRODUCT_REVIEW.md` holds every security gap in its Security section at the top, the areas with their status and SHA, the open rules, the other findings, and the review list with every section left out
+- Every decision passed with the invocation is recorded with its value, date, and note, and a confirmed rule stands only under `Confirmed rules:` in its feature's entry
 - The agent instructions section names only commands the project defines and links only files that exist, and contains no directory tree, architecture overview, or generic advice
 - The sections this run changed went through `clarity`, and every hit of its lint was read in context
 - `git status --porcelain` in the repository shows only `PRODUCT.md`, `KNOWLEDGE_BASE.md`, `ARCHITECTURE.md`, `PRODUCT_REVIEW.md`, and the agent instructions file
@@ -134,4 +138,5 @@ Every mode:
 
 - Every feature of the area has a knowledge base entry that stands on its own, describes the feature from the side of each role that uses it with its access and limits, holds no secret, credential, or personal data, and has a `Sources:` line; the report names any feature left out and why
 - `ARCHITECTURE.md` names every part the area's entries pass through, every external system they reach, and everything of the area that runs outside a request (schedule, queues, listeners), each with a `Sources:` line
+- Every uncertain or open business statement of the area is a rule with an ID, a concrete Given, When, Then, and its source; every P0 rule cites code that was read again
 - The area's status and SHA in `PRODUCT_REVIEW.md` match the state of its documents

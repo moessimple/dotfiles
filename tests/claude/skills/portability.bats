@@ -88,3 +88,9 @@ setup() {
     grep -Fqx '## Project knowledge' "$skills_dir/document-product/references/document-format.md"
     grep -Fq '`## Project knowledge`' "$skills_dir/raise-quality-gate/SKILL.md"
 }
+
+@test "document-product records confirmed rules in the format characterize-behavior searches for" {
+    # Assert
+    grep -Fqx 'Confirmed rules:' "$skills_dir/document-product/references/document-format.md"
+    grep -Eq 'RULE-[0-9]{3}' "$skills_dir/document-product/references/document-format.md"
+}
