@@ -13,7 +13,7 @@ What has to be closed before the repository is made public, and passed to whoeve
 - {what happens, in one sentence}: `{test file}`, details under Notable behaviour | none
 
 ## Working with these tests
-- Run `composer test` after every small step. It fails when any line of the application is no longer covered.
+- Run `composer test` after every small step. It fails when coverage drops below {floor} %, the floor reached so far. The floor rises after every secured area and never drops; once every area is secured at 100 %, the gate requires exactly 100 %.
 - A failing test means behaviour changed. If the change was not meant to alter behaviour, undo it.
 - If the change is intended (a fix, a feature), change the test in the same commit and review that diff like code.
 - A test with a `->note()` pinned behaviour that already looked wrong; `vendor/bin/pest --notes` lists them. Changing it on purpose means changing the test and removing the note in the same commit.
@@ -26,6 +26,7 @@ What has to be closed before the repository is made public, and passed to whoeve
 
 ## Baseline
 - Existing tests before setup: {n passed, n failed}, under Pest: {n passed, n failed}
+- Coverage of the existing tests: {percent}, the first floor of `composer test`
 - Steps of the project's test command that were already red: {step: cause | none}
 - Repaired existing tests: {test: missing setup that was added}
 - Failing existing tests: {test: cause}

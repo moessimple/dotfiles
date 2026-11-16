@@ -1,6 +1,6 @@
 # Pest setup
 
-The setup gives every characterization test the same deterministic starting point, keeps the project's test layout (`tests/Feature` for the tests per entry point, `tests/Unit` for the few classes no entry point reaches), and isolates the test environment from external systems. It deliberately leaves out architecture presets, browser tests, type coverage, and static analysis, which belong to modernization rather than characterization.
+The setup gives every characterization test the same deterministic starting point, keeps the project's test layout (`tests/Feature` for the tests per entry point, `tests/Unit` for the few classes no entry point reaches, `tests/Acceptance` for the tests of confirmed rules), and isolates the test environment from external systems. It deliberately leaves out architecture presets, browser tests, type coverage, and static analysis, which belong to modernization rather than characterization.
 
 ## Contents
 
@@ -60,18 +60,18 @@ pest()->extend(TestCase::class)
         Sleep::fake();
         $this->freezeTime();
     })
-    ->in('Feature', 'Unit');
+    ->in('Feature', 'Unit', 'Acceptance');
 ```
 
-Unit tests isolate one class but may boot the framework, so the chain applies to both directories. Match the project's style for `declare(strict_types=1)`: add it only if the project's PHP files use it. For a package, `Tests\TestCase` is the package's Testbench test case from [package.md](package.md).
+Unit tests isolate one class but may boot the framework, and acceptance tests go through entry points like feature tests, so the chain applies to all three directories. Match the project's style for `declare(strict_types=1)`: add it only if the project's PHP files use it. For a package, `Tests\TestCase` is the package's Testbench test case from [package.md](package.md).
 
 Existing class-based tests (`class ... extends TestCase`) are not affected by `pest()->extend()` and keep running as they are.
 
-Create `tests/Feature` and `tests/Unit` if they are missing, each with an empty `.gitkeep` while it has no tests: Pest stops when a directory named in `tests/Pest.php` or `phpunit.xml` does not exist.
+Create `tests/Feature`, `tests/Unit`, and `tests/Acceptance` if they are missing, each with an empty `.gitkeep` while it has no tests: Pest stops when a directory named in `tests/Pest.php` or `phpunit.xml` does not exist.
 
 ## phpunit.xml
 
-If the file exists, keep its suites and settings, and add what is missing from the following. A suite that already covers `tests/` includes `tests/Unit` and `tests/Feature`: keep it instead of adding the two suites, or every test runs twice.
+If the file exists, keep its suites and settings, and add what is missing from the following. A suite that already covers `tests/` includes `tests/Unit`, `tests/Feature`, and `tests/Acceptance`: keep it instead of adding the three suites, or every test runs twice. Acceptance has a suite of its own otherwise, so that its tests can run alone.
 
 ```xml
 <testsuites>
@@ -80,6 +80,9 @@ If the file exists, keep its suites and settings, and add what is missing from t
     </testsuite>
     <testsuite name="Feature">
         <directory>tests/Feature</directory>
+    </testsuite>
+    <testsuite name="Acceptance">
+        <directory>tests/Acceptance</directory>
     </testsuite>
 </testsuites>
 <source>
@@ -135,15 +138,19 @@ Tests pin what the database engine does, and engines differ in ways a characteri
 
 ## Composer scripts
 
-`composer test` runs the coverage gate. Replace the project's `test` script and add `test:unit`, leaving every other script as it is:
+`composer test` runs the coverage gate. Replace the project's `test` script and add `test:unit`, leaving every other script as it is. The gate is a floor that only rises:
 
 ```json
 "test": [
     "@php artisan config:clear --ansi",
     "@test:unit"
 ],
-"test:unit": "XDEBUG_MODE=coverage pest --parallel --coverage --exactly=100.0 --fail-on-incomplete"
+"test:unit": "XDEBUG_MODE=coverage pest --parallel --coverage --min={floor} --fail-on-incomplete"
 ```
+
+- **Start:** `{floor}` is the total coverage `setup` measures over the existing tests, rounded down to one decimal (`0` without tests).
+- **Raise:** after each secured area, set it to the new total, rounded down to one decimal. It never drops: a lower total means a test or a covered line went missing.
+- **End:** when every area is `secured` and the total is 100 %, replace `--min={floor}` with `--exactly=100.0`.
 
 With pcov instead of Xdebug, drop `XDEBUG_MODE=coverage`. For a package, drop the `artisan` line. Later quality steps (audit, lint, static analysis, browser tests) belong into `test` as further `@test:*` entries, not into this skill. Edit only these entries and keep the rest of `composer.json` formatted as it was.
 
@@ -152,7 +159,7 @@ With pcov instead of Xdebug, drop `XDEBUG_MODE=coverage`. For a package, drop th
 ```bash
 vendor/bin/pest                                                   # suite
 vendor/bin/pest --filter="{test name}"                            # one test
-XDEBUG_MODE=coverage vendor/bin/pest --coverage --exactly=100.0   # coverage gate
+XDEBUG_MODE=coverage vendor/bin/pest --coverage --min={floor}      # coverage gate
 ```
 
 With pcov instead of Xdebug, drop `XDEBUG_MODE=coverage`.
