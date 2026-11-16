@@ -116,7 +116,7 @@ Sources: [{what it is}]({path}), [{what it is}]({path}).
 
 ## ARCHITECTURE.md
 
-The technical reference for the people who develop and run the product: what a new developer needs to find their way and what an operator needs to keep it running. It describes the structure the code actually has, not one it should have; where the code departs from its framework's conventions, that is stated, because a reader would otherwise assume the convention. It links to code instead of copying it, and names classes and files, since here they are the subject. A section without content stays out.
+The technical reference for the people who develop and run the product: what a new developer needs to find their way and what an operator needs to keep it running. It describes the structure the code actually has, not one it should have; where the code departs from its framework's conventions, that is stated, including naming and error-handling patterns, because a reader would otherwise assume the convention. It links to code instead of copying it, and names classes and files, since here they are the subject. A section without content stays out.
 
 ```md
 # {Name} architecture
@@ -214,6 +214,8 @@ Commands:
 - All checks: `{command}`
 - One test: `{command}`
 - {Lint, static analysis, frontend build: `{command}`}
+
+{Commits and branches: the convention `git log` shows, only where it departs from the usual.}
 
 {Not visible in the code, only when a source states it:}
 
