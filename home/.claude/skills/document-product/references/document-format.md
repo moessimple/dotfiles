@@ -163,32 +163,37 @@ Sources: [{what it is}]({path}).
 
 ## PRODUCT_REVIEW.md
 
-Material for the review, in the repository root, until people have worked through it.
+Material for the review and the state of the documentation, in the repository root. It stays in the repository: the area table tells every later run which areas are documented at which SHA, and the rules carry what people still have to decide. Its headings, column names, and status values stay in English in every documentation language, because other skills and tools read them.
 
 ```md
 # Product review
 
-Derived from {sha} on {date}. Repository: {path}. Knowledge sources used: {sources or none}.
+Repository: {path}. Knowledge sources used: {sources or none}.
 
 ## Security
 What has to be closed before the repository is made public, and passed to whoever runs the product now.
 - **{Security gap, in one sentence}.** {Who is affected and how.} `{path:line@sha}` | none
 
-## Coverage
-| Feature | Status | Read |
-|---|---|---|
-| {feature} | not studied / drafted / stale since {sha} | `{path:line}`, ... |
+## Areas
+| Area | Risk | Status | Sha | Paths | Features |
+|---|---|---|---|---|---|
+| {area} | high / medium / low | overview / drafted / confirmed / stale | {sha} | `{path}`, ... | {feature}, ... |
 
-## To confirm
-- {Statement in the documents that rests on a single reading of complex code, or on a source the code does not show}: `{path:line@sha}`
+## Rules
+{Statements in the documents that rest on a single reading of complex code, on names or structure only, or on a source the code does not show.}
 
 ## Findings
 - **{Finding}.** {What is wrong or contradictory, and the consequence for whom.} `{path:line@sha}`
 
 ## Review list
 Where reviewers should start, most important first:
-- {Section left out for lack of a source, a finding, or a statement to confirm, and why it matters}
+- {Section left out for lack of a source, a finding, or a rule to confirm, and why it matters}
 ```
+
+- **Area:** named as a user would, one row per area. Paths are the directories and files of its entry points, models, jobs, and commands; Features lists its knowledge base entries by heading.
+- **Risk:** high when the area controls access, moves money, or writes or deletes other people's data; medium when it writes data or reaches outside the system; low when it only reads.
+- **Status:** `overview` when the area is listed but its features are not traced yet; `drafted` when every feature has its entry; `confirmed` when it is drafted and no P0 rule of the area is still open; `stale` when its sources changed after its SHA.
+- **Sha:** the commit the area was last read at. `update` compares it with `HEAD`.
 
 ## Agent instructions
 
