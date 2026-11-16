@@ -8,6 +8,7 @@ The gate every project reaches. Adjust paths to what the project has and the PHP
 - Dev dependencies
 - phpstan.neon
 - rector.php
+- Quality guard
 - pint.json
 - tests/Unit/ArchTest.php
 
@@ -121,8 +122,8 @@ return RectorConfig::configure()
         SeparateMultiUseImportsRector::class,
         // Adds HasFactory to models that have no factory class.
         AddHasFactoryToModelsRector::class,
-        // Not improved yet: removed per area run, see the skip list below.
-        // __DIR__.'/app/Http/Controllers/Billing',
+        // Code not improved yet, see the skip list below.
+        ...require __DIR__.'/rector-skip.php',
     ]);
 ```
 
@@ -132,8 +133,71 @@ Leave out a skipped rule class that does not exist in the installed Rector versi
 
 Rector applies its sets to every path it is given on the command line, even one outside `withPaths()`; only `withSkip()` holds there too. So code whose area has not had its run yet stays in `withSkip()`, and neither `rector --dry-run` in `composer test` nor a call for a single file reports changes in it. `tools` builds the list from the paths of the area table in `tests/CHARACTERIZATION.md`, and adds every other PHP directory under the gate's paths at the same granularity.
 
-- **It only shrinks.** An area run removes the paths it takes over; nothing is ever added after `tools`.
+The list lives in `rector-skip.php` in the repository root, which `rector.php` spreads into `withSkip()`, so the quality guard can count it without running Rector. It holds only file and directory paths, no rule classes and no wildcards:
+
+```php
+<?php
+
+// Code that has not had its area run yet. Entries are only removed, see QUALITY_GATE.md.
+return [
+    __DIR__.'/app/Http/Controllers/Billing',
+    __DIR__.'/app/Models/Invoice.php',
+];
+```
+
+- **It only shrinks,** counted in skipped PHP files, not in entries. A run removes the paths it takes over; nothing is ever added after `tools`.
+- **A file inside a skipped directory** is taken over by replacing the directory's entry with an entry for each of its other PHP files. The entries grow, the skipped files drop by one.
 - **Code outside every area** stays in the list until an area takes it over, and is listed in `QUALITY_GATE.md` under Open decisions.
+
+## Quality guard
+
+The baseline and the skip list must not grow, whoever edits them. A test in `composer test` checks both against `quality-gate.lock.json`, which `tools` writes with the starting values. A commit that lowers a value lowers the lock to it in the same commit; raising a value in the lock is a departure from the gate.
+
+```json
+{
+    "phpstan_baseline_errors": 412,
+    "rector_skipped_files": 187
+}
+```
+
+`tests/Unit/QualityGuardTest.php` counts on the text of the files, without a NEON parser or a Rector run:
+
+```php
+<?php
+
+use Illuminate\Filesystem\Filesystem;
+
+// The PHPStan baseline and the Rector skip list only shrink. quality-gate.lock.json holds the highest
+// allowed values; a run that lowers a value lowers it there in the same commit.
+
+it('does not let the PHPStan baseline grow', function (): void {
+    $root = dirname(__DIR__, 2);
+    /** @var array{phpstan_baseline_errors: int, rector_skipped_files: int} $lock */
+    $lock = (new Filesystem)->json($root.'/quality-gate.lock.json');
+    $baseline = is_file($root.'/phpstan-baseline.neon') ? (new Filesystem)->get($root.'/phpstan-baseline.neon') : '';
+
+    preg_match_all('/^\s*count:\s*(\d+)\s*$/m', $baseline, $counts);
+
+    expect(array_sum(array_map(intval(...), $counts[1])))->toBeLessThanOrEqual($lock['phpstan_baseline_errors']);
+});
+
+it('does not let the Rector skip list grow', function (): void {
+    $root = dirname(__DIR__, 2);
+    /** @var array{phpstan_baseline_errors: int, rector_skipped_files: int} $lock */
+    $lock = (new Filesystem)->json($root.'/quality-gate.lock.json');
+    /** @var list<string> $paths */
+    $paths = require $root.'/rector-skip.php';
+    $skipped = 0;
+
+    foreach ($paths as $path) {
+        $skipped += is_dir($path) ? count(array_filter((new Filesystem)->allFiles($path), fn (SplFileInfo $file): bool => $file->getExtension() === 'php')) : 1;
+    }
+
+    expect($skipped)->toBeLessThanOrEqual($lock['rector_skipped_files']);
+});
+```
+
+Add `declare(strict_types=1);` when the project's files use it. The test is written to pass PHPStan at `max`, Rector, and Pint as it stands, so the `tests` run has nothing to change in it. Once the `tests` run deletes the baseline and empties the skip list, both values are 0 and stay there.
 
 ## tests/Unit/ArchTest.php
 
