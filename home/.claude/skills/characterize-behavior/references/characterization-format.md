@@ -45,7 +45,7 @@ What has to be closed before the repository is made public, and passed to whoeve
 ## Acceptance tests
 | Rule | Test | Status |
 |---|---|---|
-| RULE-{nnn} | `tests/Acceptance/{Area}Test.php` | passed / not written: code differs (see Notable behaviour) |
+| RULE-{nnn} | `tests/Feature/{Area}RulesTest.php` | passed / not written: code differs (see Notable behaviour) |
 
 ## Coverage
 - Floor of `composer test`: {percent}, the total after the last secured area

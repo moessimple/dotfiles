@@ -56,13 +56,11 @@ parameters:
         - tests/
     level: max
     phpVersion: 80300   # from the project's php requirement, e.g. ^8.3 -> 80300
-    excludePaths:
-        - tests/Acceptance
     reportUnmatchedIgnoredErrors: true
     reportIgnoresWithoutComments: true
 ```
 
-Add `vendor/phpstan/phpstan-mockery/extension.neon` to `includes` when Mockery is installed. When no `pestphp/pest-plugin-phpstan` release supports the installed Pest major, leave out its include and `tests/`, with a comment in `phpstan.neon` naming that reason. `reportUnmatchedIgnoredErrors` makes PHPStan fail when a baseline entry or ignore no longer matches, so the baseline can only shrink. `excludePaths` keeps the acceptance tests out for good, as in Rector and Pint: no tool may change them, so an error in them could be neither fixed nor ignored. `reportIgnoresWithoutComments` requires a reason in parentheses on every `@phpstan-ignore` and forbids `@phpstan-ignore-line` and `@phpstan-ignore-next-line`.
+Add `vendor/phpstan/phpstan-mockery/extension.neon` to `includes` when Mockery is installed. When no `pestphp/pest-plugin-phpstan` release supports the installed Pest major, leave out its include and `tests/`, with a comment in `phpstan.neon` naming that reason. `reportUnmatchedIgnoredErrors` makes PHPStan fail when a baseline entry or ignore no longer matches, so the baseline can only shrink. `reportIgnoresWithoutComments` requires a reason in parentheses on every `@phpstan-ignore` and forbids `@phpstan-ignore-line` and `@phpstan-ignore-next-line`.
 
 `tools` starts at `level: max` without `tests/` in `paths`, and includes `phpstan-baseline.neon` with every error the code has today. Area runs shrink the baseline; the `tests` run adds `tests/` and deletes it.
 
@@ -123,8 +121,6 @@ return RectorConfig::configure()
         SeparateMultiUseImportsRector::class,
         // Adds HasFactory to models that have no factory class.
         AddHasFactoryToModelsRector::class,
-        // Acceptance tests pin confirmed rules; no tool changes them.
-        __DIR__.'/tests/Acceptance',
         // Not improved yet: removed per area run, see the skip list below.
         // __DIR__.'/app/Http/Controllers/Billing',
     ]);
@@ -138,7 +134,6 @@ Rector applies its sets to every path it is given on the command line, even one 
 
 - **It only shrinks.** An area run removes the paths it takes over; nothing is ever added after `tools`.
 - **Code outside every area** stays in the list until an area takes it over, and is listed in `QUALITY_GATE.md` under Open decisions.
-- **`tests/Acceptance`** stays in the list for good.
 
 ## tests/Unit/ArchTest.php
 
@@ -167,7 +162,6 @@ The formatting rules, applied in one go:
 ```json
 {
     "preset": "laravel",
-    "exclude": ["tests/Acceptance"],
     "rules": {
         "array_push": true,
         "backtick_to_shell_exec": true,
@@ -203,8 +197,6 @@ The formatting rules, applied in one go:
     }
 }
 ```
-
-Acceptance tests stay excluded for good: their protection matters more than a uniform style, a decision recorded under Decisions in `QUALITY_GATE.md`.
 
 `tools` starts with `"exclude": ["tests"]` and without two rules of the set above, which can still change behaviour and which the tests only reliably catch at full coverage. Both are recorded under Deferred, and the `tests` run turns them on one at a time:
 

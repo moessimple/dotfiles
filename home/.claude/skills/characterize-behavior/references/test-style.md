@@ -69,7 +69,7 @@ When this test turns red later, the note tells the developer the behaviour was q
 
 An acceptance test pins a confirmed rule, not the current code. Everything above applies, except where this section says otherwise.
 
-- **Place and name:** one file per area, `tests/Acceptance/{Area}Test.php`. Every test name starts with the rule's ID: `it('RULE-012: deducts 5 % from an order of 500.00', ...)`.
+- **Place and name:** one file per area, `tests/Feature/{Area}RulesTest.php`, that starts with `pest()->group('acceptance');`, so `pest --group=acceptance` runs them and the self-check knows them. Every test name starts with the rule's ID: `it('RULE-012: deducts 5 % from an order of 500.00', ...)`.
 - **Given, When, Then** of the rule become the setup, the one action at an entry point, and the assertions.
 - **Expected values** are the rule's own values, written as literals. Never take one from a run against the code: that would pin the current behaviour, which is what a characterization test already does.
 - **Code that does not meet the rule:** do not adapt the test, and do not leave it red. Record under Notable behaviour the rule's ID, the confirmed value, and the current value, marked intended ≠ current. Fixing it is later development work, with a test that fails first.

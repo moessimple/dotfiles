@@ -107,6 +107,7 @@ setup() {
     grep -Fq 'open / in progress / secured' "$skills_dir/characterize-behavior/references/characterization-format.md"
     grep -Fq '`## Areas`' "$skills_dir/raise-quality-gate/SKILL.md"
     grep -Fq '`secured`' "$skills_dir/raise-quality-gate/SKILL.md"
-    grep -Fq 'tests/Acceptance' "$skills_dir/characterize-behavior/SKILL.md"
-    grep -Fq 'tests/Acceptance' "$skills_dir/raise-quality-gate/SKILL.md"
+    grep -Fq "group('acceptance')" "$skills_dir/characterize-behavior/SKILL.md"
+    grep -Fq "group('acceptance')" "$skills_dir/raise-quality-gate/SKILL.md"
+    ! grep -rFq 'tests/Acceptance' "$skills_dir/characterize-behavior" "$skills_dir/raise-quality-gate" || false
 }

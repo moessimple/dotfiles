@@ -32,6 +32,17 @@ added_test_lines() {
     done
 }
 
+# Committed test files holding acceptance tests (Pest group "acceptance") that are changed, renamed, or
+# deleted. The committed version decides, so removing the group from a file is a hit too. grep reads the
+# whole file instead of quitting early (-q), so pipefail never sees git show die of SIGPIPE.
+changed_acceptance_tests() {
+    git diff HEAD --name-status --diff-filter=DMR -- tests | while IFS=$'\t' read -r status file _; do
+        if git show "HEAD:$file" 2>/dev/null | grep -E "group\(['\"]acceptance['\"]\)" >/dev/null; then
+            printf '%s\t%s\n' "$status" "$file"
+        fi
+    done
+}
+
 # Production packages whose locked version or commit differs from HEAD's composer.lock.
 changed_production_packages() {
     if [[ ! -f composer.lock ]] || ! git cat-file -e HEAD:composer.lock 2>/dev/null; then
@@ -60,7 +71,7 @@ report "Changed files the skill must not touch" \
     "$(git status --porcelain -- app src routes config resources bootstrap database/migrations database/seeders public docs .env .env.example ':(glob)*.md')"
 
 report "Acceptance tests changed or deleted (only an explicit request for that rule allows it)" \
-    "$(git diff HEAD --name-status --diff-filter=DMR -- tests/Acceptance)"
+    "$(changed_acceptance_tests)"
 
 report "Production packages changed in composer.lock" \
     "$(changed_production_packages)"

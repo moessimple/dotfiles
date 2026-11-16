@@ -27,7 +27,7 @@ Known vulnerabilities `composer audit --locked` reports. Updating a production p
 |---|---|---|---|
 | PHPStan | max, {n} baseline entries | max, {n} baseline entries | max, no baseline |
 | Type coverage | {percent} | {percent} | 100 % |
-| Rector | {n} skipped paths | {n} skipped paths | only `tests/Acceptance` skipped |
+| Rector | {n} skipped paths | {n} skipped paths | none skipped |
 | Pint | {rules deferred} | {rules deferred} | the gate's rules |
 | Architecture presets | {n} ignored | {n} ignored | none ignored, or each one decided |
 
@@ -36,7 +36,6 @@ Known vulnerabilities `composer audit --locked` reports. Updating a production p
 
 ## Decisions
 - {date}, {who}: {what was decided, such as applying `strict_comparison`, turning on `codingStyle`, or accepting a failing audit, and why}
-- `tests/Acceptance` stays out of Pint and Rector: protecting the confirmed rules matters more than a uniform style.
 
 ## Open decisions
 - {behaviour-changing rule with the places it would change, a departure from the gate, a production update a tool needs, a PHPStan error that only a behaviour change fixes, code outside every area that stays skipped}
