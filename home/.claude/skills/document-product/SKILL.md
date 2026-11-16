@@ -42,7 +42,7 @@ identifiers, machine-readable syntax, and the terms the format reference lists a
 
 An area is what a user would name as one part of the product, and holds several features.
 
-Decisions on rules passed with the invocation, such as `RULE-004 confirmed` or `RULE-007 wrong: rounds down on purpose`, are recorded first in every mode, as the format reference describes under Decisions. An area whose last open P0 rule is decided becomes `confirmed`. The skill asks no questions during a run, so a decision it needs becomes a rule with a question instead.
+Decisions on rules passed with the invocation, such as `RULE-004 confirmed` or `RULE-007 wrong: rounds down on purpose`, are recorded first in every mode, as the format reference describes under Decisions. A `drafted` area with no P0 rule left `open` or `clarify` becomes `confirmed`. The skill asks no questions during a run, so a decision it needs becomes a rule with a question instead.
 
 ## Evidence
 
@@ -106,7 +106,7 @@ The area has to be in the table in `PRODUCT_REVIEW.md`. Without the table, run `
 ### `update`
 
 1. **Find what changed.** For each area past `overview`, run `git diff --name-only {area sha}..HEAD` and compare the result with the area's paths and the `Sources:` lines of its entries. Mark each area with a match as `stale`. Then collect the entry points again: one that no area's paths cover joins the area a user would place it in, with its path added (an area past `overview` becomes `stale`), or becomes a new area as `overview`.
-2. **Bring it up to date.** For each `stale` area, trace again only the features whose sources changed or that are new, and write or adjust their entries and the other documents as in `area`. Then set the area back to its earlier status with the current SHA.
+2. **Bring it up to date.** For each `stale` area, trace again only the features whose sources changed or that are new, and write or adjust their entries and the other documents as in `area`. When changed code no longer meets a rule under `Confirmed rules:`, keep the rule as it stands and record a finding, `RULE-{nnn}: intended ≠ current`. Then set the area to `confirmed` if no P0 rule of it is `open` or `clarify`, otherwise to `drafted`, with the current SHA.
 
 ### Every mode
 

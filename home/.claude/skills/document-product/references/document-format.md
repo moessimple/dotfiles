@@ -200,7 +200,7 @@ Where reviewers should start, most important first:
 
 - **Area:** named as a user would, one row per area. Paths are the directories and files of its entry points, models, jobs, and commands; Features lists its knowledge base entries by heading.
 - **Risk:** high when the area controls access, moves money, or writes or deletes other people's data; medium when it writes data or reaches outside the system; low when it only reads.
-- **Status:** `overview` when the area is listed but its features are not traced yet; `drafted` when every feature has its entry; `confirmed` when it is drafted and no P0 rule of the area is still open; `stale` when its sources changed after its SHA.
+- **Status:** `overview` when the area is listed but its features are not traced yet; `drafted` when every feature has its entry; `confirmed` when it is drafted and no P0 rule of the area is still `open` or `clarify`; `stale` when its sources changed after its SHA.
 - **Sha:** the commit the area was last read at. `update` compares it with `HEAD`.
 
 ### Rules
@@ -235,7 +235,7 @@ People decide on rules in the invocation (`RULE-004 confirmed`, `RULE-007 wrong:
 | `wrong` | the current behaviour is not intended; the note says what is | moves to Findings as intended ≠ current; the documents keep describing the current behaviour |
 | `clarify` | needs a discussion | stays under Rules, with the note |
 
-An area whose features are all drafted and that has no open P0 rule left is `confirmed`.
+An area whose features are all drafted and that has no P0 rule left `open` or `clarify` is `confirmed`.
 
 ## Agent instructions
 
