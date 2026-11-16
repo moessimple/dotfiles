@@ -113,9 +113,11 @@ The four Pint rules `declare_strict_types`, `date_time_immutable`, `mb_str_funct
 ## Before every commit
 
 1. `composer test` passes. Judge by the exit code, never by reading the output, and never through a pipe that hides it.
-2. `XDEBUG_MODE=coverage vendor/bin/pest --mutate --class={every class the commit changes} --covered-only --parallel` leaves no survivor outside the equivalent mutations. A new survivor means the tests no longer check that code: undo the change. If the change itself created a mutation no actor can observe, stop with it as an open decision.
-3. For a package, the public API check from the package reference.
-4. The diff holds nothing the table above forbids, no new ignore without a reason, and no type claim that only quiets PHPStan (an `@var` without grounds, an `assert()`, a cast that changes the value).
+2. Except in `tools`, whose commits change no behaviour: `XDEBUG_MODE=coverage vendor/bin/pest --mutate --class={every class the commit changes} --covered-only --parallel` leaves no survivor outside the equivalent mutations. A new survivor means the tests no longer check that code: undo the change. If the change itself created a mutation no actor can observe, stop with it as an open decision.
+3. In `tools` and `area`, the tests are unchanged on the branch and in the working tree: `git diff --exit-code "$(git merge-base HEAD {default branch})" -- tests ':!tests/Unit/ArchTest.php'` exits with 0.
+4. In every mode, the acceptance tests are unchanged: `git diff --exit-code "$(git merge-base HEAD {default branch})" -- tests/Acceptance` exits with 0.
+5. For a package, the public API check from the package reference.
+6. The diff holds nothing the table above forbids and no new ignore without a reason. It also holds no workaround that only moves a number: a type claim that only quiets PHPStan (an `@var` without grounds, an `assert()`, a cast that changes the value), a `mixed` type that only raises type coverage where the value is not actually arbitrary, a new entry in the PHPStan baseline or the Rector skip list after `tools`, or a lowered threshold in `composer.json` or `phpunit.xml`.
 
 The commit message names the tool, the level or rule, and the result, such as "Raise PHPStan to level 6 and remove 41 baseline entries".
 
