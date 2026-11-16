@@ -134,6 +134,10 @@ Leave out a skipped rule class that does not exist in the installed Rector versi
 
 Rector applies its sets to every path it is given on the command line, even one outside `withPaths()`; only `withSkip()` holds there too. So code whose area has not had its run yet stays in `withSkip()`, and neither `rector --dry-run` in `composer test` nor a call for a single file reports changes in it. `tools` builds the list from the paths of the area table in `tests/CHARACTERIZATION.md`, and adds every other PHP directory under the gate's paths at the same granularity.
 
+- **It only shrinks.** An area run removes the paths it takes over; nothing is ever added after `tools`.
+- **Code outside every area** stays in the list until an area takes it over, and is listed in `QUALITY_GATE.md` under Open decisions.
+- **`tests/Acceptance`** stays in the list for good.
+
 ## tests/Unit/ArchTest.php
 
 Pest's built-in architecture presets, run by `test:unit` like any other test:

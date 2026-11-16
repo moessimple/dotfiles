@@ -63,17 +63,25 @@ Scan the history for leaked secrets with `gitleaks git --redact --no-banner`. Ea
 
 If `AGENTS.md` or `CLAUDE.md` has a `## Project knowledge` section, add a link to `QUALITY_GATE.md` and the gate's commands (`composer lint` to fix formatting and refactorings, `composer test` for every check) to it, and commit. Change nothing else in that file.
 
-## Stage 2: Rector
+## `area <name>`
 
-First add the commit on the default branch that brought the formatting to `.git-blame-ignore-revs` (`git log -1 --format=%H --diff-filter=A -- pint.json`), so `git blame` keeps showing who wrote each line.
+**Preconditions,** checked in this order; stop with the reason at the first that fails:
 
-Create `rector.php` with the paths of the gate without `tests` and `withImportNames(removeUnusedImports: true)`; add `rector` to `lint` and `rector --dry-run` to `test:lint` with the first commit that applies a set. Apply in this order, each as described in [Applying a Rector set](#applying-a-rector-set): `withPhpSets()`, `typeDeclarations`, `deadCode`, `codeQuality`, `codingStyle`, `privatization`, `earlyReturn`, each Laravel set of the gate, then `withComposerBased(laravel: true)`. After each commit, raise the type-coverage threshold to the new measured value.
+1. `tools` is merged: the default branch has `pint.json`, `rector.php`, and `phpstan.neon` with `level: max`.
+2. The area is listed in `tests/CHARACTERIZATION.md` under `## Areas` with the status `secured`.
+3. `composer test` passes with exit code 0.
+4. `XDEBUG_MODE=coverage vendor/bin/pest --mutate --everything --covered-only --parallel --class={the area's classes}` leaves no surviving mutation other than the equivalent ones listed in `tests/CHARACTERIZATION.md`. Match by file, mutator, and the code before and after, never by ID or line: Pest hashes the whole file into the ID, so any edit changes it. The code may have changed since the area was secured, so this run is needed every time.
 
-## Stage 3: Types and PHPStan
+**Steps:**
 
-Close what Rector could not infer by hand until type coverage is 100 %, following [Types without behaviour changes](#types-without-behaviour-changes). Raise the threshold with every commit.
+1. If `.git-blame-ignore-revs` does not list it yet, add the commit on the default branch that brought the formatting (`git log -1 --format=%H --diff-filter=A -- pint.json`), so `git blame` keeps showing who wrote each line.
+2. Apply the sets to the area's paths one at a time, each as described in [Applying a Rector set](#applying-a-rector-set), in this order: `withPhpSets()`, `typeDeclarations`, `deadCode`, `codeQuality`, `privatization`, each Laravel set of the gate, then `withComposerBased(laravel: true)`, and the optional sets only where `QUALITY_GATE.md` records the decision. Then remove the area's paths from the skip list: `rector --dry-run` must find nothing left in them.
+3. Close what Rector could not infer by hand until type coverage of the area's files is 100 %, following [Types without behaviour changes](#types-without-behaviour-changes). Raise the threshold to the new total with every commit.
+4. Fix every baseline entry of the area's files, and regenerate the baseline so it shrinks.
+5. Fix the area's violations of the architecture presets where that keeps the behaviour; the others stay open decisions.
+6. Mark the area `improved` in `QUALITY_GATE.md` and write the pull request description.
 
-Then raise PHPStan one level per commit until `max`. At each level, fix the errors and regenerate the baseline so it shrinks; when it is empty, delete it and its include.
+A file that several areas use, such as a shared model, is improved in the first area run whose paths hold it; securing that area already covered it fully.
 
 Fix a PHPStan error, do not hide it: correct types, generics in docblocks (`Collection<int, User>`, `HasMany<Post, $this>`, `@use HasFactory<UserFactory>`), Larastan's annotations for Laravel magic. An ignore is acceptable only for a refactoring outside this skill, wrong types upstream, or a PHPStan bug, always inline as `@phpstan-ignore {identifier} ({reason})`.
 
@@ -87,7 +95,7 @@ The four Pint rules `declare_strict_types`, `date_time_immutable`, `mb_str_funct
 
 ## Applying a Rector set
 
-1. Add the set and run `vendor/bin/rector --dry-run`. Do not use the level methods (`withPhpLevel()` and the like): most levels change nothing, and they do not hold every rule of their set.
+1. Run the set alone over the area's paths with `--dry-run`, through a temporary configuration outside the repository that holds the gate's skipped rules and that one set (`vendor/bin/rector process {paths} --config={file} --dry-run`). Do not use the level methods (`withPhpLevel()` and the like): most levels change nothing, and they do not hold every rule of their set.
 2. Review the diff as code you wrote yourself:
    - A rule the gate skips must not apply.
    - Types are the narrowest the framework documents: `view('name')` returns `View`, not `Factory|View`.

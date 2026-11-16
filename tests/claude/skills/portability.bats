@@ -100,3 +100,13 @@ setup() {
     grep -Fq '`Confirmed rules:`' "$skills_dir/characterize-behavior/SKILL.md"
     grep -Fq '`RULE-`' "$skills_dir/characterize-behavior/SKILL.md"
 }
+
+@test "raise-quality-gate reads the areas and acceptance tests that characterize-behavior records" {
+    # Assert
+    grep -Fq '## Areas' "$skills_dir/characterize-behavior/references/characterization-format.md"
+    grep -Fq 'secured' "$skills_dir/characterize-behavior/references/characterization-format.md"
+    grep -Fq '`## Areas`' "$skills_dir/raise-quality-gate/SKILL.md"
+    grep -Fq '`secured`' "$skills_dir/raise-quality-gate/SKILL.md"
+    grep -Fq 'tests/Acceptance' "$skills_dir/characterize-behavior/SKILL.md"
+    grep -Fq 'tests/Acceptance' "$skills_dir/raise-quality-gate/SKILL.md"
+}
