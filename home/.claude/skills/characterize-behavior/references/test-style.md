@@ -73,4 +73,5 @@ An acceptance test pins a confirmed rule, not the current code. Everything above
 - **Given, When, Then** of the rule become the setup, the one action at an entry point, and the assertions.
 - **Expected values** are the rule's own values, written as literals. Never take one from a run against the code: that would pin the current behaviour, which is what a characterization test already does.
 - **Code that does not meet the rule:** do not adapt the test, and do not leave it red. Record under Notable behaviour the rule's ID, the confirmed value, and the current value, marked intended ≠ current. Fixing it is later development work, with a test that fails first.
-- **Existing acceptance tests** are changed or deleted only when the invocation asks for it by the rule's ID.
+- **Lock:** a new file goes into `tests/acceptance.lock.json` with its SHA-256 once its tests pass, so `tests/Unit/AcceptanceGuardTest.php` fails on any later edit. A committed file is never edited, not even to add a test: new rules of an area that already has one go into a new file, `tests/Feature/{Area}Rules{n}Test.php`, numbered from 2.
+- **Existing acceptance tests** are changed or deleted only when the invocation asks for it by the rule's ID. Then the file and its lock entry change in the same diff, and the report names the rule ID.

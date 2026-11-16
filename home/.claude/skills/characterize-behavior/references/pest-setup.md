@@ -9,6 +9,7 @@ The setup gives every characterization test the same deterministic starting poin
 - phpunit.xml
 - Database
 - Composer scripts
+- Acceptance guard
 - Commands
 
 Never run `pest --init`: it can overwrite an existing `phpunit.xml` or `tests/Pest.php`. Write from these templates and keep what the project already has.
@@ -153,6 +154,43 @@ The tests run inside a transaction and with `QUEUE_CONNECTION=sync`, which stays
 - **End:** when every area is `secured` and the total is 100 %, replace `--min={floor}` with `--exactly=100.0`.
 
 With pcov instead of Xdebug, drop `XDEBUG_MODE=coverage`. For a package, drop the `artisan` line. Later quality steps (audit, lint, static analysis, browser tests) belong into `test` as further `@test:*` entries, not into this skill. Edit only these entries and keep the rest of `composer.json` formatted as it was.
+
+## Acceptance guard
+
+A confirmed rule must not change because a run found its test inconvenient. The guard makes that a failing test in `composer test`, independent of who follows which instruction. `setup` creates both files, with an empty lock when no acceptance test exists yet.
+
+`tests/Unit/AcceptanceGuardTest.php`:
+
+```php
+<?php
+
+use Illuminate\Filesystem\Filesystem;
+
+// Every acceptance test listed in tests/acceptance.lock.json stays as committed. A new acceptance test is
+// added to the lock with its file; a hash changes only when people decide so for that rule.
+it('keeps every locked acceptance test unchanged', function (): void {
+    $root = dirname(__DIR__, 2);
+    /** @var array<string, string> $lock */
+    $lock = (new Filesystem)->json($root.'/tests/acceptance.lock.json');
+    $current = [];
+
+    foreach (array_keys($lock) as $file) {
+        $current[$file] = is_file($root.'/'.$file) ? hash_file('sha256', $root.'/'.$file) : 'missing';
+    }
+
+    expect($current)->toBe($lock);
+});
+```
+
+`tests/acceptance.lock.json` maps each file holding `pest()->group('acceptance')`, relative to the project root, to its SHA-256 (`shasum -a 256 {file}`):
+
+```json
+{
+    "tests/Feature/OrderRulesTest.php": "{sha256}"
+}
+```
+
+One assertion over the whole lock keeps the test valid while the lock is empty, and its diff names every changed or missing file.
 
 ## Commands
 

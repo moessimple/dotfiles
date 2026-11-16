@@ -6,6 +6,7 @@
 - Every precondition was checked in order, and the run stopped at the first failure
 - Every entry point belongs to an area with its paths, a risk, and the status `open`
 - `composer test` runs the coverage gate with the coverage of the existing tests as its floor
+- `tests/Unit/AcceptanceGuardTest.php` and `tests/acceptance.lock.json` exist, and the guard passes
 - For a package, the suite also ran with the lowest versions, and every difference is in the report
 
 `area`, for the area of the run:

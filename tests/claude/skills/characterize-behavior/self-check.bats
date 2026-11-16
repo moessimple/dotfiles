@@ -83,3 +83,55 @@ teardown() {
     assert_output_contains "## Changed files the skill must not touch"
     assert_output_contains "app/Order.php"
 }
+
+@test "a changed acceptance guard test is a hit" {
+    # Arrange
+    write_project_file tests/Unit/AcceptanceGuardTest.php "<?php\n\nit('keeps every locked acceptance test unchanged', function () {\n    expect(true)->toBeTrue();\n})->skip();\n"
+
+    # Act
+    run_self_check
+
+    # Assert
+    assert_failure
+    assert_output_contains "## Acceptance guard or lock entries changed"
+    assert_output_contains "tests/Unit/AcceptanceGuardTest.php"
+}
+
+@test "a changed hash in the acceptance lock is a hit" {
+    # Arrange
+    write_project_file tests/acceptance.lock.json "{\n    \"tests/Feature/OrderRulesTest.php\": \"$invoice_rules_hash\"\n}\n"
+
+    # Act
+    run_self_check
+
+    # Assert
+    assert_failure
+    assert_output_contains "## Acceptance guard or lock entries changed"
+    assert_output_contains "tests/Feature/OrderRulesTest.php"
+}
+
+@test "a deleted entry in the acceptance lock is a hit" {
+    # Arrange
+    write_project_file tests/acceptance.lock.json "{\n}\n"
+
+    # Act
+    run_self_check
+
+    # Assert
+    assert_failure
+    assert_output_contains "## Acceptance guard or lock entries changed"
+    assert_output_contains "tests/Feature/OrderRulesTest.php"
+}
+
+@test "a new entry in the acceptance lock is not a hit" {
+    # Arrange
+    write_project_file tests/Feature/InvoiceRulesTest.php "<?php\n\npest()->group('acceptance');\n\nit('RULE-002: numbers invoices per year', function () {\n    expect(1)->toBe(1);\n});\n"
+    write_project_file tests/acceptance.lock.json "{\n    \"tests/Feature/OrderRulesTest.php\": \"$order_rules_hash\",\n    \"tests/Feature/InvoiceRulesTest.php\": \"$invoice_rules_hash\"\n}\n"
+
+    # Act
+    run_self_check
+
+    # Assert
+    assert_success
+    assert_output_contains "No hits."
+}

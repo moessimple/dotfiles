@@ -1,6 +1,9 @@
-# A project repository with one committed file of acceptance tests (Pest group "acceptance"), one
-# committed characterization test, and one application file, without composer.lock, so
-# self-check.sh needs no PHP.
+# A project repository with one committed file of acceptance tests (Pest group "acceptance"), the
+# acceptance guard test with a lock file listing that file, one committed characterization test, and
+# one application file, without composer.lock, so self-check.sh needs no PHP.
+order_rules_hash=1111111111111111111111111111111111111111111111111111111111111111
+invoice_rules_hash=2222222222222222222222222222222222222222222222222222222222222222
+
 given_project_with_committed_acceptance_test() {
     project="$fixture/project"
     mkdir -p "$project/tests/Feature" "$project/app"
@@ -11,6 +14,11 @@ given_project_with_committed_acceptance_test() {
         > "$project/tests/Feature/OrderRulesTest.php"
     printf "<?php\n\nit('shows the order total', function () {\n    expect(475.0)->toBe(475.0);\n});\n" \
         > "$project/tests/Feature/OrderTest.php"
+    mkdir -p "$project/tests/Unit"
+    printf "<?php\n\nit('keeps every locked acceptance test unchanged', function () {\n    expect(true)->toBeTrue();\n});\n" \
+        > "$project/tests/Unit/AcceptanceGuardTest.php"
+    printf '{\n    "tests/Feature/OrderRulesTest.php": "%s"\n}\n' "$order_rules_hash" \
+        > "$project/tests/acceptance.lock.json"
     git -C "$project" add .
     git -C "$project" commit -qm initial
 }
