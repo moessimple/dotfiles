@@ -10,6 +10,8 @@ Pin down what an existing Laravel application or package does today, with Pest t
 
 The tests record what the code does, not what it should do. Often nobody knows any more what was intended, and users may depend on anything a system observably does, so the current behaviour counts as the required one. Behaviour that looks unintended is pinned like any other and marked; fixing it is a later decision for people.
 
+Acceptance tests are the one exception. They pin a rule people have confirmed, take every expected value from that rule, and change only when people decide so for that rule.
+
 The run asks no questions. It stops only on a blocker, and everything it writes stays uncommitted for review.
 
 ## Modes
@@ -31,6 +33,7 @@ An area is what a user would name as one part of the product, with the paths of 
 | `tests/**` (including a package's Testbench test case); in existing tests only missing test setup | `.env`, values in any environment file, documentation, CI |
 | `database/factories/**` | coverage exclusions inside application code (`@codeCoverageIgnore`), `use HasFactory` on a model |
 | `tests/CHARACTERIZATION.md`, the record of the run | commits, branch switches |
+| new tests in `tests/Acceptance` | changing or deleting a committed test in `tests/Acceptance`, unless the invocation asks for it by its rule ID |
 
 `tests/CHARACTERIZATION.md` follows [references/characterization-format.md](references/characterization-format.md). It holds progress, results, and findings, so anyone can continue a run or build on it.
 
@@ -87,6 +90,8 @@ Give each area, and later each capability, a risk read from the code: **high** w
 4. **Pin the actual value.** Write the assertion you expect and run the test. If the code behaves differently, assert what it actually does. Keep a test only if it would survive a refactoring that keeps behaviour, asserts what an actor observes, and pins something no other test already pins.
 5. **Mark what looks unintended** with one note on the test, `->note('Notable: ...')`, or `->note('Security: ...')` for access, authentication, or exposed data. Record it in `tests/CHARACTERIZATION.md` with what the repository says about intent (`git log -L`, whether the interface links to it). Never fix it.
 6. **Keep it green.** Run the whole suite and the new file on its own. After the first test file, also run the project's lint and static analysis over it: what they reject shapes every following file. Mark the capability `secured`.
+
+**Acceptance tests.** Search the whole repository for lines `Confirmed rules:` and take the entries under them that start with `RULE-` and a number, together with rules passed with the invocation; no particular file is assumed. For each rule whose behaviour an entry point of the area reaches, write a test as [references/test-style.md](references/test-style.md) describes under Acceptance tests. An acceptance test asserts the confirmed value, never the value the code returns. If the code returns something else, do not write the test: record the difference under Notable behaviour. Then run `vendor/bin/pest --testsuite=Acceptance --log-junit={file outside the repository}`: a rule counts as tested only when a passed test in that report starts with its ID. Record each rule under Acceptance tests.
 
 **Close the gaps in the area.** When every capability is secured, run `XDEBUG_MODE=coverage vendor/bin/pest --coverage` (without `XDEBUG_MODE` for pcov) and read the coverage of each file of the area from its per-file output, or from a Clover report (`--coverage-clover={file}`). Pest prints no coverage while any test fails, so if a failing test from the baseline remains, measure over the suites that pass with `--testsuite={suites}` and say so in the report. For each uncovered line in the area's files, find the behaviour that executes it and pin it the same way. Code that reaches outside past the framework, or that no entry point reaches, follows [references/coverage-gaps.md](references/coverage-gaps.md). Then raise the coverage floor of `composer test` to the new total, as the setup reference describes.
 

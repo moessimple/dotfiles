@@ -14,6 +14,7 @@
 - The suite passes apart from the existing failures from the baseline, and every new test file also passes on its own
 - Every line of the area's files is covered, or listed in the record with its reason, and the floor of `composer test` is raised to the new total
 - Every surviving mutation of the area's classes is caught by a test or recorded as equivalent with its reason
+- Every confirmed rule the area's entry points reach has an acceptance test that passed in the JUnit report, or an intended ≠ current entry under Notable behaviour; no committed acceptance test changed without a request for its rule ID
 - The self-check found no hit, or every hit is fixed or in the report, and the diff in application code is empty
 - Every test that pins behaviour that looks unintended carries a `Notable:` or `Security:` note and is listed in `tests/CHARACTERIZATION.md`, every `Security:` finding and audit advisory also in its Security section at the top
 - The area is `secured` as the record defines it, or `in progress` with its reason under Open

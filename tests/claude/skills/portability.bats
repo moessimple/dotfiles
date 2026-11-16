@@ -94,3 +94,9 @@ setup() {
     grep -Fqx 'Confirmed rules:' "$skills_dir/document-product/references/document-format.md"
     grep -Eq 'RULE-[0-9]{3}' "$skills_dir/document-product/references/document-format.md"
 }
+
+@test "characterize-behavior finds confirmed rules by the terms document-product writes" {
+    # Assert
+    grep -Fq '`Confirmed rules:`' "$skills_dir/characterize-behavior/SKILL.md"
+    grep -Fq '`RULE-`' "$skills_dir/characterize-behavior/SKILL.md"
+}

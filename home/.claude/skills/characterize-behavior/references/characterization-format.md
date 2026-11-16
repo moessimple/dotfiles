@@ -1,6 +1,6 @@
 # tests/CHARACTERIZATION.md
 
-The record of the characterization, so that anyone on the team, or a later run, can see what is pinned, continue where a run stopped, and work with the tests. Written in the language of the project's documentation, except for the headings `## Areas` and `## Capabilities`, the column names of their tables, and the status values, which stay in English because other skills read them. Update it after every capability, and commit it together with the tests.
+The record of the characterization, so that anyone on the team, or a later run, can see what is pinned, continue where a run stopped, and work with the tests. Written in the language of the project's documentation, except for the headings `## Areas`, `## Capabilities`, and `## Acceptance tests`, the column names of their tables, and the status values, which stay in English because other skills read them. Update it after every capability, and commit it together with the tests.
 
 ```md
 # Characterization
@@ -41,6 +41,11 @@ What has to be closed before the repository is made public, and passed to whoeve
 |---|---|---|---|---|
 | {area} | {capability, as a user would name it} | high / medium / low | open / in progress / secured | `{test file}` |
 
+## Acceptance tests
+| Rule | Test | Status |
+|---|---|---|
+| RULE-{nnn} | `tests/Acceptance/{Area}Test.php` | passed / not written: code differs (see Notable behaviour) |
+
 ## Coverage
 - Floor of `composer test`: {percent}, the total after the last secured area
 - Not covered by this run: {JavaScript frontend under `{path}` | none}
@@ -54,11 +59,11 @@ The baseline later work checks against: a surviving mutation not listed here is 
 - `{file}` {mutator}, `{code before}` → `{code after}`, risk {high | medium | low}: {why no actor can observe the difference}. Confirmed: {name | open}
 
 ## Notable behaviour
-Each entry is a test with a `->note()`. Security first.
+Each entry is a test with a `->note()`, except an intended ≠ current entry, whose test is deliberately not written. Security first.
 
-### {Security | Notable}: {what happens, in one sentence}
-- Test: `{file}` ({test name})
-- Why it looks wrong: {one or two sentences}
+### {Security | Notable | RULE-{nnn} intended ≠ current}: {what happens, in one sentence}
+- Test: `{file}` ({test name}) | none, intended ≠ current
+- Why it looks wrong: {one or two sentences | the confirmed value and the current value}
 - What the repository says: {linked from the interface or not; commit that introduced it and its message; stored data that relies on it | nothing found}
 - Decision: {open | intended (note removed) | bug, issue {number}}
 
@@ -71,4 +76,4 @@ Each entry is a test with a `->note()`. Security first.
 
 Equivalent mutations name the file, never the line or Pest's ID: Pest hashes the whole mutated file into the ID, and lines move with any edit, so later runs match an entry by file, mutator, and the code before and after.
 
-An area is `secured` when every line of its files is covered or listed under Coverage with its reason, every surviving mutation of its classes is caught by a test or listed under Equivalent mutations, and the self-check shows no hit without an explanation in the report. Until then it is `in progress`.
+An area is `secured` when every line of its files is covered or listed under Coverage with its reason, every surviving mutation of its classes is caught by a test or listed under Equivalent mutations, every confirmed rule its entry points reach has a passed acceptance test or an intended ≠ current entry, and the self-check shows no hit without an explanation in the report. Until then it is `in progress`.
