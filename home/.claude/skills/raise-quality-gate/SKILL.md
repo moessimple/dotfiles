@@ -1,6 +1,6 @@
 ---
 name: raise-quality-gate
-description: Raises an existing Laravel application or package (Laravel 11 or newer) to a fixed quality gate (PHPStan at max with Larastan, 100 % type coverage, Rector's Laravel and prepared sets, Pint) without changing its behaviour, in four stages that each become one reviewable pull request. Each run does one stage on its own branch from the default branch, commits every step after the test suite and a mutation check pass, writes the pull request description, never pushes, and stops where people have to decide. Requires 100 % coverage and a recorded list of equivalent mutations; characterize-behavior provides both.
+description: Raises an existing Laravel application or package (Laravel 11 or newer) to a fixed quality gate (PHPStan at max with Larastan, 100 % type coverage, Rector's Laravel and prepared sets, Pint) without changing its behaviour, one area at a time. Modes: tools sets up the tools early with today's values as a floor, area modernizes one area that characterize-behavior has secured, and tests brings the tests to the gate at the end. Each run works on its own branch from the default branch, commits every step after the test suite and a mutation check pass, writes the pull request description, never pushes, and stops where people have to decide.
 disable-model-invocation: true
 ---
 
@@ -8,9 +8,9 @@ disable-model-invocation: true
 
 Bring an existing Laravel application or package to the gate in [references/gate.md](references/gate.md): PHPStan at level max with Larastan and Bleeding Edge, 100 % type coverage, Rector's sets fully applied, and Pint, all checked by one `composer test`. The behaviour stays exactly as it is; the tests and the mutation check prove that after every step.
 
-Each stage becomes one pull request the team can merge while work goes on. Within a stage, the skill moves in small steps (one Rector set, one PHPStan level, one type-coverage increase), each committed after the checks pass, so a step can be found and reverted. Thresholds start at the measured value and only go up; a baseline only shrinks.
+Each run becomes one pull request the team can merge while work goes on. Within a run, the skill moves in small steps (one Rector set, one type-coverage increase, one group of baseline entries), each committed after the checks pass, so a step can be found and reverted. Thresholds start at the measured value and only go up; the PHPStan baseline and the Rector skip list only shrink.
 
-The tests are the measure of every change, so they stay untouched until stage 4.
+The tests are the measure of every change, so they stay untouched until the `tests` run, and the acceptance tests in `tests/Acceptance` stay untouched for good.
 
 For a package (a `type` other than `project` in `composer.json`), also load [references/package.md](references/package.md): every step then holds for the lowest and the newest supported versions, and the public API stays compatible.
 
@@ -20,48 +20,46 @@ For a package (a `type` other than `project` in `composer.json`), also load [ref
 |---|---|
 | Application code, as long as its behaviour stays the same | Behaviour changes, except decided behaviour-changing rules; for a package, breaking changes to its public API |
 | `composer.json`, `composer.lock`: dev dependencies and scripts | Any change to production dependencies, patch level included |
-| `phpstan.neon`, `phpstan-baseline.neon`, `rector.php`, `pint.json`, `.git-blame-ignore-revs`, `QUALITY_GATE.md`; in `tests/CHARACTERIZATION.md` only equivalent mutations a person decided; in the agent instructions only the Project knowledge section | Lowering a threshold, growing the baseline |
-| Tests, in stage 4 only: types and formatting; in stage 1 the new `tests/Unit/ArchTest.php` | Test assertions; skipping or weakening tests |
-| Commits on the stage's own branch | Push, merge, changes on other branches |
+| `phpstan.neon`, `phpstan-baseline.neon`, `rector.php`, `pint.json`, `.git-blame-ignore-revs`, `QUALITY_GATE.md`; in `tests/CHARACTERIZATION.md` only equivalent mutations a person decided; in the agent instructions only the Project knowledge section | Lowering a threshold, growing the baseline or the skip list |
+| Tests, in the `tests` run only: types and formatting; in `tools` the new `tests/Unit/ArchTest.php` | Test assertions; skipping or weakening tests; any change in `tests/Acceptance` |
+| Commits on the run's own branch | Push, merge, changes on other branches |
 
-`QUALITY_GATE.md` in the repository root holds the record, in the format of [references/record-format.md](references/record-format.md), committed with every step, so anyone can continue with the next stage. The pull request description of each stage goes into `${XDG_CACHE_HOME:-$HOME/.cache}/raise-quality-gate/{repository}/PR-{stage}.md`, with the repository name reduced to letters, digits, dots, underscores, and hyphens; its path is in the report.
+`QUALITY_GATE.md` in the repository root holds the record, in the format of [references/record-format.md](references/record-format.md), committed with every step, so anyone can continue with the next run. The pull request description of each run goes into `${XDG_CACHE_HOME:-$HOME/.cache}/raise-quality-gate/{repository}/PR-{branch-suffix}.md`, with `{branch-suffix}` the part of the branch after `quality-gate/` and the repository name reduced to letters, digits, dots, underscores, and hyphens; its path is in the report.
 
-## Stages
+## Modes
 
-| Stage | Branch | Pull request |
+| Invocation | Does | Branch |
 |---|---|---|
-| 1 | `quality-gate/1-tools-and-format` | the tools, the starting values, and Pint over the code |
-| 2 | `quality-gate/2-rector` | Rector's sets over the code |
-| 3 | `quality-gate/3-types` | the remaining types and PHPStan up to max |
-| 4 | `quality-gate/4-tests` | the tests brought to the same gate |
+| `tools` | Sets up the tools, the starting values, and the formatting. The default without an argument when `QUALITY_GATE.md` does not exist. | `quality-gate/tools` |
+| `area <name>` | Modernizes one area that is secured. | `quality-gate/{area}` |
+| `tests` | Brings the tests to the gate and turns on the deferred rules. | `quality-gate/tests` |
+| no argument, when `QUALITY_GATE.md` exists | Continues an open run, otherwise takes the next secured area that is not improved yet. | |
 
-Each run does one stage:
+`{area}` is the area's name reduced to lowercase letters, digits, and hyphens.
 
-1. Read `QUALITY_GATE.md` for the next stage. Check that the previous stage is merged: its changes are on the default branch (stage 1 added `pint.json`, stage 2 `rector.php`, stage 3 `level: max`). If not, stop and say which pull request is still open.
-2. Start from the default branch with a clean working tree, and create the stage's branch.
-3. Check the preconditions, do the stage, and stop with its pull request description.
+Before every run:
 
-## Preconditions
+1. No other `quality-gate/*` branch may be unmerged into the default branch; with squash merges, its pull request tells. Otherwise stop and name that pull request: one run at a time keeps `rector.php`, `phpstan-baseline.neon`, and `QUALITY_GATE.md` free of merge conflicts. An interrupted run continues on its own branch.
+2. Start from the default branch with a clean working tree, and create the run's branch.
+3. Check the mode's preconditions, do the run, and stop with its pull request description.
 
-Check before every stage, and stop with the reason if one fails:
+## `tools`
 
-- `composer test` passes with exit code 0, with 100 % line coverage, and a coverage driver (`pcov` or `xdebug`) is installed. Without that, nothing proves that a step kept the behaviour.
-- `XDEBUG_MODE=coverage vendor/bin/pest --mutate --everything --covered-only --parallel` leaves no surviving mutation other than the equivalent ones listed in `tests/CHARACTERIZATION.md`. Match by file, mutator, and the code before and after, never by ID or line: Pest hashes the whole file into the ID, so any edit changes it. Without such a list, characterize the project first.
+**Preconditions:** the test environment is set up (`tests/CHARACTERIZATION.md` exists), a coverage driver (`pcov` or `xdebug`) is installed, and `composer test` passes with exit code 0. Coverage and mutations are not required: no commit of this mode changes behaviour.
 
-## Stage 1: Tools, starting values, and formatting
+Each step is a commit of its own:
 
-Install the tools as described in [references/install.md](references/install.md), and commit. Then configure with the values the project reaches today:
+1. Install the tools as described in [references/install.md](references/install.md).
+2. PHPStan from gate.md at `max`, without `tests/` in its paths, with every current error in a baseline (`vendor/bin/phpstan analyse --generate-baseline`). From now on new code meets `max` at once, and the baseline only shrinks.
+3. The type-coverage threshold at the measured value rounded down to one decimal, read from `vendor/bin/pest --type-coverage --type-coverage-json={file}` (`total`); the console value is rounded and can fail its own threshold.
+4. The Composer scripts of the gate with the current values. A check joins `test` only once it passes: `test:types`, `test:type-coverage`, and `test:unit` now, `test:lint` with Rector and Pint below, `test:audit` when `composer audit --locked` passes.
+5. The architecture presets from gate.md in `tests/Unit/ArchTest.php`, with every existing violation ignored and listed, as gate.md describes.
+6. `rector.php` with every path and set of the gate and the skip list gate.md describes, so Rector has nothing to change; add `rector` to `lint` and `rector --dry-run` to `test:lint`.
+7. `pint.json` as gate.md starts it, without the two rules it defers; run Pint, add it to `lint` and `test:lint`, and commit the formatting on its own. Record both rules under Deferred.
 
-- PHPStan from gate.md, without `tests/` in its paths, at the highest level that passes. If none passes, level 0 with `vendor/bin/phpstan analyse --generate-baseline`.
-- The type-coverage threshold at the measured value rounded down to one decimal, read from `vendor/bin/pest --type-coverage --type-coverage-json={file}` (`total`); the console value is rounded and can fail its own threshold.
-- The Composer scripts of the gate. A check joins `test` only once it passes: `test:types`, `test:type-coverage`, and `test:unit` now, `test:lint` with Pint below and with Rector in stage 2, `test:audit` when `composer audit --locked` passes.
-- The architecture presets from gate.md in `tests/Unit/ArchTest.php`, with every existing violation ignored and listed, as gate.md describes.
-
-A failing `composer audit` is an open decision, not a blocker: updating production packages is outside this skill. Every security advisory goes under Security at the top of `QUALITY_GATE.md` and first into the report and the pull request description. Record the starting values and commit once `composer test` passes.
+A failing `composer audit` is an open decision, not a blocker: updating production packages is outside this skill. Every security advisory goes under Security at the top of `QUALITY_GATE.md` and first into the report and the pull request description. Record the starting values with the first commit.
 
 Scan the history for leaked secrets with `gitleaks git --redact --no-banner`. Each finding goes under Security with file, commit, and rule, never the secret itself: a secret that was ever committed counts as leaked and has to be rotated, whatever happens to the history, and both are decisions for people. Without `gitleaks` installed, say in the report that the scan did not run.
-
-Then add `pint.json` from the gate with `"exclude": ["tests"]` until stage 4, run Pint, add it to `lint` and `test:lint`, and commit the formatting on its own. Check it for the two Pint rules that can still change behaviour, as gate.md describes.
 
 If `AGENTS.md` or `CLAUDE.md` has a `## Project knowledge` section, add a link to `QUALITY_GATE.md` and the gate's commands (`composer lint` to fix formatting and refactorings, `composer test` for every check) to it, and commit. Change nothing else in that file.
 
