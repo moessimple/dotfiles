@@ -50,8 +50,6 @@ run_codex_skills_setup() {
     [ "$(readlink "$skills_dir/characterize-behavior")" = "$source_dir/characterize-behavior" ]
     [ -L "$skills_dir/raise-quality-gate" ]
     [ "$(readlink "$skills_dir/raise-quality-gate")" = "$source_dir/raise-quality-gate" ]
-    [ -L "$skills_dir/spatie-laravel-php" ]
-    [ "$(readlink "$skills_dir/spatie-laravel-php")" = "$source_dir/spatie-laravel-php" ]
     [ -L "$skills_dir/plugin-workflow" ]
     [ -L "$skills_dir/agent-browser" ]
     [ -L "$skills_dir/starter-kit-upgrade" ]

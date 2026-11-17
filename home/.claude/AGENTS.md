@@ -34,8 +34,6 @@ Applies to docs, READMEs, commit messages, PR and issue text, and blog posts. Hy
 
 ## Code
 
-For Laravel and PHP work, always use the `spatie-laravel-php` skill.
-
 Use the agent-browser skill for browser automation.
 
 For frontend design work in Claude Code, use the `impeccable` skill. Fix Impeccable detector findings. Add an ignore

@@ -11,8 +11,6 @@ CODEX_COMPATIBLE_SKILLS=(
     explain-changes
     pr
     raise-quality-gate
-    spatie-javascript
-    spatie-laravel-php
     speeding-up-laravel-tests
 )
 
