@@ -74,6 +74,16 @@ setup() {
     ! grep -rnE 'PRODUCT\.md|KNOWLEDGE_BASE\.md|document-product' "$skills_dir/characterize-behavior" || false
 }
 
+@test "characterize-behavior and raise-quality-gate use feature documentation only where the project has it" {
+    # Arrange
+    condition='where the project documents its features'
+
+    # Assert
+    grep -Fq "$condition" "$skills_dir/characterize-behavior/SKILL.md"
+    grep -Fq "$condition" "$skills_dir/raise-quality-gate/SKILL.md"
+    ! grep -rnE 'PRODUCT\.md|KNOWLEDGE_BASE\.md|document-product' "$skills_dir/characterize-behavior" "$skills_dir/raise-quality-gate" || false
+}
+
 @test "raise-quality-gate extends the agent instructions section that document-product writes" {
     # Assert
     grep -Fqx '## Project knowledge' "$skills_dir/document-product/references/document-format.md"
@@ -101,6 +111,15 @@ setup() {
     grep -Fq "group('acceptance')" "$skills_dir/characterize-behavior/SKILL.md"
     grep -Fq "group('acceptance')" "$skills_dir/raise-quality-gate/SKILL.md"
     ! grep -rFq 'tests/Acceptance' "$skills_dir/characterize-behavior" "$skills_dir/raise-quality-gate" || false
+}
+
+@test "raise-quality-gate cleans up the same touched classes that characterize-behavior secures for a planned change" {
+    # Assert
+    grep -Fq '| any other argument: a planned change' "$skills_dir/characterize-behavior/SKILL.md"
+    grep -Fq 'touched classes' "$skills_dir/characterize-behavior/SKILL.md"
+    ! grep -rFq 'touched method' "$skills_dir/characterize-behavior" || false
+    grep -Fq '| any other argument: a planned change' "$skills_dir/raise-quality-gate/SKILL.md"
+    grep -Fq 'touched classes' "$skills_dir/raise-quality-gate/SKILL.md"
 }
 
 @test "document-product and characterize-behavior count area changes with the same git log command" {

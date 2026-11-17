@@ -11,6 +11,7 @@ The gate every project reaches. Adjust paths to what the project has and the PHP
 - Quality guard
 - pint.json
 - tests/Unit/ArchTest.php
+- Safety rules
 
 ## Composer scripts
 
@@ -131,14 +132,14 @@ Leave out a skipped rule class that does not exist in the installed Rector versi
 
 ### Skip list
 
-Rector applies its sets to every path it is given on the command line, even one outside `withPaths()`; only `withSkip()` holds there too. So code whose area has not had its run yet stays in `withSkip()`, and neither `rector --dry-run` in `composer test` nor a call for a single file reports changes in it. `tools` builds the list from the paths of the area table in `tests/CHARACTERIZATION.md`, and adds every other PHP directory under the gate's paths at the same granularity.
+Rector applies its sets to every path it is given on the command line, even one outside `withPaths()`; only `withSkip()` holds there too. So code not cleaned up yet stays in `withSkip()`, and neither `rector --dry-run` in `composer test` nor a call for a single file reports changes in it. `tools` builds the list from the paths of the area table in `tests/CHARACTERIZATION.md`, and adds every other PHP directory under the gate's paths at the same granularity.
 
 The list lives in `rector-skip.php` in the repository root, which `rector.php` spreads into `withSkip()`, so the quality guard can count it without running Rector. It holds only file and directory paths, no rule classes and no wildcards:
 
 ```php
 <?php
 
-// Code that has not had its area run yet. Entries are only removed, see QUALITY_GATE.md.
+// Code not cleaned up yet. Entries are only removed, see QUALITY_GATE.md.
 return [
     __DIR__.'/app/Http/Controllers/Billing',
     __DIR__.'/app/Models/Invoice.php',
@@ -147,7 +148,7 @@ return [
 
 - **It only shrinks.** A run removes the paths it takes over; nothing is ever added after `tools`. Progress counts the skipped PHP files, which drop with every file taken over.
 - **A file inside a skipped directory** is taken over by replacing the directory's entry with an entry for each of its other PHP files. The entries grow, the skipped files drop by one.
-- **New files in a skipped directory** are skipped with it until its area run. That is no growth of the list: PHPStan still checks them at `max`, because the baseline holds only the errors of `tools`.
+- **New files in a skipped directory** are skipped with it until a run takes them over. That is no growth of the list: PHPStan still checks them at `max`, because the baseline holds only the errors of `tools`.
 - **Code outside every area** stays in the list until an area takes it over, and is listed in `QUALITY_GATE.md` under Open decisions.
 
 ## Quality guard
@@ -289,3 +290,28 @@ Four further rules of the gate change behaviour at runtime. Each is added on its
 | `strict_comparison` | `==` becomes `===`; results differ when the types differ |
 
 Rector's `SafeDeclareStrictTypesRector` belongs to the `codeQuality` set and adds the same declaration as `declare_strict_types`, so it is skipped until that decision.
+
+## Safety rules
+
+Every change is either checked by tests that pin exactly that code, or invisible from outside; anything else is not done. These rules hold in `area` and in a planned change, for every file the run would clean up, meaning take out of the skip list, apply Rector to, type, or fix baseline entries in.
+
+1. **Clean up per class.** A file is cleaned up only when tests execute every line of it and the mutation run of its class leaves no survivor outside the equivalent mutations listed in `tests/CHARACTERIZATION.md`. Rector and PHPStan work on whole files, so a file secured only in part would change where no test looks. Measure both, from the project root:
+
+   ```bash
+   XDEBUG_MODE=coverage vendor/bin/pest --coverage --coverage-clover={file outside the repository}
+   XDEBUG_MODE=coverage vendor/bin/pest --mutate --covered-only --parallel --class={the classes of the candidate files, comma-separated}
+   ```
+
+   A file is fully executed when its `<metrics>` in the Clover report has `coveredstatements` equal to `statements`; an uncovered line listed with a reason under Coverage in `tests/CHARACTERIZATION.md` still counts as not executed. Never add `--everything` to the mutation run: it overrides `--class`. Match survivors by file, mutator, and the code before and after, never by ID or line: Pest hashes the whole file into the ID, so any edit changes it. A file that fails either check stays on the skip list and is named in the report with its reason. That is no blocker: the run cleans up the others.
+
+2. **Public and protected methods keep their form.** Their parameter types, return types, visibility, `final`, and number of required parameters do not change, because code no test reaches can depend on them: a subclass, a container binding, a callback named by string, a serialized job. Where a rule or a type fix would change one, give PHPStan the type as PHPDoc (`@param`, `@return`) instead, keep Rector out with an entry in `withSkip()` in `rector.php` naming the rule and the file, and mark the native type gap with `@pest-ignore-type` and its reason, because type coverage counts only native types. Record each place under Deferred types in `QUALITY_GATE.md`; the `tests` run gives it its native type. Each commit is checked by [Roave BackwardCompatibilityCheck](https://github.com/Roave/BackwardCompatibilityCheck), installed once outside the project as [package.md](package.md) describes, comparing the commit with its parent from the project root:
+
+   ```bash
+   "${XDG_CACHE_HOME:-$HOME/.cache}"/raise-quality-gate/tools/vendor/bin/roave-backward-compatibility-check --from=HEAD~1 --to=HEAD
+   ```
+
+   Every `[BC]` line it prints is a changed signature: undo that change and amend the commit before the next one. Until a trial run on an application has confirmed that Roave reports these changes there, also read the commit's diff for changed signatures of public and protected methods. For a package, the public API rules of [package.md](package.md) hold on top of this.
+
+3. **Code the tests cannot check stays untouched.** A file excluded from coverage (in the `<source>` of `phpunit.xml` or listed under Excluded files in `tests/CHARACTERIZATION.md`), or named under Not secured there, stays on the skip list: full line coverage proves nothing about what the test environment cannot run.
+
+4. **Unconfirmed equivalent mutations stay untouched.** When a Rector rule would change code that an equivalent mutation with `Confirmed: open` describes, skip that rule for the whole file: `withSkip([Rule::class => [__DIR__.'/path/File.php']])` in `rector.php`, never in `rector-skip.php`, which holds only the paths the quality guard counts. Rector skips a rule per file, not per line. Change nothing in that code by hand either, and record the skip with its reason under Open decisions in `QUALITY_GATE.md`, so it is lifted once a person confirms the mutation.

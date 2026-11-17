@@ -23,8 +23,8 @@
 
 A planned change:
 
-- The report names the touched methods and entry points right after the Security section, or the run stopped and asked for paths
-- Every line of the touched methods is covered or listed with its reason; every survivor in them that an actor can observe has a test, and the others are listed in the report
+- The report names the touched classes and entry points right after the Security section, or the run stopped and asked for paths
+- Every line of the touched classes is covered or listed with its reason, and every surviving mutation of the touched classes is caught by a test or recorded under Equivalent mutations with its reason
 - Every confirmed rule those entry points reach has a passed acceptance test or an intended ≠ current entry under Notable behaviour, and every new acceptance file is in `tests/acceptance.lock.json`
 - No status in `tests/CHARACTERIZATION.md` changed
 - The self-check found no hit, or every hit is fixed or in the report, and the diff in application code is empty
