@@ -1,6 +1,6 @@
 # QUALITY_GATE.md
 
-The record of raising the gate, in the repository root, so that anyone on the team can continue with the next run and see what was decided. Written in the language of the project's documentation, except for the headings `## Runs` and `## Areas` and the state values, which stay in English because the skill reads them. Update it with every commit of a run. The baseline of equivalent mutations is not repeated here: it stays in `tests/CHARACTERIZATION.md`.
+The record of raising the gate, in the repository root, so that anyone on the team can continue with the next run and see what was decided. Written in the language of the project's documentation, except for the headings `## Runs`, `## Progress`, `### Areas`, and `### Values` and the state values, which stay in English because the skill reads them. Update it with every commit of a run. The baseline of equivalent mutations is not repeated here: it stays in `tests/CHARACTERIZATION.md`.
 
 ```md
 # Quality gate
@@ -17,17 +17,23 @@ Known vulnerabilities `composer audit --locked` reports. Updating a production p
 |---|---|---|
 | tools / {area} / tests / {behaviour-changing rule} | `{branch}` | in progress / in review / merged |
 
-## Areas
-| Area | State |
-|---|---|
-| {area, as in tests/CHARACTERIZATION.md} | open / improved |
+## Progress
+Updated by every run, so the way to the gate is visible at a glance.
 
-## Values
-| Tool | Start | Now | Target |
+### Areas
+| Area | Capabilities | Modernized files | State |
 |---|---|---|---|
-| PHPStan | max, {n} baseline entries | max, {n} baseline entries | max, no baseline |
+| {area, as in tests/CHARACTERIZATION.md} | {secured}/{all}, from its `Capabilities` column | {files taken out of the skip list}/{the area's PHP files} | open / improved |
+
+An area is `improved` after its `area` run.
+
+### Values
+| Value | Start | Now | Target |
+|---|---|---|---|
+| Coverage floor of `composer test` | {percent} | {percent} | exactly 100 % |
+| PHPStan baseline errors (level max) | {n} | {n} | 0, no baseline |
+| Rector skipped files | {n} | {n} | 0 |
 | Type coverage | {percent} | {percent} | 100 % |
-| Rector | {n} skipped paths | {n} skipped paths | none skipped |
 | Pint | {rules deferred} | {rules deferred} | the gate's rules |
 | Architecture presets | {n} ignored | {n} ignored | none ignored, or each one decided |
 

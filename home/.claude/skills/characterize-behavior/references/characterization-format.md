@@ -13,7 +13,7 @@ What has to be closed before the repository is made public, and passed to whoeve
 - {what happens, in one sentence}: `{test file}`, details under Notable behaviour | none
 
 ## Working with these tests
-- Run `composer test` after every small step. It fails when coverage drops below {floor} %, the floor reached so far. The floor rises after every secured area and never drops; once every area is secured at 100 %, the gate requires exactly 100 %.
+- Run `composer test` after every small step. It fails when coverage drops below {floor} %, the floor reached so far. The floor rises after every secured area and planned change, and never drops; once every area is secured at 100 %, the gate requires exactly 100 %.
 - A failing test means behaviour changed. If the change was not meant to alter behaviour, undo it.
 - If the change is intended (a fix, a feature), change the test in the same commit and review that diff like code.
 - A test with a `->note()` pinned behaviour that already looked wrong; `vendor/bin/pest --notes` lists them. Changing it on purpose means changing the test and removing the note in the same commit.
@@ -33,9 +33,11 @@ What has to be closed before the repository is made public, and passed to whoeve
 - Failing existing tests: {test: cause}
 
 ## Areas
-| Area | Paths | Risk | Status | Coverage | Mutations |
-|---|---|---|---|---|---|
-| {area, as a user would name it} | `{path}`, ... | high / medium / low | open / in progress / secured | {percent of the area's lines} | {score}, {n} equivalent |
+| Area | Paths | Risk | Changes | Capabilities | Status | Coverage | Mutations |
+|---|---|---|---|---|---|---|---|
+| {area, as a user would name it} | `{path}`, ... | high / medium / low | {commits in the last 12 months} | {secured}/{all} | open / in progress / secured | {percent of the area's lines} | {score}, {n} equivalent |
+
+`Changes` counts the commits of the last twelve months that touch a path of the area: `git log --since="12 months ago" --format=%H -- {paths} | sort -u | wc -l`. `setup` fills it, and a run without an argument refreshes it before choosing. Often changed, risky code holds most of the defects, so the next area is the one with the highest weight × Changes, with weight 3 for high, 2 for medium, and 1 for low risk; on a tie, the higher risk goes first. `Capabilities` counts the area's capabilities that are `secured`, out of all it has, and is `0/0` until a run groups them.
 
 ## Capabilities
 | Area | Capability | Risk | Status | Tests |
@@ -48,7 +50,7 @@ What has to be closed before the repository is made public, and passed to whoeve
 | RULE-{nnn} | `tests/Feature/{Area}RulesTest.php` | passed / not written: code differs (see Notable behaviour) |
 
 ## Coverage
-- Floor of `composer test`: {percent}, the total after the last secured area
+- Floor of `composer test`: {percent}, the total after the last secured area or planned change
 - Not covered by this run: {JavaScript frontend under `{path}` | none}
 - Excluded files: `{file}`: {reason}
 - Uncovered lines: `{file}:{lines}`: {reason}
@@ -77,6 +79,7 @@ What the tests of an area do not check, so nobody reads a secured area as fully 
 
 ## Open
 - {blocker and cause, or a question for a person, such as an unconfirmed equivalent mutation of a high-risk capability | none}
+- Flaky, deleted: `{file}` ({test name}): {the failure}
 ```
 
 Equivalent mutations name the file, never the line or Pest's ID: Pest hashes the whole mutated file into the ID, and lines move with any edit, so later runs match an entry by file, mutator, and the code before and after.

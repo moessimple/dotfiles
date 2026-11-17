@@ -21,7 +21,7 @@ teardown() {
     assert_output_contains "No hits."
 }
 
-@test "a new acceptance test is not a hit" {
+@test "a new acceptance test without a lock entry is a hit" {
     # Arrange
     write_project_file tests/Feature/InvoiceRulesTest.php "<?php\n\npest()->group('acceptance');\n\nit('RULE-002: numbers invoices per year', function () {\n    expect(1)->toBe(1);\n});\n"
 
@@ -29,8 +29,9 @@ teardown() {
     run_self_check
 
     # Assert
-    assert_success
-    assert_output_contains "No hits."
+    assert_failure
+    assert_output_contains "## Acceptance tests missing from tests/acceptance.lock.json"
+    assert_output_contains "tests/Feature/InvoiceRulesTest.php"
 }
 
 @test "a changed committed acceptance test is a hit" {
@@ -82,4 +83,95 @@ teardown() {
     assert_failure
     assert_output_contains "## Changed files the skill must not touch"
     assert_output_contains "app/Order.php"
+}
+
+@test "a changed acceptance guard test is a hit" {
+    # Arrange
+    write_project_file tests/Unit/AcceptanceGuardTest.php "<?php\n\nit('keeps every locked acceptance test unchanged', function () {\n    expect(true)->toBeTrue();\n})->skip();\n"
+
+    # Act
+    run_self_check
+
+    # Assert
+    assert_failure
+    assert_output_contains "## Acceptance guard or lock entries changed"
+    assert_output_contains "tests/Unit/AcceptanceGuardTest.php"
+}
+
+@test "a changed hash in the acceptance lock is a hit" {
+    # Arrange
+    write_project_file tests/acceptance.lock.json "{\n    \"tests/Feature/OrderRulesTest.php\": \"$invoice_rules_hash\"\n}\n"
+
+    # Act
+    run_self_check
+
+    # Assert
+    assert_failure
+    assert_output_contains "## Acceptance guard or lock entries changed"
+    assert_output_contains "tests/Feature/OrderRulesTest.php"
+}
+
+@test "a deleted entry in the acceptance lock is a hit" {
+    # Arrange
+    write_project_file tests/acceptance.lock.json "{\n}\n"
+
+    # Act
+    run_self_check
+
+    # Assert
+    assert_failure
+    assert_output_contains "## Acceptance guard or lock entries changed"
+    assert_output_contains "tests/Feature/OrderRulesTest.php"
+}
+
+@test "a new entry in the acceptance lock is not a hit" {
+    # Arrange
+    write_project_file tests/Feature/InvoiceRulesTest.php "<?php\n\npest()->group('acceptance');\n\nit('RULE-002: numbers invoices per year', function () {\n    expect(1)->toBe(1);\n});\n"
+    write_project_file tests/acceptance.lock.json "{\n    \"tests/Feature/OrderRulesTest.php\": \"$order_rules_hash\",\n    \"tests/Feature/InvoiceRulesTest.php\": \"$invoice_rules_hash\"\n}\n"
+
+    # Act
+    run_self_check
+
+    # Assert
+    assert_success
+    assert_output_contains "No hits."
+}
+
+@test "a deleted acceptance lock is a hit for every entry" {
+    # Arrange
+    delete_project_file tests/acceptance.lock.json
+
+    # Act
+    run_self_check
+
+    # Assert
+    assert_failure
+    assert_output_contains "## Acceptance guard or lock entries changed"
+    assert_output_contains "tests/Feature/OrderRulesTest.php"
+}
+
+@test "a deleted acceptance guard test is a hit" {
+    # Arrange
+    delete_project_file tests/Unit/AcceptanceGuardTest.php
+
+    # Act
+    run_self_check
+
+    # Assert
+    assert_failure
+    assert_output_contains "## Acceptance guard or lock entries changed"
+    assert_output_contains "tests/Unit/AcceptanceGuardTest.php"
+}
+
+@test "a first acceptance lock in a project without one is not a hit" {
+    # Arrange
+    given_acceptance_lock_not_committed
+    write_project_file tests/acceptance.lock.json "{\n    \"tests/Feature/OrderRulesTest.php\": \"$order_rules_hash\"\n}\n"
+
+    # Act
+    run_self_check
+
+    # Assert
+    assert_success
+    assert_output_contains "No hits."
 }

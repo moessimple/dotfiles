@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Lists the hits a characterization run can find mechanically in its own uncommitted changes, staged or
-# not: files it must not touch, changed or deleted acceptance tests, changed production packages, tests made
-# easier, checks silenced, coverage exclusions. Each hit needs a look: fix it or explain it in the report. Exits 1 when
+# not: files it must not touch, changed or deleted acceptance tests, a changed acceptance guard or lock
+# entry, acceptance tests missing from the lock, changed production packages, tests made easier, checks
+# silenced, coverage exclusions. Each hit needs a look: fix it or explain it in the report. Exits 1 when
 # there is any hit; a run that made the coverage gate the test command always has that one. Run it from
 # the project root.
 
@@ -43,6 +44,48 @@ changed_acceptance_tests() {
     done
 }
 
+# The "path": "hash" entries of an acceptance lock file read from stdin, one per line, without the
+# separating comma, so adding an entry after the last one does not change the lines before it.
+lock_entries() {
+    grep -oE '"[^"]+"[[:space:]]*:[[:space:]]*"[0-9a-f]{64}"' | sed -E 's/[[:space:]]*:[[:space:]]*/: /' || true
+}
+
+# A changed or deleted committed acceptance guard test, and every entry of HEAD's
+# tests/acceptance.lock.json that is changed or gone. New entries are expected and not listed.
+changed_acceptance_guard() {
+    git diff HEAD --name-status -- tests/Unit/AcceptanceGuardTest.php
+
+    if ! git cat-file -e HEAD:tests/acceptance.lock.json 2>/dev/null; then
+        return
+    fi
+
+    local current=""
+    if [[ -f tests/acceptance.lock.json ]]; then
+        current=$(lock_entries < tests/acceptance.lock.json)
+    fi
+
+    git show HEAD:tests/acceptance.lock.json | lock_entries | while read -r entry; do
+        if ! grep -qxF -- "$entry" <<< "$current"; then
+            printf 'tests/acceptance.lock.json: %s\n' "$entry"
+        fi
+    done
+}
+
+# Test files holding acceptance tests, tracked or new, whose path is no key in tests/acceptance.lock.json,
+# so the guard test would not notice a later edit. Every one is a hit while the lock is missing.
+unlocked_acceptance_tests() {
+    local keys=""
+    if [[ -f tests/acceptance.lock.json ]]; then
+        keys=$(lock_entries < tests/acceptance.lock.json | sed -E 's/^"([^"]+)": .*/\1/')
+    fi
+
+    { git ls-files -- tests; git ls-files --others --exclude-standard -- tests; } | { grep '\.php$' || true; } | while read -r file; do
+        if grep -E "group\(['\"]acceptance['\"]\)" "$file" >/dev/null 2>&1 && ! grep -qxF -- "$file" <<< "$keys"; then
+            printf '%s\n' "$file"
+        fi
+    done
+}
+
 # Production packages whose locked version or commit differs from HEAD's composer.lock.
 changed_production_packages() {
     if [[ ! -f composer.lock ]] || ! git cat-file -e HEAD:composer.lock 2>/dev/null; then
@@ -72,6 +115,12 @@ report "Changed files the skill must not touch" \
 
 report "Acceptance tests changed or deleted (only an explicit request for that rule allows it)" \
     "$(changed_acceptance_tests)"
+
+report "Acceptance guard or lock entries changed (only an explicit request for that rule allows it)" \
+    "$(changed_acceptance_guard)"
+
+report "Acceptance tests missing from tests/acceptance.lock.json (add each with its SHA-256)" \
+    "$(unlocked_acceptance_tests)"
 
 report "Production packages changed in composer.lock" \
     "$(changed_production_packages)"

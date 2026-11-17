@@ -65,6 +65,15 @@ it('lets a visitor who is not logged in open the admin dashboard', function () {
 
 When this test turns red later, the note tells the developer the behaviour was questionable before the change.
 
+## Keeping a new test
+
+Applies in every mode to every test a run writes, because a generated test is only worth keeping when it is reliable and adds something the suite did not have:
+
+- **Three green runs in a row,** once its values are pinned. Run each new file three times (`for run in 1 2 3; do vendor/bin/pest {file} || break; done`). A test that fails once is deleted, not repaired into passing, and recorded under Open as flaky with its failure.
+- **It asserts something new.** Each new test asserts an outcome no other test asserts, such as a response field, a database value, rendered Blade output, or a side effect: read the tests of the same entry point before keeping it, and delete a test that only repeats what one of them asserts. Whether the tests together run every line and catch every mutation is what the coverage and mutation runs show; neither can tell which single test a line depends on, so they do not judge one test.
+- **Exempt:** acceptance tests, which hold a confirmed rule even where other tests run the same lines, and the guard tests the setup writes.
+- Existing tests are never changed to make room for a new one.
+
 ## Acceptance tests
 
 An acceptance test pins a confirmed rule, not the current code. Everything above applies, except where this section says otherwise.
@@ -73,4 +82,5 @@ An acceptance test pins a confirmed rule, not the current code. Everything above
 - **Given, When, Then** of the rule become the setup, the one action at an entry point, and the assertions.
 - **Expected values** are the rule's own values, written as literals. Never take one from a run against the code: that would pin the current behaviour, which is what a characterization test already does.
 - **Code that does not meet the rule:** do not adapt the test, and do not leave it red. Record under Notable behaviour the rule's ID, the confirmed value, and the current value, marked intended ≠ current. Fixing it is later development work, with a test that fails first.
-- **Existing acceptance tests** are changed or deleted only when the invocation asks for it by the rule's ID.
+- **Lock:** a new file goes into `tests/acceptance.lock.json` with its SHA-256 once its tests pass, so `tests/Unit/AcceptanceGuardTest.php` fails on any later edit. A committed file is never edited, not even to add a test: new rules of an area that already has one go into a new file, `tests/Feature/{Area}Rules{n}Test.php`, numbered from 2.
+- **Existing acceptance tests** are changed or deleted only when the invocation asks for it by the rule's ID. Then the file and its lock entry change in the same diff, and the report names the rule ID.
