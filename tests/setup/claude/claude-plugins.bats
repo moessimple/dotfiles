@@ -9,6 +9,7 @@ setup() {
     test_home="$fixture/home"
     mkdir -p "$test_home/.claude"
     target="$dotfiles_dir/support/setup/claude/claude-plugins.sh"
+    given_setup_script_pinned CHROME_DEVTOOLS_MCP_VERSION 1.12.0
 }
 
 teardown() {

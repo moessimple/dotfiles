@@ -10,6 +10,7 @@ setup() {
     test_home="$fixture/home"
     mkdir -p "$test_home"
     target="$dotfiles_dir/support/setup/claude/claude-skills.sh"
+    given_setup_script_pinned SKILLS_CLI_VERSION 1.7.6
 }
 
 teardown() {

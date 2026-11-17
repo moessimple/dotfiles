@@ -132,6 +132,7 @@ teardown() {
     # Arrange
     given_clean_repository_on_main
     given_repository_with_real_setup_scripts
+    given_pinned_version support/setup/claude/claude-skills.sh SKILLS_CLI_VERSION 1.7.6
     given_bare_origin_remote
     git -C "$repository" push -q origin main
     given_every_external_tool_update_touches_is_faked
