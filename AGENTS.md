@@ -92,7 +92,9 @@ with agent-specific tools, paths, or runtime behavior stay exclusive to that age
   with confirmation, sudo, and application termination.
 
 `support/setup/herd-debug-ini.sh` reapplies both managed Xdebug ini files on every install/reconfigure/update run,
-replacing local changes.
+replacing local changes. `support/setup/services.sh` likewise rewrites `/opt/homebrew/var/config.toml` with
+`upgrade_db = true`, so the Meilisearch service migrates its local database after a version bump instead of
+refusing to start.
 
 `bin/setup-ssh.sh` runs before cloning on a fresh Mac. It generates an Ed25519 key, adds it to the SSH agent and
 macOS Keychain, and copies the public key for manual registration on GitHub. It refuses to overwrite existing keys
