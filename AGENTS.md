@@ -200,6 +200,12 @@ place that logic lives; callers never re-derive it. Its priority order is covere
 
 ## Conventions specific to this repo
 
+- Global instructions, skills, and hooks hold personal working style, workflows, and expertise that applies in any
+  project. The standards code is measured against (style, architecture, test style, thresholds, stack rules) belong
+  to each project, in its own agent instructions, project skills, and tool configuration. A global workflow reads
+  those standards from the project instead of bringing its own, as the quality gate hooks run each project's
+  installed tools. Claude Code lets a personal skill shadow a project skill of the same name, so a global skill that
+  carries project standards overrides the project in every repository, work projects included.
 - Machine-specific or secret shell configuration goes in `~/.extra` (sourced by `.zshrc`, never committed), not in
   any file under `home/`.
 - Herd is the exception. Its installer and its NVM/PHP shims append machine-specific lines to `~/.zshrc` (absolute
