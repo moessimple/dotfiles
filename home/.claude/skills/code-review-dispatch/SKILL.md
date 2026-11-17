@@ -5,7 +5,7 @@ description: Dispatches a multi-axis code review of a diff in parallel, scaled t
 
 # Code Review Dispatch
 
-Review engine for the `review` skill and other callers. The caller owns what happens with the findings (apply fixes, or write a verdict). This skill owns which reviewers run and how findings come back.
+Review engine for the `pr` skill and direct review requests. The caller owns what happens with the findings (apply fixes, or write a verdict). This skill owns which reviewers run and how findings come back.
 
 The caller passes three things: the in-scope diff and file list, whether the run is report-only, and whether it is the first review or a fix check (with the earlier findings).
 
@@ -35,7 +35,7 @@ Every reviewer runs report-only, whatever its own prompt says about applying cha
 Tell each reviewer, inside the dispatch, to judge the change against its goal, to skip style, and to back every finding with code, documentation, or a test.
 
 1. **Always**: dispatch a reviewer that invokes the `agent-skills:code-review-and-quality` skill against the in-scope diff. Map its Critical to Critical, Required to Important, and Optional, Consider, or Nit to Suggestion. Leave out FYI notes, since they ask for no action.
-2. **Full level and any in-scope file is PHP**: dispatch a reviewer that invokes the `agent-skills:code-simplification` skill to identify opportunities. It reports each opportunity with `file:line` and changes no file. The `review` skill checks the branch out purely so this reviewer can read it.
+2. **Full level and any in-scope file is PHP**: dispatch a reviewer that invokes the `agent-skills:code-simplification` skill to identify opportunities. It reports each opportunity with `file:line` and changes no file.
 3. **Full level and any in-scope file is PHP**: dispatch a reviewer invoking the `spatie-laravel-php` skill for Spatie PHP guideline compliance.
 4. **Full level and any in-scope file is PHP**: dispatch a reviewer invoking the `laravel-best-practices` skill (routing, database performance, architecture). Laravel Boost installs it per project, so it exists only in projects that use Boost. If it cannot be found, skip this reviewer and say so in the caller's output instead of failing.
 

@@ -147,9 +147,8 @@ given_official_marketplace() {
     mkdir -p "$work/.claude-plugin"
     printf '%s\n' '{"plugins":[
         {"name":"claude-md-management","source":"./plugins/claude-md-management"},
-        {"name":"typescript-lsp","source":"./plugins/typescript-lsp"},
-        {"name":"context7","source":"./external_plugins/context7"}]}' > "$work/.claude-plugin/marketplace.json"
-    for name in plugins/claude-md-management plugins/typescript-lsp external_plugins/context7; do
+        {"name":"typescript-lsp","source":"./plugins/typescript-lsp"}]}' > "$work/.claude-plugin/marketplace.json"
+    for name in plugins/claude-md-management plugins/typescript-lsp; do
         mkdir -p "$work/$name/skills"
         echo "first" > "$work/$name/skills/SKILL.md"
     done

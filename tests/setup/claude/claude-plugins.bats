@@ -69,7 +69,6 @@ teardown() {
     # Assert
     assert_success
     assert_binary_called_with claude "plugin marketplace add https://github.com/addyosmani/agent-skills"
-    assert_binary_called_with claude "plugin marketplace add https://github.com/addyosmani/web-quality-skills"
     assert_binary_called_with claude "plugin marketplace add https://github.com/laravel/claude-code"
     assert_binary_called_with claude "plugin marketplace add https://github.com/vercel-labs/agent-browser"
     assert_binary_called_with claude "plugin marketplace add https://github.com/anthropics/claude-plugins-official"

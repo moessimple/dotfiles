@@ -221,7 +221,7 @@ teardown() {
     assert_binary_called_with claude "plugin marketplace update laravel"
     assert_binary_called_with claude "plugin update laravel@laravel"
     assert_binary_called_with claude "plugin marketplace update claude-plugins-official"
-    assert_binary_called_with claude "plugin update context7@claude-plugins-official"
+    assert_binary_called_with claude "plugin update typescript-lsp@claude-plugins-official"
 }
 
 @test "plugin states seen for the first time are not updated" {

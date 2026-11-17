@@ -115,15 +115,10 @@ arguments print their usage with `--help`.
 
 ### Skills
 
-Call a skill in Claude Code with `/<name>`, for example `/review`. Codex can use the same skills as `$<name>`.
+Call a skill in Claude Code with `/<name>`, for example `/pr`. Codex can use the same skills as `$<name>`.
 
-- `debug` finds and fixes the root cause of a bug through a reproduce-first diagnosis loop.
-- `review` reviews a pull request or the local changes and reports the verdict without changing files or posting to
-  GitHub. The `review` shell command only browses the changes.
 - `pr` turns the current branch into a pull request with a description of the problem, outcome, and evidence, and
   waits for approval before creating or updating it.
-- `quality` runs the `quality` command for the [quality gate](home/.claude/hooks/README.md) and reports only checks
-  that actually ran.
 
 The other skills, including third-party ones, live in [`home/.claude/skills/`](home/.claude/skills/).
 

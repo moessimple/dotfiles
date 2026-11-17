@@ -42,14 +42,8 @@ run_codex_skills_setup() {
 
     # Assert
     assert_success
-    [ -L "$skills_dir/debug" ]
-    [ "$(readlink "$skills_dir/debug")" = "$source_dir/debug" ]
     [ -L "$skills_dir/pr" ]
     [ "$(readlink "$skills_dir/pr")" = "$source_dir/pr" ]
-    [ -L "$skills_dir/review" ]
-    [ "$(readlink "$skills_dir/review")" = "$source_dir/review" ]
-    [ -L "$skills_dir/quality" ]
-    [ "$(readlink "$skills_dir/quality")" = "$source_dir/quality" ]
     [ -L "$skills_dir/code-review-dispatch" ]
     [ "$(readlink "$skills_dir/code-review-dispatch")" = "$source_dir/code-review-dispatch" ]
     [ -L "$skills_dir/outcome-writing" ]
@@ -147,7 +141,7 @@ run_codex_skills_setup() {
 
     # Assert
     assert_success
-    [ ! -L "$skills_dir/debug" ]
-    assert_output_contains "WARN: Skipping debug, no SKILL.md found"
+    [ ! -L "$skills_dir/pr" ]
+    assert_output_contains "WARN: Skipping pr, no SKILL.md found"
     assert_output_does_not_contain "continue: only meaningful"
 }

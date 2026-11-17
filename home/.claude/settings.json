@@ -132,9 +132,7 @@
     "php-lsp-herd@skills-dir": true,
     "laravel-lsp@skills-dir": true,
     "typescript-lsp@claude-plugins-official": true,
-    "web-quality-skills@addy-web-quality-skills": true,
-    "impeccable@impeccable": true,
-    "context7@claude-plugins-official": true
+    "impeccable@impeccable": true
   },
   "extraKnownMarketplaces": {
     "addy-agent-skills": {
@@ -162,13 +160,6 @@
       "source": {
         "source": "git",
         "url": "https://github.com/anthropics/claude-plugins-official.git"
-      },
-      "autoUpdate": false
-    },
-    "addy-web-quality-skills": {
-      "source": {
-        "source": "git",
-        "url": "https://github.com/addyosmani/web-quality-skills.git"
       },
       "autoUpdate": false
     },

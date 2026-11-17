@@ -6,7 +6,7 @@ setup() {
     new_dotfiles_fixture
     commands_dir="$dotfiles_dir/home/.claude/commands"
     skills_dir="$dotfiles_dir/home/.claude/skills"
-    shared_skills=(code-review-dispatch debug explain-changes outcome-writing pr quality review document-product characterize-behavior raise-quality-gate)
+    shared_skills=(code-review-dispatch explain-changes outcome-writing pr document-product characterize-behavior raise-quality-gate)
 }
 
 @test "legacy commands are replaced by shared skills" {
@@ -15,9 +15,7 @@ setup() {
     assert_path_does_not_exist "$commands_dir/pr.md"
     assert_path_does_not_exist "$commands_dir/review.md"
 
-    for skill in debug pr review; do
-        assert_file_exists "$skills_dir/$skill/SKILL.md"
-    done
+    assert_file_exists "$skills_dir/pr/SKILL.md"
 }
 
 @test "shared skill frontmatter contains no agent-specific fields" {
@@ -37,7 +35,7 @@ setup() {
 
 @test "manual-only skills are only invoked explicitly, in Claude and in Codex" {
     # Assert
-    for skill in explain-changes pr review document-product characterize-behavior raise-quality-gate; do
+    for skill in explain-changes pr document-product characterize-behavior raise-quality-gate; do
         skill_dir="$skills_dir/$skill"
 
         grep -Fqx 'disable-model-invocation: true' "$skill_dir/SKILL.md" || return 1
@@ -47,7 +45,7 @@ setup() {
 
 @test "shared skill instructions contain no Claude command expansion or named Claude agents" {
     # Assert
-    for skill in code-review-dispatch debug explain-changes pr quality review document-product characterize-behavior raise-quality-gate; do
+    for skill in "${shared_skills[@]}"; do
         skill_file="$skills_dir/$skill/SKILL.md"
 
         ! grep -Fq '$ARGUMENTS' "$skill_file" || false
@@ -60,13 +58,9 @@ setup() {
 
 @test "shared workflows delegate reusable concerns to existing skills" {
     # Assert
-    grep -Fq 'REQUIRED SUB-SKILL' "$skills_dir/debug/SKILL.md"
-    grep -Fq '`diagnosing-bugs`' "$skills_dir/debug/SKILL.md"
     grep -Fq 'REQUIRED SUB-SKILL' "$skills_dir/pr/SKILL.md"
     grep -Fq '`outcome-writing`' "$skills_dir/pr/SKILL.md"
     grep -Fq '`code-review-dispatch`' "$skills_dir/pr/SKILL.md"
-    grep -Fq 'REQUIRED SUB-SKILL' "$skills_dir/review/SKILL.md"
-    grep -Fq '`code-review-dispatch`' "$skills_dir/review/SKILL.md"
     grep -Fq '`agent-skills:code-review-and-quality`' "$skills_dir/code-review-dispatch/SKILL.md"
     grep -Fq '`agent-skills:code-simplification`' "$skills_dir/code-review-dispatch/SKILL.md"
     grep -Fq '`spatie-laravel-php`' "$skills_dir/code-review-dispatch/SKILL.md"

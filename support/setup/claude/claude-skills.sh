@@ -39,13 +39,8 @@ THIRD_PARTY_SKILLS=(
     "wshobson/agents:bash-defensive-patterns"
     "freekmurze/dotfiles:speeding-up-laravel-tests"
     "mattpocock/skills:diagnosing-bugs"
-    "mattpocock/skills:improve-codebase-architecture"
-    "mattpocock/skills:codebase-design"
-    "mattpocock/skills:teach"
     "spatie/guidelines-skills:spatie-laravel-php"
-    "spatie/guidelines-skills:spatie-security"
     "spatie/guidelines-skills:spatie-javascript"
-    "wondelai/skills:working-with-legacy-code"
 )
 
 # The skills CLI installs, updates and removes the skills below with full user rights. It is pinned,

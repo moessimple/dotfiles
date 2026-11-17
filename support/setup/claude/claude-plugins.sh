@@ -2,7 +2,6 @@
 
 CLAUDE_PLUGIN_MARKETPLACES=(
     https://github.com/addyosmani/agent-skills
-    https://github.com/addyosmani/web-quality-skills
     https://github.com/laravel/claude-code
     https://github.com/vercel-labs/agent-browser
     https://github.com/anthropics/claude-plugins-official
@@ -11,13 +10,11 @@ CLAUDE_PLUGIN_MARKETPLACES=(
 
 CLAUDE_PLUGINS=(
     "agent-skills@addy-agent-skills"
-    "web-quality-skills@addy-web-quality-skills"
     "laravel@laravel"
     "agent-browser@agent-browser"
     "claude-md-management@claude-plugins-official"
     "typescript-lsp@claude-plugins-official"
     "impeccable@impeccable"
-    "context7@claude-plugins-official"
 )
 
 # LSP configs written directly in this repo, living in home/.claude/skills/ with their own

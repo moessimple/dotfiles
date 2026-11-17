@@ -7,29 +7,21 @@ CODEX_COMPATIBLE_SKILLS=(
     characterize-behavior
     clarity
     code-review-dispatch
-    codebase-design
-    debug
     diagnosing-bugs
     document-product
     explain-changes
     outcome-writing
     pr
-    quality
     raise-quality-gate
-    review
     spatie-javascript
     spatie-laravel-php
-    spatie-security
     speeding-up-laravel-tests
-    teach
-    working-with-legacy-code
 )
 
 # Each entry is "<plugin>@<marketplace>:<path inside the installed version>".
 # A path may point to one skill or a directory containing multiple skills.
 CODEX_COMPATIBLE_CLAUDE_PLUGIN_SKILLS=(
     "agent-skills@addy-agent-skills:skills"
-    "web-quality-skills@addy-web-quality-skills:skills"
     "agent-browser@agent-browser:skills/agent-browser"
     "laravel@laravel:skills/starter-kit-upgrade"
 )

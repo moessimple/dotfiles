@@ -1,6 +1,6 @@
 ---
 name: explain-changes
-description: Explain a GitHub PR or local Git changes as a browser-opened HTML page with sourced reasoning and a code walkthrough. Use when asked to understand why a change exists and how it works. For a review verdict or systematic bug hunt, use review instead. Leaves repository files unchanged.
+description: Explain a GitHub PR or local Git changes as a browser-opened HTML page with sourced reasoning and a code walkthrough. Use when asked to understand why a change exists and how it works. For review findings or a systematic bug hunt, use code-review-dispatch instead. Leaves repository files unchanged.
 disable-model-invocation: true
 ---
 
@@ -10,7 +10,7 @@ Make the change understandable to a reviewer who has not worked on it. After rea
 
 Start with the whole process, then explain its parts. Define project-specific concepts when first used, keep familiar engineering terms, and use concrete scenarios rather than vague claims such as "improves handling". Scale detail to the change: enough to understand every substantive change, without repeating obvious code.
 
-It is a comprehension tool, not a judgment tool. It gives no verdict and runs no systematic bug hunt (that is `review`). When explaining a line reveals that it cannot be correct, say so next to that line: an explanation that papers over a problem is the worst thing this page can produce.
+It is a comprehension tool, not a judgment tool. It gives no verdict and runs no systematic bug hunt (that is `code-review-dispatch`). When explaining a line reveals that it cannot be correct, say so next to that line: an explanation that papers over a problem is the worst thing this page can produce.
 
 Use the `gh` CLI for GitHub reads. The history helper needs Git and uses `gh` and `jq` for PR lookups; failed lookups fall back to commit messages. Do not install missing tools. Report unavailable sources and continue with the evidence available.
 
