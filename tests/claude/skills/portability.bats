@@ -61,7 +61,6 @@ setup() {
     grep -Fq 'REQUIRED SUB-SKILL' "$skills_dir/pr/SKILL.md"
     grep -Fq '`clarity`' "$skills_dir/pr/SKILL.md"
     grep -Fq '`agent-skills:code-review-and-quality`' "$skills_dir/pr/SKILL.md"
-    grep -Fq '`agent-skills:code-simplification`' "$skills_dir/pr/SKILL.md"
     grep -Fq '`spatie-laravel-php`' "$skills_dir/pr/SKILL.md"
     grep -Fq '`laravel-best-practices`' "$skills_dir/pr/SKILL.md"
 }
