@@ -6,11 +6,9 @@ CODEX_COMPATIBLE_SKILLS=(
     bash-defensive-patterns
     characterize-behavior
     clarity
-    code-review-dispatch
     diagnosing-bugs
     document-product
     explain-changes
-    outcome-writing
     pr
     raise-quality-gate
     spatie-javascript

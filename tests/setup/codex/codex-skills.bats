@@ -44,10 +44,6 @@ run_codex_skills_setup() {
     assert_success
     [ -L "$skills_dir/pr" ]
     [ "$(readlink "$skills_dir/pr")" = "$source_dir/pr" ]
-    [ -L "$skills_dir/code-review-dispatch" ]
-    [ "$(readlink "$skills_dir/code-review-dispatch")" = "$source_dir/code-review-dispatch" ]
-    [ -L "$skills_dir/outcome-writing" ]
-    [ "$(readlink "$skills_dir/outcome-writing")" = "$source_dir/outcome-writing" ]
     [ -L "$skills_dir/document-product" ]
     [ "$(readlink "$skills_dir/document-product")" = "$source_dir/document-product" ]
     [ -L "$skills_dir/characterize-behavior" ]
@@ -117,18 +113,18 @@ run_codex_skills_setup() {
 
 @test "an existing skill directory is preserved" {
     # Arrange
-    mkdir -p "$skills_dir/outcome-writing"
-    touch "$skills_dir/outcome-writing/keep"
+    mkdir -p "$skills_dir/explain-changes"
+    touch "$skills_dir/explain-changes/keep"
 
     # Act
     run run_codex_skills_setup
 
     # Assert
     assert_success
-    [ ! -L "$skills_dir/outcome-writing" ]
-    assert_file_exists "$skills_dir/outcome-writing/keep"
-    assert_path_does_not_exist "$skills_dir/outcome-writing/outcome-writing"
-    assert_output_contains "WARN: Skipping outcome-writing"
+    [ ! -L "$skills_dir/explain-changes" ]
+    assert_file_exists "$skills_dir/explain-changes/keep"
+    assert_path_does_not_exist "$skills_dir/explain-changes/explain-changes"
+    assert_output_contains "WARN: Skipping explain-changes"
 }
 
 @test "a missing reviewed skill source does not create a dangling link" {

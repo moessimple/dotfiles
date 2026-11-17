@@ -1,6 +1,6 @@
 ---
 name: document-product
-description: Documents an existing application or package from its code, its documentation, and reachable knowledge sources: PRODUCT.md (purpose, users, rules every feature keeps, vocabulary), KNOWLEDGE_BASE.md (one entry per feature and role), ARCHITECTURE.md, and PRODUCT_REVIEW.md with the areas, the rules people have to confirm, and the findings. Use it to understand an unfamiliar codebase one area at a time, or before a planned change to document the features it touches. Modes: overview, area, update, or a planned change. Asks no questions and does not commit.
+description: "Documents an existing application or package from its code, its documentation, and reachable knowledge sources: PRODUCT.md (purpose, users, rules every feature keeps, vocabulary), KNOWLEDGE_BASE.md (one entry per feature and role), ARCHITECTURE.md, and PRODUCT_REVIEW.md with the areas, the rules people have to confirm, and the findings. Use it to understand an unfamiliar codebase one area at a time, or before a planned change to document the features it touches. Modes: overview, area, update, or a planned change. Asks no questions and does not commit."
 disable-model-invocation: true
 ---
 

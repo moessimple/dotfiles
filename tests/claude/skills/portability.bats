@@ -6,7 +6,7 @@ setup() {
     new_dotfiles_fixture
     commands_dir="$dotfiles_dir/home/.claude/commands"
     skills_dir="$dotfiles_dir/home/.claude/skills"
-    shared_skills=(code-review-dispatch explain-changes outcome-writing pr document-product characterize-behavior raise-quality-gate)
+    shared_skills=(explain-changes pr document-product characterize-behavior raise-quality-gate)
 }
 
 @test "legacy commands are replaced by shared skills" {
@@ -59,13 +59,11 @@ setup() {
 @test "shared workflows delegate reusable concerns to existing skills" {
     # Assert
     grep -Fq 'REQUIRED SUB-SKILL' "$skills_dir/pr/SKILL.md"
-    grep -Fq '`outcome-writing`' "$skills_dir/pr/SKILL.md"
-    grep -Fq '`code-review-dispatch`' "$skills_dir/pr/SKILL.md"
-    grep -Fq '`agent-skills:code-review-and-quality`' "$skills_dir/code-review-dispatch/SKILL.md"
-    grep -Fq '`agent-skills:code-simplification`' "$skills_dir/code-review-dispatch/SKILL.md"
-    grep -Fq '`spatie-laravel-php`' "$skills_dir/code-review-dispatch/SKILL.md"
-    grep -Fq '`laravel-best-practices`' "$skills_dir/code-review-dispatch/SKILL.md"
-    grep -Fq '`outcome-writing`' "$skills_dir/code-review-dispatch/SKILL.md"
+    grep -Fq '`clarity`' "$skills_dir/pr/SKILL.md"
+    grep -Fq '`agent-skills:code-review-and-quality`' "$skills_dir/pr/SKILL.md"
+    grep -Fq '`agent-skills:code-simplification`' "$skills_dir/pr/SKILL.md"
+    grep -Fq '`spatie-laravel-php`' "$skills_dir/pr/SKILL.md"
+    grep -Fq '`laravel-best-practices`' "$skills_dir/pr/SKILL.md"
 }
 
 @test "product skills work without the reference projects they were modelled on" {
@@ -128,4 +126,16 @@ setup() {
     # Assert
     grep -Fq "$weights" "$skills_dir/document-product/references/document-format.md"
     grep -Fq "$weights" "$skills_dir/characterize-behavior/references/characterization-format.md"
+}
+
+@test "shared skill descriptions are valid YAML for strict parsers such as Codex" {
+    # Assert
+    for skill in "${shared_skills[@]}"; do
+        description="$(grep -m1 '^description: ' "$skills_dir/$skill/SKILL.md")"
+
+        # A plain (unquoted) scalar may not contain ": ", which strict YAML rejects.
+        if ! grep -Eq '^description: ["'"'"'>|]' <<< "$description"; then
+            ! grep -Fq ': ' <<< "${description#description: }" || return 1
+        fi
+    done
 }

@@ -1,6 +1,6 @@
 ---
 name: raise-quality-gate
-description: Raises an existing Laravel application or package (Laravel 11 or newer) to a fixed quality gate (PHPStan at max with Larastan, 100 % type coverage, Rector's Laravel and prepared sets, Pint) without changing its behaviour. Use it once characterize-behavior has secured an area: tools sets up the tools with today's values as a locked floor, area modernizes one secured area, and tests finishes with the tests. Each run commits verified steps on its own branch, writes the pull request description, never pushes, and stops where people have to decide.
+description: "Raises an existing Laravel application or package (Laravel 11 or newer) to a fixed quality gate (PHPStan at max with Larastan, 100 % type coverage, Rector's Laravel and prepared sets, Pint) without changing its behaviour. Use it once characterize-behavior has secured an area: tools sets up the tools with today's values as a locked floor, area modernizes one secured area, and tests finishes with the tests. Each run commits verified steps on its own branch, writes the pull request description, never pushes, and stops where people have to decide."
 disable-model-invocation: true
 ---
 
