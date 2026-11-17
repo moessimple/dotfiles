@@ -124,7 +124,7 @@ setup() {
 @test "raise-quality-gate reads the secured capabilities that characterize-behavior counts per area" {
     # Assert
     grep -Fq '| Capabilities |' "$skills_dir/characterize-behavior/references/characterization-format.md"
-    grep -Fq '`Capabilities`' "$skills_dir/raise-quality-gate/SKILL.md"
+    grep -Fq '`Capabilities`' "$skills_dir/raise-quality-gate/references/record-format.md"
 }
 
 @test "document-product and characterize-behavior choose the next area by the same risk weights" {

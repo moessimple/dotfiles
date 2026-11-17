@@ -23,10 +23,10 @@
 
 A planned change:
 
-- The report names the touched classes and capabilities right after the Security section, or the run stopped and asked for paths
-- Every touched capability is `secured`, every line of the touched classes is covered or listed with its reason, and every surviving mutation of those classes is caught or recorded as equivalent
-- Every confirmed rule those capabilities reach has a passed acceptance test or an intended ≠ current entry under Notable behaviour
-- The area's `Capabilities` count is current, and an area whose last capability the run secured went through the closing steps of `area`
+- The report names the touched methods and entry points right after the Security section, or the run stopped and asked for paths
+- Every line of the touched methods is covered or listed with its reason; every survivor in them that an actor can observe has a test, and the others are listed in the report
+- Every confirmed rule those entry points reach has a passed acceptance test or an intended ≠ current entry under Notable behaviour
+- No status in `tests/CHARACTERIZATION.md` changed
 - The self-check found no hit, or every hit is fixed or in the report, and the diff in application code is empty
 
 Every mode:

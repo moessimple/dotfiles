@@ -1,6 +1,6 @@
 ---
 name: raise-quality-gate
-description: Raises an existing Laravel application or package (Laravel 11 or newer) to a fixed quality gate (PHPStan at max with Larastan, 100 % type coverage, Rector's Laravel and prepared sets, Pint) without changing its behaviour, one area at a time. Modes: tools sets up the tools early with today's values as a floor, area modernizes one area that characterize-behavior has secured, a planned change modernizes only the files it will touch on the current branch, and tests brings the tests to the gate at the end. Each run works on its own branch from the default branch, commits every step after the test suite and a mutation check pass, writes the pull request description, never pushes, and stops where people have to decide.
+description: Raises an existing Laravel application or package (Laravel 11 or newer) to a fixed quality gate (PHPStan at max with Larastan, 100 % type coverage, Rector's Laravel and prepared sets, Pint) without changing its behaviour, one area at a time. Modes: tools sets up the tools early with today's values as a floor, area modernizes one area that characterize-behavior has secured, and tests brings the tests to the gate at the end. Each run works on its own branch from the default branch, commits every step after the test suite and a mutation check pass, writes the pull request description, never pushes, and stops where people have to decide.
 disable-model-invocation: true
 ---
 
@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Bring an existing Laravel application or package to the gate in [references/gate.md](references/gate.md): PHPStan at level max with Larastan and Bleeding Edge, 100 % type coverage, Rector's sets fully applied, and Pint, all checked by one `composer test`. The behaviour stays exactly as it is; the tests and the mutation check prove that after every step.
 
-Each run becomes one pull request the team can merge while work goes on; a planned change adds its commits to the change's pull request instead. Within a run, the skill moves in small steps (one Rector set, one type-coverage increase, one group of baseline entries), each committed after the checks pass, so a step can be found and reverted. Thresholds start at the measured value and only go up; the PHPStan baseline and the Rector skip list only shrink.
+Each run becomes one pull request the team can merge while work goes on. Within a run, the skill moves in small steps (one Rector set, one type-coverage increase, one group of baseline entries), each committed after the checks pass, so a step can be found and reverted. Thresholds start at the measured value and only go up; the PHPStan baseline and the Rector skip list only shrink.
 
 The tests are the measure of every change, so they stay untouched until the `tests` run, and even then the acceptance tests (files marked `pest()->group('acceptance')`) keep every assertion, expected value, and test name.
 
@@ -20,9 +20,9 @@ For a package (a `type` other than `project` in `composer.json`), also load [ref
 |---|---|
 | Application code, as long as its behaviour stays the same | Behaviour changes, except decided behaviour-changing rules; for a package, breaking changes to its public API |
 | `composer.json`, `composer.lock`: dev dependencies and scripts | Any change to production dependencies, patch level included |
-| `phpstan.neon`, `phpstan-baseline.neon`, `rector.php`, `rector-skip.php`, `pint.json`, `.git-blame-ignore-revs`, `QUALITY_GATE.md`, `quality-gate.lock.json` (values only lowered); in `tests/CHARACTERIZATION.md` only equivalent mutations a person decided; in the agent instructions only the Project knowledge section | Lowering a threshold, growing the baseline or the skip list |
+| `phpstan.neon`, `phpstan-baseline.neon`, `rector.php`, `rector-skip.php`, `pint.json`, `.git-blame-ignore-revs`, `QUALITY_GATE.md`, `quality-gate.lock.json` (only shrinks); in `tests/CHARACTERIZATION.md` only equivalent mutations a person decided; in the agent instructions only the Project knowledge section | Lowering a threshold, growing the baseline or the skip list |
 | Tests, in the `tests` run only: types and formatting, with the `tests/acceptance.lock.json` entry of each acceptance file that changed only so; in `tools` the new `tests/Unit/ArchTest.php` and `tests/Unit/QualityGuardTest.php`, in `area` only removing its ignores for violations the run fixed | Test assertions; skipping or weakening tests; any change to an acceptance test beyond formatting and types |
-| Commits on the run's own branch, for a planned change on the current one | Push, merge, changes on other branches |
+| Commits on the run's own branch | Push, merge, changes on other branches |
 
 `QUALITY_GATE.md` in the repository root holds the record, in the format of [references/record-format.md](references/record-format.md), committed with every step and its Progress section updated, so anyone can continue with the next run and see how far the project is. The pull request description of each run goes into `${XDG_CACHE_HOME:-$HOME/.cache}/raise-quality-gate/{repository}/PR-{branch-suffix}.md`, with `{branch-suffix}` the part of the branch after `quality-gate/` and the repository name reduced to letters, digits, dots, underscores, and hyphens; its path is in the report.
 
@@ -33,10 +33,9 @@ For a package (a `type` other than `project` in `composer.json`), also load [ref
 | `tools` | Sets up the tools, the starting values, and the formatting. The default without an argument when `QUALITY_GATE.md` does not exist. | `quality-gate/tools` |
 | `area <name>` | Modernizes one area that is secured. | `quality-gate/{area}`, the name in lowercase letters, digits, and hyphens |
 | `tests` | Brings the tests to the gate and turns on the deferred rules. | `quality-gate/tests` |
-| any other argument: a planned change, which may name paths | Modernizes the files the change will touch, before it is made. | the current branch |
 | no argument, when `QUALITY_GATE.md` exists | Continues an open run, otherwise takes the next secured area that is not improved yet. | |
 
-Before a run of `tools`, `area`, or `tests`, check that no other `quality-gate/*` branch is unmerged into the default branch (with squash merges, its pull request tells); otherwise stop and name that pull request, because one run at a time keeps `rector.php`, `phpstan-baseline.neon`, and `QUALITY_GATE.md` free of merge conflicts. Then start from the default branch with a clean working tree and create the run's branch; an interrupted run continues on its own branch. Check the mode's preconditions, do the run, and stop with its pull request description.
+Before every run, check that no other `quality-gate/*` branch is unmerged into the default branch (with squash merges, its pull request tells); otherwise stop and name that pull request, because one run at a time keeps `rector.php`, `phpstan-baseline.neon`, and `QUALITY_GATE.md` free of merge conflicts. Then start from the default branch with a clean working tree and create the run's branch; an interrupted run continues on its own branch. Check the mode's preconditions, do the run, and stop with its pull request description.
 
 ## `tools`
 
@@ -74,12 +73,6 @@ If `AGENTS.md` or `CLAUDE.md` has a `## Project knowledge` section, add a link t
 
 A file that several areas use, such as a shared model, is improved in the first area run whose paths hold it; securing that area already covered it fully.
 
-## A planned change
-
-Any argument that is not a mode name describes a change someone is about to make. The run brings the files it touches to the gate on the current branch, so modernization and the change land in one pull request as separate commits, the modernization first. **Preconditions,** checked in this order; stop with the reason at the first that fails: the current branch is neither the default branch nor a `quality-gate/*` branch, and the working tree is clean, so earlier steps of the change are committed. `tools` is merged. Every class the change touches belongs to a capability that is `secured` in `tests/CHARACTERIZATION.md` (its area's `Capabilities` column counts them); otherwise point to the planned change of characterize-behavior. `composer test` passes with exit code 0. The mutation check of `area` over the touched classes leaves no new survivor.
-
-**Steps,** each a commit after the checks under Before every commit: name the touched files at the top of the report, and take them out of `rector-skip.php` as `area` does. Then steps 2 to 5 of `area` over these files only: the sets one at a time, type coverage at 100 %, their baseline entries fixed, their violations of the architecture presets fixed where the behaviour stays. Update Progress, and end the report with the next step in one line: the change itself.
-
 ## `tests`
 
 **Preconditions:** every area in `tests/CHARACTERIZATION.md` is `secured` and listed as `improved` in `QUALITY_GATE.md`, and `composer test` passes with `--exactly=100.0`. Only full coverage reliably shows what changing the tests and the deferred rules does.
@@ -113,7 +106,7 @@ The four Pint rules `declare_strict_types`, `date_time_immutable`, `mb_str_funct
 
 1. `composer test` passes. Judge by the exit code, never by reading the output, and never through a pipe that hides it.
 2. Except in `tools`, whose commits change no behaviour: `XDEBUG_MODE=coverage vendor/bin/pest --mutate --class={every class the commit changes} --covered-only --parallel` leaves no survivor outside the equivalent mutations. A new survivor means the tests no longer check that code: undo the change. If the change itself created a mutation no actor can observe, stop with it as an open decision.
-3. In `tools`, `area`, and a planned change, the tests are unchanged on the branch and in what is staged: `git diff --exit-code "$(git merge-base HEAD {default branch})" -- tests ':!tests/Unit/ArchTest.php' ':!tests/CHARACTERIZATION.md'` exits with 0, in `tools` also with `':!tests/Unit/QualityGuardTest.php'`. Run it after staging the commit: `git diff` does not see a file that was never added. For a planned change, compare with the commit the run started from instead of the merge base.
+3. In `tools` and `area`, the tests are unchanged on the branch and in what is staged: `git diff --exit-code "$(git merge-base HEAD {default branch})" -- tests ':!tests/Unit/ArchTest.php' ':!tests/CHARACTERIZATION.md'` exits with 0, in `tools` also with `':!tests/Unit/QualityGuardTest.php'`. Run it after staging the commit: `git diff` does not see a file that was never added.
 4. In the `tests` run, every file marked `pest()->group('acceptance')` changes only in formatting and types: read its hunks in `git diff "$(git merge-base HEAD {default branch})" -- $(git grep -l "group('acceptance')" -- tests)`, and undo any change to an assertion, an expected value, or a test name. A file that changed only so gets its new SHA-256 in `tests/acceptance.lock.json` in the same commit, named in the pull request description.
 5. For a package, the public API check from the package reference.
 6. The diff holds nothing the table above forbids and no new ignore without a reason. It also holds no workaround that only moves a number: a type claim that only quiets PHPStan (an `@var` without grounds, an `assert()`, a cast that changes the value), a `mixed` type that only raises type coverage where the value is not actually arbitrary, a new entry in the PHPStan baseline or the Rector skip list after `tools` (the quality guard fails on both), a higher count or a new entry in `quality-gate.lock.json`, or a lowered threshold in `composer.json` or `phpunit.xml`. A commit that lowers the baseline errors or changes the skip entries writes them into the lock in the same commit; a project whose `tools` run predates the guard gets it from gate.md first.
@@ -122,7 +115,7 @@ The commit message names the tool, the level or rule, and the result, such as "R
 
 ## Pull request description
 
-At the end of each run, write `PR-{branch-suffix}.md`; a planned change writes none, its commits join the change's pull request. Most of the diff is mechanical, so the description leads reviewers to what needs a person:
+At the end of each run, write `PR-{branch-suffix}.md`. Most of the diff is mechanical, so the description leads reviewers to what needs a person:
 
 - security advisories first, if any
 - what the run does, and the value per tool before and after; for an area, its paths and the mutation score of the precondition check and of a check after the last commit

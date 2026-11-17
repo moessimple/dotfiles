@@ -207,7 +207,7 @@ it('does not let the Rector skip list grow', function (): void {
 
 Add `declare(strict_types=1);` when the project's files use it. The test is written to pass PHPStan at `max`, Rector, and Pint as it stands, so the `tests` run has nothing to change in it. Once the `tests` run deletes the baseline and empties the skip list, the lock holds 0 and an empty list, and stays there.
 
-A planned change on a feature branch can run while a `quality-gate/*` run is open, so both may edit `phpstan-baseline.neon`, `rector-skip.php`, and the lock. Resolve a merge conflict by regenerating the baseline, keeping only the skip entries both sides still have, in `rector-skip.php` and in the lock, and taking the lower baseline count; the guard then shows that nothing grew.
+A feature branch can fix baseline errors while a `quality-gate/*` run is open, because `reportUnmatchedIgnoredErrors` makes it remove their entries, so both may edit `phpstan-baseline.neon` and the lock. Resolve a merge conflict by regenerating the baseline, keeping only the skip entries both sides still have, in `rector-skip.php` and in the lock, and taking the lower baseline count; the guard then shows that nothing grew.
 
 ## tests/Unit/ArchTest.php
 
