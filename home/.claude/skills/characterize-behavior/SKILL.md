@@ -1,6 +1,6 @@
 ---
 name: characterize-behavior
-description: Pins the current behaviour of an existing Laravel application or package (Laravel 11 or newer) with Pest characterization tests, one area at a time, without changing a single line of application code. Sets up an isolated, deterministic test environment once, then secures one area per run, or pins the behaviour only where a planned change will touch it: tests every capability at its entry point, highest risk first, until every line of the area is covered and every mutation is caught or recorded as equivalent, and raises a coverage floor that never drops. Marks behaviour that looks unintended instead of fixing it. Runs without questions, stops on blockers, and does not commit.
+description: Pins the current behaviour of an existing Laravel application or package (Laravel 11 or newer) with Pest characterization tests, without changing application code. Use it before refactoring or changing untested code: setup builds an isolated test environment and the acceptance guard once, area secures one area until every line is covered and every observable mutation is caught, and a planned change pins only the methods it will touch. Marks behaviour that looks unintended instead of fixing it, stops on blockers, and does not commit.
 disable-model-invocation: true
 ---
 

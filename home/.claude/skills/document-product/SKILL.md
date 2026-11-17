@@ -1,6 +1,6 @@
 ---
 name: document-product
-description: Derives the product behaviour of an unfamiliar application or package from its code, its documentation, and any reachable knowledge sources, one area at a time, and writes it into the repository as PRODUCT.md (what must stay true, purpose, positioning, principles, vocabulary) and KNOWLEDGE_BASE.md (one self-contained entry per feature, for every role including administrators and operators), describes how it is built and operated in ARCHITECTURE.md, keeps the areas, their status, and the questions for review in PRODUCT_REVIEW.md, and writes a short section in the project's agent instructions with the commands and links agents need. Modes: overview of the whole system, one area in depth, update after code changes, or only the features a planned change will touch. Runs without questions, does not commit, and leaves review and correction to people.
+description: Documents an existing application or package from its code, its documentation, and reachable knowledge sources: PRODUCT.md (purpose, users, rules every feature keeps, vocabulary), KNOWLEDGE_BASE.md (one entry per feature and role), ARCHITECTURE.md, and PRODUCT_REVIEW.md with the areas, the rules people have to confirm, and the findings. Use it to understand an unfamiliar codebase one area at a time, or before a planned change to document the features it touches. Modes: overview, area, update, or a planned change. Asks no questions and does not commit.
 disable-model-invocation: true
 ---
 
@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Derive what an unfamiliar application or package does from the product's point of view, and write it down so that a person who never read the code, an agent starting a new session, and a search over the knowledge base all understand the product: what it is for, who uses it, what each feature does and allows, which rules hold everywhere, and what its terms mean. From the same reading, it then documents how the product is built and operated.
 
-The result reads like documentation the product's own team wrote, for the people who build, support, and operate the product and for the agents that work on it. `PRODUCT.md` is the short product context agents design and build against: users, positioning, the rules every feature must keep, vocabulary, and what is deliberately excluded, never feature detail. `KNOWLEDGE_BASE.md` is the internal reference, one self-contained entry per feature for every role that uses it, administrators and operators included: each section is looked up on its own when a task touches that feature, with its parent headings as context. `ARCHITECTURE.md` is the technical counterpart for the people who develop and run the product: its parts, how the main processes flow through them, the data, the external systems, and what operating it involves. A short section in the project's agent instructions tells agents the commands and where these documents are. People review and correct everything afterwards, in the working tree or in a pull request; this skill prepares them for that review and does not ask questions along the way.
+The result reads like documentation the product's own team wrote, for the people who build, support, and operate the product and for the agents that work on it. `PRODUCT.md` stays short because agents read it before every design, so feature detail goes into `KNOWLEDGE_BASE.md`, whose entries are looked up one at a time and therefore stand on their own. People review and correct everything afterwards, in the working tree or in a pull request; this skill prepares them for that review and does not ask questions along the way.
 
 Code shows what the system does, not why. The documents state only what a source establishes: what the code cannot tell, such as positioning or the reason for a rule, comes from documentation and knowledge sources, or it stays out of the documents and goes into the review list as a question.
 
@@ -28,9 +28,7 @@ If `PRODUCT.md`, `KNOWLEDGE_BASE.md`, or `ARCHITECTURE.md` already exist, read t
 
 Use the formats in [references/document-format.md](references/document-format.md). Load it before writing.
 
-Determine the documentation language before drafting, following the applicable output-language rules. Translate
-human-readable headings and labels in the format templates into that language; preserve filenames, code
-identifiers, machine-readable syntax, and the terms the format reference lists as fixed.
+Determine the documentation language before drafting, following the applicable output-language rules. Translate human-readable headings and labels in the format templates into that language; preserve filenames, code identifiers, machine-readable syntax, and the terms the format reference lists as fixed.
 
 ## Modes
 
@@ -49,7 +47,6 @@ Decisions on rules passed with the invocation, such as `RULE-004 confirmed` or `
 
 - A statement goes into the documents only when a source establishes it: code, documentation, history, or a knowledge source. Check documentation and knowledge sources against the code before relying on them.
 - Each knowledge base entry ends with a `Sources:` line linking the files it was derived from, and a `History:` line when a source states the reason behind it.
-- `PRODUCT_REVIEW.md` holds what a reviewer needs to check the documents: each area with its paths and the SHA it was read at, the rules people have to confirm with their code location (`path:line@sha`), and the sections left out for lack of a source.
 - What no source establishes, typically intent, positioning, and principles, stays out of the documents and goes into the review list as a concrete question. A missing reason is a result, not a gap to fill.
 
 ## Describing behaviour
