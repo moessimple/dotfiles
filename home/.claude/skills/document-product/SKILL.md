@@ -55,7 +55,7 @@ Decisions on rules passed with the invocation, such as `RULE-004 confirmed` or `
 ## Describing behaviour
 
 - Write for the person using the product: what they do, what they see, and what changes, with the interface's own labels in bold, where to find it, and concrete values (lengths, counts, durations, rate limits, states). Use the product's terms, not class or column names.
-- Name who may use each feature and what a guest sees. Administrators, moderators, and operators are users too: their dashboards, workflows, and what happens when they act belong in the entries like any other feature. So do the settings that change behaviour, named by their configuration key or environment variable with the default the code sets, and what a scheduled task, a queue, or a retry does that someone running the product notices. Never write a secret, a credential, a value from `.env`, or personal data into a document; record where one is missing protection as a finding.
+- Name who may use each feature and what a guest sees. Administrators, moderators, and operators are users too: their dashboards, workflows, and what happens when they act belong in the entries like any other feature. So do the settings that change behaviour, named by their configuration key or environment variable with the default the code sets, and what a scheduled task, a queue, or a retry does that someone running the product notices. Never write a secret, a credential, a value from `.env`, or personal data into a document, which gets committed and read by everyone with access; record where one is missing protection as a finding.
 - Include what the product stores about its users, export and deletion, and its history and lore when a source tells them. The stack and hosting belong in `ARCHITECTURE.md`.
 - Distinguish shipped behaviour from plans: a plan found in documentation or a knowledge source is described as a plan, or left out.
 - Record current behaviour, even where it looks unintended: describe it plainly, and add a finding in `PRODUCT_REVIEW.md`. Whether it is a bug is for people to decide.
@@ -63,7 +63,7 @@ Decisions on rules passed with the invocation, such as `RULE-004 confirmed` or `
 
 ## Sources
 
-Read, never run. Do not install dependencies, run tests, or start the application.
+Read, never run. Do not install dependencies, run tests, or start the application: the documents describe the code, and running it could reach the project's real systems.
 
 - **Kind and context:** application or library, the product's surfaces (web, API, console, mobile, feeds, messages), and its integrations with external systems (service configuration, outbound HTTP clients, environment examples).
 - **Entry points:** routes and controllers, pages and interface components, API definitions, console commands, scheduled tasks, queue jobs, event and message handlers. For a library or package, what a consuming application reaches: the public classes and functions, what its service provider or module registers, its configuration keys with their defaults, and the commands, routes, and components it ships. Its users are the developers of those applications.
@@ -107,7 +107,7 @@ The area has to be in the table in `PRODUCT_REVIEW.md`. Without the table, run `
 ### `update`
 
 1. **Find what changed.** For each area past `overview` or with at least one entry, run `git diff --name-only {area sha}..HEAD` and compare the result with the area's paths and the `Sources:` lines of its entries. Mark each area with a match as `stale`. Then collect the entry points again: one that no area's paths cover joins the area a user would place it in, with its path added (an area past `overview` becomes `stale`), or becomes a new area as `overview`. Refresh `Changes` for every area.
-2. **Bring it up to date.** For each `stale` area, trace again only the features whose sources changed or that are new, and write or adjust their entries and the other documents as in `area`. When changed code no longer meets a rule under `Confirmed rules:`, keep the rule as it stands and record a finding, `RULE-{nnn}: intended ≠ current`. Then set the area to `confirmed` if no P0 rule of it is `open` or `clarify`, otherwise to `drafted`, with the current SHA.
+2. **Bring it up to date.** For each `stale` area, trace again only the features whose sources changed or that are new, and write or adjust their entries and the other documents as in `area`. When changed code no longer meets a rule under `Confirmed rules:`, keep the rule as it stands and record a finding, `RULE-{nnn}: intended ≠ current`. Then give the area the current SHA and the status the format reference defines: an area that planned changes documented only in part stays `overview`.
 
 ### A planned change
 

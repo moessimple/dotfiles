@@ -111,7 +111,7 @@ The four Pint rules `declare_strict_types`, `date_time_immutable`, `mb_str_funct
 5. For a package, the public API check from the package reference.
 6. The diff holds nothing the table above forbids and no new ignore without a reason. It also holds no workaround that only moves a number: a type claim that only quiets PHPStan (an `@var` without grounds, an `assert()`, a cast that changes the value), a `mixed` type that only raises type coverage where the value is not actually arbitrary, a new entry in the PHPStan baseline or the Rector skip list after `tools` (the quality guard fails on both), a higher count or a new entry in `quality-gate.lock.json`, or a lowered threshold in `composer.json` or `phpunit.xml`. A commit that lowers the baseline errors or changes the skip entries writes them into the lock in the same commit; a project whose `tools` run predates the guard gets it from gate.md first.
 
-The commit message names the tool, the level or rule, and the result, such as "Raise PHPStan to level 6 and remove 41 baseline entries".
+The commit message names the tool, the level or rule, and the result, such as "Apply Rector's typeDeclarations set to the billing area and remove 41 baseline entries".
 
 ## Pull request description
 

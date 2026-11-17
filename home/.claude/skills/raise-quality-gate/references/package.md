@@ -56,6 +56,6 @@ Without a release tag, compare with the commit the branch started from. Every `[
 - `final` or `readonly` added to a class or method
 - on a model that is not `final`: a scope made protected or turned into a `#[Scope]` method, and `$casts` moved to `casts()`, which a subclass overriding `$casts` would then get merged in (`MakeModelAttributesAndScopesProtectedRector`, `ScopeNamedClassMethodToScopeAttributedClassMethodRector`, `ModelCastsPropertyToCastsMethodRector`)
 
-In those places, give PHPStan the type as PHPDoc (`@param`, `@return`) instead: it binds no consumer. Keep Rector out with an entry in `withSkip()` naming the rule and the path, mark the native type gap with `@pest-ignore-type` for the type coverage, and record each place with its reason. Native types on `@internal` classes, private members, and `final` classes are safe.
+In those places, give PHPStan the type as PHPDoc (`@param`, `@return`) instead: it binds no consumer. Keep Rector out with an entry in `withSkip()` in `rector.php` naming the rule and the path (not in `rector-skip.php`, which holds only the paths the quality guard counts), mark the native type gap with `@pest-ignore-type` for the type coverage, and record each place with its reason. Native types on `@internal` classes, private members, and `final` classes are safe.
 
 A breaking change changes the package's major version. If the people deciding want them, they apply them together on top of the gate, for the next major release.

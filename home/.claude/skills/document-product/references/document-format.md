@@ -203,7 +203,7 @@ Where reviewers should start, most important first:
 - **Changes:** the commits of the last twelve months that touch a path of the area: `git log --since="12 months ago" --format=%H -- {paths} | sort -u | wc -l`. `overview` fills it, `update` refreshes it.
 - **Drafted:** the features that have their entry, out of all features of the area. A planned change raises it feature by feature.
 - **Next area:** the one with the highest weight × Changes, with weight 3 for high, 2 for medium, and 1 for low risk; on a tie, the higher risk goes first. Often changed, risky code holds most of the defects, so its documentation pays off first.
-- **Status:** `overview` when the area is listed but its features are not traced yet; `drafted` when every feature has its entry, across runs and planned changes; `confirmed` when it is drafted and no P0 rule of the area is still `open` or `clarify`; `stale` when its sources changed after its SHA.
+- **Status:** `overview` while some of its features have no entry yet; `drafted` when every feature has its entry, across runs and planned changes; `confirmed` when it is drafted and no P0 rule of the area is still `open` or `clarify`; `stale` when its sources changed after its SHA.
 - **Sha:** the commit the area was last read at. `update` compares it with `HEAD`.
 
 ### Rules

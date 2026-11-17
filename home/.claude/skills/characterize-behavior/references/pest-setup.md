@@ -150,7 +150,7 @@ The tests run inside a transaction and with `QUEUE_CONNECTION=sync`, which stays
 ```
 
 - **Start:** `{floor}` is the total coverage `setup` measures over the existing tests, rounded down to one decimal (`0` without tests).
-- **Raise:** after each secured area, set it to the new total, rounded down to one decimal. It never drops: a lower total means a test or a covered line went missing.
+- **Raise:** after each secured area and each planned change, set it to the new total, rounded down to one decimal. It never drops: a lower total means a test or a covered line went missing.
 - **End:** when every area is `secured` and the total is 100 %, replace `--min={floor}` with `--exactly=100.0`.
 
 With pcov instead of Xdebug, drop `XDEBUG_MODE=coverage`. For a package, drop the `artisan` line. Later quality steps (audit, lint, static analysis, browser tests) belong into `test` as further `@test:*` entries, not into this skill. Edit only these entries and keep the rest of `composer.json` formatted as it was.

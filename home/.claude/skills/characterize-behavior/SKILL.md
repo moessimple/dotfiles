@@ -42,7 +42,7 @@ An area is what a user would name as one part of the product, and holds several 
 
 The run executes the project's code, but only inside the test environment. These rules prevent real damage:
 
-- Configure through `phpunit.xml`. Never write `.env` or put values into any environment file.
+- Configure through `phpunit.xml`. Never write `.env` or put values into any environment file: they hold the real configuration, and a changed value can point a test at a real system.
 - The database is a testing database of its own, `{name}_testing`, never the one `.env` points to: `LazilyRefreshDatabase` drops every table in it.
 - Never contact the project's external systems. Laravel's guards (`Http::preventStrayRequests()`, `Process::preventStrayProcesses()`) only catch calls through the framework; a direct Guzzle client, `curl_*`, `file_get_contents()` on a URL, a socket, or an SDK with its own connection is not caught, so never let a test execute one (see [references/coverage-gaps.md](references/coverage-gaps.md)).
 
