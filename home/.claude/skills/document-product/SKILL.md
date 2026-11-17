@@ -114,7 +114,7 @@ The area has to be in the table in `PRODUCT_REVIEW.md`. Without the table, run `
 Any argument that is neither a mode name nor a decision on a rule describes a change someone is about to make, such as `discounts also apply to reduced items`. Documenting the features it touches first gives the change a description to be checked against. Without `PRODUCT_REVIEW.md`, run `overview` first. Then determine the features the change touches, by their entry points and the code behind them, and name them in the report. If none is found, stop and ask for paths.
 
 1. **Each touched feature without an entry** goes through steps 1 to 3 of `area`, limited to that feature. Features with an entry and all others stay as they are; bringing entries up to date is `update`'s job. Raise the area's `Drafted` count, and give the area the current SHA if it has none, so `update` checks from its oldest entry: an area whose features all have their entry becomes `drafted`, even when several planned changes got it there.
-2. **Report** the security gaps first, then the touched features, the new rules with their questions, and the next step in one line: commit the documents, make the change, and run `update` once it is merged, so the entries describe the new behaviour.
+2. **Report,** instead of the report under Every mode: the security gaps first, then the touched features, the new rules with their questions, and the next step in one line: commit the documents, make the change, and run `update` once it is merged, so the entries describe the new behaviour.
 
 ### Every mode
 
