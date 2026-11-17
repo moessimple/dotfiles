@@ -35,7 +35,7 @@ CLAUDE_MCP_SERVERS=(
 
 # Pinned because npx runs the package with full user rights on every server start. The package
 # has no runtime dependencies, so this pin fixes all code that runs. Raise it deliberately.
-CHROME_DEVTOOLS_MCP_VERSION="1.12.0"
+CHROME_DEVTOOLS_MCP_VERSION="1.13.0"
 
 # `claude plugin marketplace add` rewrites the marketplace's extraKnownMarketplaces entry without
 # "autoUpdate": false, also for one declared there before it is first cloned. Sets it again for the

@@ -44,7 +44,7 @@ THIRD_PARTY_SKILLS=(
 # and it runs through Homebrew's npx with a 3-day release-age cooldown, because it loads
 # dependencies with version ranges that the pin alone does not fix. Herd's bundled npm 10 ignores
 # --min-release-age. A raised version must itself be at least 3 days old, or npx refuses it.
-SKILLS_CLI_VERSION="1.7.6"
+SKILLS_CLI_VERSION="1.8.1"
 
 SKILL_LOCK_FILE="$HOME/.agents/.skill-lock.json"
 
