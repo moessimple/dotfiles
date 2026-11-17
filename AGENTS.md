@@ -130,7 +130,9 @@ Mac App Store apps (the Brewfile's `mas` entries) via `brew bundle cleanup --for
 `*_cleanup` function in the declaring file, while `codex-skills.sh`
 prunes its own stale links on every run. When adding a package or skill, add it to the declaration; do not
 install it out of band, or the next `update.sh` run removes it. `claude-skills.sh` documents a manual vetting checklist
-to run before adding any third-party skill.
+to run before adding any third-party skill. Add a source to `CODEX_COMPATIBLE_SKILLS` or
+`CODEX_COMPATIBLE_CLAUDE_PLUGIN_SKILLS` only after confirming that its full directory is harness-neutral and does not
+duplicate a Codex skill.
 
 This repository decides where a skill or plugin belongs; check it before adding one by any route (a declaration
 above or a folder under `home/.claude/skills/`). A skill here is available in every project, work projects included,
@@ -139,9 +141,7 @@ project whose team decided differently, takes the standards code is measured aga
 style, thresholds) from the project instead of bringing its own, and tells the model something it does not already
 know. Otherwise it belongs to the project (its `.claude/skills`, Laravel Boost, or a Composer package). The
 deliberate exceptions are `document-product`, `characterize-behavior`, and `raise-quality-gate`: they bring their own
-standards on purpose, to develop legacy projects safely, and run only when invoked by name. Add a source to `CODEX_COMPATIBLE_SKILLS` or
-`CODEX_COMPATIBLE_CLAUDE_PLUGIN_SKILLS` only after confirming that its full directory is harness-neutral and does not
-duplicate a Codex skill.
+standards on purpose, to develop legacy projects safely, and run only when invoked by name.
 
 **`support/setup/clean-state.sh` clears what `ln -sf` itself cannot replace.** `symlink-dotfiles.sh` uses `ln -sf`/
 `ln -sfn` for every managed path, which already replaces an existing file or symlink on its own. The one case it
