@@ -152,7 +152,7 @@ return [
 
 ## Quality guard
 
-The baseline and the skip list must not grow, whoever edits them. A test in `composer test` checks both against `quality-gate.lock.json`, which `tools` writes with the baseline's error count and the entries of `rector-skip.php`, relative to the repository root. The test asks for an exact match, so a commit that changes the baseline or the skip list, including one that only fixes a baseline error, updates the lock in the same commit. Every change then shows in the diff of one small file, and a higher count or a new entry there is a departure from the gate that review sees.
+The baseline and the skip list must not grow, whoever edits them. A test in `composer test` checks both against `quality-gate.lock.json`, which `tools` writes with the baseline's error count and the entries of `rector-skip.php`, relative to the repository root. The test asks for an exact match, so a commit that changes the baseline or the skip list, including one that only fixes a baseline error, updates the lock in the same commit. Every change then shows in the diff of one small file, and a higher count or a new entry there, other than the files that replace a directory entry, is a departure from the gate that review sees.
 
 ```json
 {
@@ -207,7 +207,7 @@ Add `declare(strict_types=1);` when the project's files use it. The test is writ
 
 A feature branch that fixes a baseline error removes its entry, because `reportUnmatchedIgnoredErrors` demands it, and lowers the count in the lock with it. When that meets an open `quality-gate/*` run, resolve the merge conflict by regenerating the baseline, keeping only the skip entries both sides still have, and writing the resulting count and entries into the lock.
 
-A project whose `tools` run predates the guard gets it in the first commit of its next run: move the paths from `withSkip()` in `rector.php` into `rector-skip.php`, spread it back in, and write the guard and the lock with today's values.
+A project whose `tools` run predates the guard gets it in the first commit of its next run: move the paths from `withSkip()` in `rector.php` into `rector-skip.php`, spread it back in, write the guard and the lock with today's values, and add the lock rule to the agent instructions as `tools` does.
 
 ## tests/Unit/ArchTest.php
 
