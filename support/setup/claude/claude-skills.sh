@@ -36,7 +36,6 @@ THIRD_PARTY_SKILLS=(
     "addyosmani/clarity:clarity"
     "anthropics/skills:pdf"
     "anthropics/skills:skill-creator"
-    "wshobson/agents:bash-defensive-patterns"
     "freekmurze/dotfiles:speeding-up-laravel-tests"
     "mattpocock/skills:diagnosing-bugs"
 )

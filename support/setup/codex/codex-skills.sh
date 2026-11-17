@@ -3,7 +3,6 @@
 # Claude remains the only installer. Codex only receives symlinks to reviewed,
 # harness-neutral skills from Claude's normal skill directory and plugin cache.
 CODEX_COMPATIBLE_SKILLS=(
-    bash-defensive-patterns
     characterize-behavior
     clarity
     diagnosing-bugs
