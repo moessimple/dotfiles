@@ -132,14 +132,12 @@ prunes its own stale links on every run. When adding a package or skill, add it 
 install it out of band, or the next `update.sh` run removes it. `claude-skills.sh` documents a manual vetting checklist
 to run before adding any third-party skill.
 
-Before adding a skill or plugin by any route (a declaration above or a folder under `home/.claude/skills/`), check
-where it belongs. One that the model can invoke on its own applies in every project, work projects included, and
-Claude Code lets a personal skill shadow a project skill of the same name. It belongs here only if it fits a project
-whose team decided differently, takes the standards code is measured against (style, architecture, test style,
-thresholds) from the project instead of bringing its own, and tells the model something it does not already know.
-Otherwise it belongs to the project (its `.claude/skills`, Laravel Boost, or a Composer package). A manual-only skill
-(`disable-model-invocation: true`, and `allow_implicit_invocation: false` in its `agents/openai.yaml` for Codex) may
-bring its own standards, because invoking it in a project is that project's decision. Add a source to `CODEX_COMPATIBLE_SKILLS` or
+This repository decides where a skill or plugin belongs; check it before adding one by any route (a declaration
+above or a folder under `home/.claude/skills/`). A skill here is available in every project, work projects included,
+and Claude Code lets a personal skill shadow a project skill of the same name. It belongs here only if it fits a
+project whose team decided differently, takes the standards code is measured against (style, architecture, test
+style, thresholds) from the project instead of bringing its own, and tells the model something it does not already
+know. Otherwise it belongs to the project (its `.claude/skills`, Laravel Boost, or a Composer package). Add a source to `CODEX_COMPATIBLE_SKILLS` or
 `CODEX_COMPATIBLE_CLAUDE_PLUGIN_SKILLS` only after confirming that its full directory is harness-neutral and does not
 duplicate a Codex skill.
 
