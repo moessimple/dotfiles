@@ -28,6 +28,10 @@
 #      silent on real risk in practice.
 # Source: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/enterprise#review-checklist
 #
+# A skill declared here applies in every project, work projects included, and Claude Code lets
+# a personal skill shadow a project skill of the same name. Declare only skills that carry no
+# project standards (code style, architecture, thresholds); those belong to each project.
+#
 # TODO: this checklist is manual today and depends on remembering to run it.
 # Investigate automating it, e.g. a pre-install check that scans a skill's
 # source for network calls, credential/keychain/cookie access, and hardcoded
