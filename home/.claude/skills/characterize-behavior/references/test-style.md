@@ -70,7 +70,7 @@ When this test turns red later, the note tells the developer the behaviour was q
 Applies in every mode to every test a run writes, because a generated test is only worth keeping when it is reliable and adds something the suite did not have:
 
 - **Three green runs in a row,** once its values are pinned. Run each new file three times (`for run in 1 2 3; do vendor/bin/pest {file} || break; done`). A test that fails once is deleted, not repaired into passing, and recorded under Open as flaky with its failure.
-- **It adds something measurable.** Each new test covers a line no other test covers, catches a mutation that would otherwise survive, or asserts an outcome no other test asserts, such as a response field, a database value, or rendered Blade output. Coverage only shows that a line ran and mutation never touches templates, so the third case keeps what an actor observes. Judge it by the coverage and mutation runs the mode makes anyway, not by a measurement per test. A test that does none of the three is deleted.
+- **It asserts something new.** Each new test asserts an outcome no other test asserts, such as a response field, a database value, rendered Blade output, or a side effect: read the tests of the same entry point before keeping it, and delete a test that only repeats what one of them asserts. Whether the tests together run every line and catch every mutation is what the coverage and mutation runs show; neither can tell which single test a line depends on, so they do not judge one test.
 - **Exempt:** acceptance tests, which hold a confirmed rule even where other tests run the same lines, and the guard tests the setup writes.
 - Existing tests are never changed to make room for a new one.
 

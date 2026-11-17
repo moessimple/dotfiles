@@ -15,7 +15,7 @@
 - The suite passes apart from the existing failures from the baseline, and every new test file also passes on its own
 - Every line of the area's files is covered, or listed in the record with its reason, and the floor of `composer test` is raised to the new total
 - Every surviving mutation of the area's classes is caught by a test or recorded as equivalent with its reason
-- Every confirmed rule the area's entry points reach has an acceptance test that passed in the JUnit report, or an intended ≠ current entry under Notable behaviour; no committed acceptance test changed without a request for its rule ID
+- Every confirmed rule the area's entry points reach has an acceptance test that passed in the JUnit report, or an intended ≠ current entry under Notable behaviour; every new acceptance file is in `tests/acceptance.lock.json`, and no committed acceptance test changed without a request for its rule ID
 - The self-check found no hit, or every hit is fixed or in the report, and the diff in application code is empty
 - Every test that pins behaviour that looks unintended carries a `Notable:` or `Security:` note and is listed in `tests/CHARACTERIZATION.md`, every `Security:` finding and audit advisory also in its Security section at the top
 - Not secured names everything of the area the test environment cannot check: calls past the framework, locks and races, behaviour that needs a real commit, and queued jobs
@@ -25,11 +25,11 @@ A planned change:
 
 - The report names the touched methods and entry points right after the Security section, or the run stopped and asked for paths
 - Every line of the touched methods is covered or listed with its reason; every survivor in them that an actor can observe has a test, and the others are listed in the report
-- Every confirmed rule those entry points reach has a passed acceptance test or an intended ≠ current entry under Notable behaviour
+- Every confirmed rule those entry points reach has a passed acceptance test or an intended ≠ current entry under Notable behaviour, and every new acceptance file is in `tests/acceptance.lock.json`
 - No status in `tests/CHARACTERIZATION.md` changed
 - The self-check found no hit, or every hit is fixed or in the report, and the diff in application code is empty
 
 Every mode:
 
-- Every new test passed three runs in a row and covers a line, catches a mutation, or asserts an outcome no other test did, apart from acceptance and guard tests; every deleted flaky test is under Open
+- Every new test passed three runs in a row and asserts an outcome no other test of its entry point asserts, apart from acceptance and guard tests; every deleted flaky test is under Open
 - `tests/CHARACTERIZATION.md` is complete enough for someone else to continue the run or work with the tests

@@ -98,7 +98,7 @@ Give each area, and later each capability, a risk read from the code: **high** w
 
 **Mutation run of the area.** Coverage shows which lines ran, not whether a test checks them. Follow [references/mutation-run.md](references/mutation-run.md) for the area's classes: every surviving mutation an actor can observe becomes a test; the rest is recorded as equivalent with its reason.
 
-**Self-check.** Run `scripts/self-check.sh` from this skill's directory in the project root. It lists forbidden files, changed or deleted acceptance tests, a changed acceptance guard or lock entry, moved production packages, skipped or deleted tests, removed assertions, silenced checks, and changed coverage settings. Then read for what it cannot see: tests without assertions. Fix or report every hit.
+**Self-check.** Run `scripts/self-check.sh` from this skill's directory in the project root. It lists forbidden files, changed or deleted acceptance tests, a changed acceptance guard or lock entry, acceptance tests missing from the lock, moved production packages, skipped or deleted tests, removed assertions, silenced checks, and changed coverage settings. Then read for what it cannot see: tests without assertions. Fix or report every hit.
 
 **Status.** The area is `secured` when the record's definition holds. Otherwise it stays `in progress`, with the reason under Open.
 
@@ -108,7 +108,7 @@ Any argument that is not a mode name describes a change someone is about to make
 
 **Scope.** Determine the methods the change will touch and the entry points that reach them, and name both in the report. If none is found, stop and ask for paths.
 
-**Run.** For each of these entry points, pin the behaviour that passes through the touched methods, as steps 1 to 6 of One capability at a time describe but without marking anything `secured`, and write the acceptance tests of the confirmed rules these entry points reach. Every line of the touched methods is covered or listed with its reason. Then mutate their classes, `XDEBUG_MODE=coverage vendor/bin/pest --mutate --covered-only --parallel --class={classes}`: a survivor in a touched method that an actor can observe gets a test, the others are only listed in the report. Raise the floor and run the self-check. Statuses stay as they are; a later `area` run measures what these tests cover and plans only the rest.
+**Run.** For each of these entry points, pin the behaviour that passes through the touched methods, as steps 1 to 6 of One capability at a time describe but without marking anything `secured`, and write the acceptance tests of the confirmed rules these entry points reach as the Acceptance tests paragraph of `area` describes, JUnit report and lock included, in the file of the area that holds the entry point. Every line of the touched methods is covered or listed under Coverage with its reason. Then mutate their classes, `XDEBUG_MODE=coverage vendor/bin/pest --mutate --covered-only --parallel --class={classes}`: a survivor in a touched method that an actor can observe gets a test, the others are only listed in the report. Raise the floor and run the self-check. Statuses stay as they are; a later `area` run measures what these tests cover and plans only the rest.
 
 ## Report
 

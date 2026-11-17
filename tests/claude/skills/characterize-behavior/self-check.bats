@@ -21,7 +21,7 @@ teardown() {
     assert_output_contains "No hits."
 }
 
-@test "a new acceptance test is not a hit" {
+@test "a new acceptance test without a lock entry is a hit" {
     # Arrange
     write_project_file tests/Feature/InvoiceRulesTest.php "<?php\n\npest()->group('acceptance');\n\nit('RULE-002: numbers invoices per year', function () {\n    expect(1)->toBe(1);\n});\n"
 
@@ -29,8 +29,9 @@ teardown() {
     run_self_check
 
     # Assert
-    assert_success
-    assert_output_contains "No hits."
+    assert_failure
+    assert_output_contains "## Acceptance tests missing from tests/acceptance.lock.json"
+    assert_output_contains "tests/Feature/InvoiceRulesTest.php"
 }
 
 @test "a changed committed acceptance test is a hit" {

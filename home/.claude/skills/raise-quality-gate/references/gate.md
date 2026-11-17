@@ -152,7 +152,7 @@ return [
 
 ## Quality guard
 
-The baseline and the skip list must not grow, whoever edits them. A test in `composer test` checks both against `quality-gate.lock.json`, which `tools` writes with the baseline's error count and the entries of `rector-skip.php`, relative to the repository root. A commit that lowers the count or changes the entries writes the new state into the lock in the same commit; a higher count or a new entry in the lock is a departure from the gate.
+The baseline and the skip list must not grow, whoever edits them. A test in `composer test` checks both against `quality-gate.lock.json`, which `tools` writes with the baseline's error count and the entries of `rector-skip.php`, relative to the repository root. The test asks for an exact match, so a commit that changes the baseline or the skip list, including one that only fixes a baseline error, updates the lock in the same commit. Every change then shows in the diff of one small file, and a higher count or a new entry there is a departure from the gate that review sees.
 
 ```json
 {
@@ -164,7 +164,7 @@ The baseline and the skip list must not grow, whoever edits them. A test in `com
 }
 ```
 
-The skip list is locked by its entries, not by a file count, so a teammate adding a file to a skipped directory does not turn `composer test` red. An entry inside a locked directory is allowed, which is what replacing a directory by its other files produces.
+The skip list is locked by its entries, not by a file count, so a teammate adding a file to a skipped directory changes nothing in it and does not turn `composer test` red.
 
 `tests/Unit/QualityGuardTest.php` reads the files as text, without a NEON parser or a Rector run:
 
@@ -173,10 +173,10 @@ The skip list is locked by its entries, not by a file count, so a teammate addin
 
 use Illuminate\Filesystem\Filesystem;
 
-// The PHPStan baseline and the Rector skip list only shrink. quality-gate.lock.json holds the allowed
-// baseline errors and skip entries; a run that lowers them updates it in the same commit.
+// The PHPStan baseline and the Rector skip list only shrink. quality-gate.lock.json holds their exact
+// state, so every change to either shows in the lock, in the same commit, where review can see it.
 
-it('does not let the PHPStan baseline grow', function (): void {
+it('keeps the PHPStan baseline as locked', function (): void {
     $root = dirname(__DIR__, 2);
     /** @var array{phpstan_baseline_errors: int, rector_skip: list<string>} $lock */
     $lock = (new Filesystem)->json($root.'/quality-gate.lock.json');
@@ -184,30 +184,30 @@ it('does not let the PHPStan baseline grow', function (): void {
 
     preg_match_all('/^\s*count:\s*(\d+)\s*$/m', $baseline, $counts);
 
-    expect(array_sum(array_map(intval(...), $counts[1])))->toBeLessThanOrEqual($lock['phpstan_baseline_errors']);
+    expect(array_sum(array_map(intval(...), $counts[1])))->toBe($lock['phpstan_baseline_errors']);
 });
 
-it('does not let the Rector skip list grow', function (): void {
+it('keeps the Rector skip list as locked', function (): void {
     $root = dirname(__DIR__, 2);
     /** @var array{phpstan_baseline_errors: int, rector_skip: list<string>} $lock */
     $lock = (new Filesystem)->json($root.'/quality-gate.lock.json');
     /** @var list<string> $paths */
     $paths = require $root.'/rector-skip.php';
 
-    // An entry is allowed when it is locked, or lies inside a locked directory (a directory replaced by its other files).
-    $added = array_filter(
-        array_map(fn (string $path): string => substr($path, strlen($root) + 1), $paths),
-        fn (string $entry): bool => ! in_array($entry, $lock['rector_skip'], true)
-            && array_filter($lock['rector_skip'], fn (string $locked): bool => str_starts_with($entry, $locked.'/')) === [],
-    );
+    $entries = array_map(fn (string $path): string => substr($path, strlen($root) + 1), $paths);
+    $locked = $lock['rector_skip'];
+    sort($entries);
+    sort($locked);
 
-    expect(array_values($added))->toBe([]);
+    expect($entries)->toBe($locked);
 });
 ```
 
 Add `declare(strict_types=1);` when the project's files use it. The test is written to pass PHPStan at `max`, Rector, and Pint as it stands, so the `tests` run has nothing to change in it. Once the `tests` run deletes the baseline and empties the skip list, the lock holds 0 and an empty list, and stays there.
 
-A feature branch can fix baseline errors while a `quality-gate/*` run is open, because `reportUnmatchedIgnoredErrors` makes it remove their entries, so both may edit `phpstan-baseline.neon` and the lock. Resolve a merge conflict by regenerating the baseline, keeping only the skip entries both sides still have, in `rector-skip.php` and in the lock, and taking the lower baseline count; the guard then shows that nothing grew.
+A feature branch that fixes a baseline error removes its entry, because `reportUnmatchedIgnoredErrors` demands it, and lowers the count in the lock with it. When that meets an open `quality-gate/*` run, resolve the merge conflict by regenerating the baseline, keeping only the skip entries both sides still have, and writing the resulting count and entries into the lock.
+
+A project whose `tools` run predates the guard gets it in the first commit of its next run: move the paths from `withSkip()` in `rector.php` into `rector-skip.php`, spread it back in, and write the guard and the lock with today's values.
 
 ## tests/Unit/ArchTest.php
 
