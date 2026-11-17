@@ -145,34 +145,40 @@ return [
 ];
 ```
 
-- **It only shrinks,** counted in skipped PHP files, not in entries. A run removes the paths it takes over; nothing is ever added after `tools`.
+- **It only shrinks.** A run removes the paths it takes over; nothing is ever added after `tools`. Progress counts the skipped PHP files, which drop with every file taken over.
 - **A file inside a skipped directory** is taken over by replacing the directory's entry with an entry for each of its other PHP files. The entries grow, the skipped files drop by one.
+- **New files in a skipped directory** are skipped with it until its area run. That is no growth of the list: PHPStan still checks them at `max`, because the baseline holds only the errors of `tools`.
 - **Code outside every area** stays in the list until an area takes it over, and is listed in `QUALITY_GATE.md` under Open decisions.
 
 ## Quality guard
 
-The baseline and the skip list must not grow, whoever edits them. A test in `composer test` checks both against `quality-gate.lock.json`, which `tools` writes with the starting values. A commit that lowers a value lowers the lock to it in the same commit; raising a value in the lock is a departure from the gate.
+The baseline and the skip list must not grow, whoever edits them. A test in `composer test` checks both against `quality-gate.lock.json`, which `tools` writes with the baseline's error count and the entries of `rector-skip.php`, relative to the repository root. A commit that lowers the count or changes the entries writes the new state into the lock in the same commit; a higher count or a new entry in the lock is a departure from the gate.
 
 ```json
 {
     "phpstan_baseline_errors": 412,
-    "rector_skipped_files": 187
+    "rector_skip": [
+        "app/Http/Controllers/Billing",
+        "app/Models/Invoice.php"
+    ]
 }
 ```
 
-`tests/Unit/QualityGuardTest.php` counts on the text of the files, without a NEON parser or a Rector run:
+The skip list is locked by its entries, not by a file count, so a teammate adding a file to a skipped directory does not turn `composer test` red. An entry inside a locked directory is allowed, which is what replacing a directory by its other files produces.
+
+`tests/Unit/QualityGuardTest.php` reads the files as text, without a NEON parser or a Rector run:
 
 ```php
 <?php
 
 use Illuminate\Filesystem\Filesystem;
 
-// The PHPStan baseline and the Rector skip list only shrink. quality-gate.lock.json holds the highest
-// allowed values; a run that lowers a value lowers it there in the same commit.
+// The PHPStan baseline and the Rector skip list only shrink. quality-gate.lock.json holds the allowed
+// baseline errors and skip entries; a run that lowers them updates it in the same commit.
 
 it('does not let the PHPStan baseline grow', function (): void {
     $root = dirname(__DIR__, 2);
-    /** @var array{phpstan_baseline_errors: int, rector_skipped_files: int} $lock */
+    /** @var array{phpstan_baseline_errors: int, rector_skip: list<string>} $lock */
     $lock = (new Filesystem)->json($root.'/quality-gate.lock.json');
     $baseline = is_file($root.'/phpstan-baseline.neon') ? (new Filesystem)->get($root.'/phpstan-baseline.neon') : '';
 
@@ -183,23 +189,25 @@ it('does not let the PHPStan baseline grow', function (): void {
 
 it('does not let the Rector skip list grow', function (): void {
     $root = dirname(__DIR__, 2);
-    /** @var array{phpstan_baseline_errors: int, rector_skipped_files: int} $lock */
+    /** @var array{phpstan_baseline_errors: int, rector_skip: list<string>} $lock */
     $lock = (new Filesystem)->json($root.'/quality-gate.lock.json');
     /** @var list<string> $paths */
     $paths = require $root.'/rector-skip.php';
-    $skipped = 0;
 
-    foreach ($paths as $path) {
-        $skipped += is_dir($path) ? count(array_filter((new Filesystem)->allFiles($path), fn (SplFileInfo $file): bool => $file->getExtension() === 'php')) : 1;
-    }
+    // An entry is allowed when it is locked, or lies inside a locked directory (a directory replaced by its other files).
+    $added = array_filter(
+        array_map(fn (string $path): string => substr($path, strlen($root) + 1), $paths),
+        fn (string $entry): bool => ! in_array($entry, $lock['rector_skip'], true)
+            && array_filter($lock['rector_skip'], fn (string $locked): bool => str_starts_with($entry, $locked.'/')) === [],
+    );
 
-    expect($skipped)->toBeLessThanOrEqual($lock['rector_skipped_files']);
+    expect(array_values($added))->toBe([]);
 });
 ```
 
-Add `declare(strict_types=1);` when the project's files use it. The test is written to pass PHPStan at `max`, Rector, and Pint as it stands, so the `tests` run has nothing to change in it. Once the `tests` run deletes the baseline and empties the skip list, both values are 0 and stay there.
+Add `declare(strict_types=1);` when the project's files use it. The test is written to pass PHPStan at `max`, Rector, and Pint as it stands, so the `tests` run has nothing to change in it. Once the `tests` run deletes the baseline and empties the skip list, the lock holds 0 and an empty list, and stays there.
 
-A planned change on a feature branch can run while a `quality-gate/*` run is open, so both may edit `phpstan-baseline.neon`, `rector-skip.php`, and the lock. Resolve a merge conflict by regenerating the baseline, keeping only skip entries both sides still have, and taking the lower value of each lock entry; the guard then shows that nothing grew.
+A planned change on a feature branch can run while a `quality-gate/*` run is open, so both may edit `phpstan-baseline.neon`, `rector-skip.php`, and the lock. Resolve a merge conflict by regenerating the baseline, keeping only the skip entries both sides still have, in `rector-skip.php` and in the lock, and taking the lower baseline count; the guard then shows that nothing grew.
 
 ## tests/Unit/ArchTest.php
 

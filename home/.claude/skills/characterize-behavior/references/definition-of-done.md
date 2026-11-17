@@ -31,5 +31,5 @@ A planned change:
 
 Every mode:
 
-- Every new test passed three runs in a row and covers a line or catches a mutation no other test did, apart from acceptance and guard tests; every deleted flaky test is under Open
+- Every new test passed three runs in a row and covers a line, catches a mutation, or asserts an outcome no other test did, apart from acceptance and guard tests; every deleted flaky test is under Open
 - `tests/CHARACTERIZATION.md` is complete enough for someone else to continue the run or work with the tests
