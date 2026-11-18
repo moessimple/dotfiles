@@ -8,6 +8,7 @@ setup() {
     given_fake_bin_on_path
     test_home="$fixture/home"
     mkdir -p "$test_home/.claude"
+    cp "$dotfiles_dir/home/.claude/settings.json" "$test_home/.claude/settings.json"
     target="$dotfiles_dir/support/setup/claude/claude-plugins.sh"
     given_setup_script_pinned CHROME_DEVTOOLS_MCP_VERSION 1.12.0
 }
@@ -137,7 +138,7 @@ teardown() {
     settings="$dotfiles_dir/home/.claude/settings.json"
 
     # Act
-    run declared_marketplaces_with_auto_update_not_off "$target" "$settings"
+    run jq -r '.extraKnownMarketplaces | to_entries[] | select(.value.autoUpdate != false) | .key' "$settings"
 
     # Assert
     assert_success
@@ -328,4 +329,113 @@ undeclared-server: some-mcp-command" \
     # appear, so their absence is what proves the guard fired.
     assert_output_does_not_contain "Could not read installed Claude Code plugins"
     assert_output_does_not_contain "Could not read configured MCP servers"
+}
+
+@test "marketplace installation reads the declaration from settings instead of a second list" {
+    given_fake_claude '[]' ""
+    given_settings_linked_from_repository_with_marketplace https://example.invalid/custom.git
+
+    run call_setup_function "$target" claude_plugins_install
+
+    assert_success
+    assert_binary_called_with claude "plugin marketplace add https://example.invalid/custom"
+    assert_binary_not_called_with_substring claude "plugin marketplace add https://github.com/laravel"
+}
+
+@test "an undeclared marketplace is removed while declared marketplaces are retained" {
+    given_fake_claude '[]' ""
+    printf '%s\n' '[{"name":"laravel"},{"name":"stray"}]' >"$fake_bin/known-marketplaces.json"
+
+    run call_cleanup_function "$target" claude_plugins_cleanup
+
+    assert_success
+    assert_binary_called_with claude "plugin marketplace remove stray"
+    assert_binary_not_called_with_substring claude "plugin marketplace remove laravel"
+    assert_output_contains "Removing undeclared marketplace: stray"
+}
+
+@test "unreadable marketplace declarations skip marketplace additions and removals" {
+    given_fake_claude '[]' ""
+    printf '%s\n' '[{"name":"stray"}]' >"$fake_bin/known-marketplaces.json"
+    printf 'invalid json\n' >"$test_home/.claude/settings.json"
+
+    run call_setup_function "$target" claude_plugins_install claude_plugins_cleanup
+
+    assert_success
+    assert_output_contains "Could not read declared plugin marketplaces"
+    assert_binary_not_called_with_substring claude "plugin marketplace add"
+    assert_binary_not_called_with_substring claude "plugin marketplace remove"
+    assert_output_does_not_contain "No undeclared Claude Code plugins or MCP servers found"
+}
+
+@test "an unreadable marketplace listing skips marketplace removal" {
+    given_fake_claude '[]' ""
+    given_claude_failing_to_list_marketplaces
+
+    run call_cleanup_function "$target" claude_plugins_cleanup
+
+    assert_success
+    assert_output_contains "Could not read configured plugin marketplaces"
+    assert_binary_not_called_with_substring claude "plugin marketplace remove"
+    assert_output_does_not_contain "No undeclared Claude Code plugins or MCP servers found"
+}
+
+@test "a malformed marketplace declaration is not treated as an empty desired state" {
+    given_fake_claude '[]' ""
+    printf '%s\n' '[{"name":"stray"}]' >"$fake_bin/known-marketplaces.json"
+    printf 'null\n' >"$test_home/.claude/settings.json"
+
+    run call_cleanup_function "$target" claude_plugins_cleanup
+
+    assert_success
+    assert_output_contains "Could not read declared plugin marketplaces"
+    assert_binary_not_called_with_substring claude "plugin marketplace remove"
+}
+
+@test "a malformed marketplace listing is rejected before any marketplace is removed" {
+    given_fake_claude '[]' ""
+    printf '%s\n' '[{"name":"stray"},{}]' >"$fake_bin/known-marketplaces.json"
+
+    run call_cleanup_function "$target" claude_plugins_cleanup
+
+    assert_success
+    assert_output_contains "Could not read configured plugin marketplaces"
+    assert_binary_not_called_with_substring claude "plugin marketplace remove"
+}
+
+@test "empty or wrongly typed settings never authorize marketplace removal" {
+    given_fake_claude '[]' ""
+    printf '%s\n' '[{"name":"stray"}]' >"$fake_bin/known-marketplaces.json"
+    local settings
+    for settings in '' '{"extraKnownMarketplaces":false}' '{} {}' '{"extraKnownMarketplaces":[]}'; do
+        printf '%s\n' "$settings" >"$test_home/.claude/settings.json"
+        run call_cleanup_function "$target" claude_plugins_cleanup
+        assert_success
+        assert_output_contains "Could not read declared plugin marketplaces"
+        assert_binary_not_called_with_substring claude "plugin marketplace remove"
+    done
+}
+
+@test "marketplaces needed by project or local plugins are retained" {
+    given_fake_claude '[{"id":"project-plugin@stray","scope":"project"},{"id":"local-plugin@other","scope":"local"}]' ""
+    printf '%s\n' '[{"name":"stray"},{"name":"other"}]' >"$fake_bin/known-marketplaces.json"
+
+    run call_cleanup_function "$target" claude_plugins_cleanup
+
+    assert_success
+    assert_binary_not_called_with_substring claude "plugin marketplace remove"
+    assert_output_contains "Keeping marketplace stray"
+    assert_output_contains "Keeping marketplace other"
+}
+
+@test "a failed plugin listing also skips cascading marketplace removal" {
+    given_fake_claude '[]' ""
+    touch "$fake_bin/plugin-list-fails"
+    printf '%s\n' '[{"name":"stray"}]' >"$fake_bin/known-marketplaces.json"
+
+    run call_cleanup_function "$target" claude_plugins_cleanup
+
+    assert_success
+    assert_output_contains "Could not read installed Claude Code plugins"
+    assert_binary_not_called_with_substring claude "plugin marketplace remove"
 }

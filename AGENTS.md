@@ -149,7 +149,9 @@ used by update's cleanup. Other packages and sudo steps are shared.
 **Claude Code plugin and skill updates (`support/setup/claude/update-cooldown.sh`).** Neither Claude Code nor the
 skills CLI has a release-age cooldown, so `claude_skills_update` in `claude-skills.sh` calls
 `update_skills_after_cooldown` and `claude_plugins_update` in `claude-plugins.sh` calls
-`update_plugins_after_cooldown`, which give them the same 3 days that Composer and npm wait. The upstream state (a
+`update_plugins_after_cooldown`, which give them the same 3 days that Composer, npm, and Python packages wait.
+`support/setup/packages/python-packages.sh` passes `--uploaded-prior-to P3D` only to pip install and update
+(requires pip 26.1+, with upload-time metadata from the index). The upstream state (a
 skill's folder; a plugin's folder plus its `marketplace.json` entry) is installed only after it has been seen
 unchanged for 3 days, counted from its first sighting in
 `${XDG_CONFIG_HOME:-$HOME/.config}/claude-update-cooldown/first-seen`, never from a commit date. A marketplace is
@@ -161,8 +163,13 @@ itself; `claude-plugins.sh` sets it again after `claude plugin marketplace add`.
 
 **Declared list = desired state.** The Brewfile (`support/config/Brewfile`), global Composer/npm/Python package lists
 and Ollama models (`support/setup/packages/`), Claude Code skills/plugins (`support/setup/claude/claude-skills.sh`,
-`claude-plugins.sh`), and Codex-compatible skills (`support/setup/codex/codex-skills.sh`) are each treated as the full
-desired state. After each update step, `bin/update.sh` removes anything installed but not declared: Homebrew and
+`claude-plugins.sh`), Codex-compatible skills (`support/setup/codex/codex-skills.sh`), and plugin marketplaces
+(`extraKnownMarketplaces` in `home/.claude/settings.json`) are each treated as the full desired state.
+`claude_plugins_install` and `claude_plugins_cleanup` in `support/setup/claude/claude-plugins.sh` read that
+marketplace declaration instead of maintaining a second URL list. Marketplace cleanup uses the CLI to remove
+undeclared registry entries; this also uninstalls their plugins and can delete saved plugin data. Marketplaces
+needed by project/local plugins are retained. An unreadable plugin listing prevents marketplace cleanup.
+After each update step, `bin/update.sh` removes anything installed but not declared: Homebrew and
 Mac App Store apps (the Brewfile's `mas` entries) via `brew bundle cleanup --force` in
 `support/setup/packages/homebrew-packages.sh`, the others via a
 `*_cleanup` function in the declaring file, while `codex-skills.sh`

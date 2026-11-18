@@ -1,13 +1,5 @@
 #!/bin/bash
 
-CLAUDE_PLUGIN_MARKETPLACES=(
-    https://github.com/addyosmani/agent-skills
-    https://github.com/laravel/claude-code
-    https://github.com/vercel-labs/agent-browser
-    https://github.com/anthropics/claude-plugins-official
-    https://github.com/pbakaus/impeccable
-)
-
 CLAUDE_PLUGINS=(
     "agent-skills@addy-agent-skills"
     "laravel@laravel"
@@ -49,25 +41,40 @@ claude_marketplace_auto_update_off() {
     printf '%s\n' "$updated" >"$settings"
 }
 
+claude_marketplaces_read() {
+    jq -es '
+        if length == 1 and (.[0] | type == "object") then .[0] else error("Expected one settings object") end |
+        if has("extraKnownMarketplaces") then .extraKnownMarketplaces else {} end |
+        if type == "object" and all(.[];
+            .source.source == "git" and (.source.url | type == "string" and length > 0))
+        then . else error("Expected git marketplace declarations") end' "$HOME/.claude/settings.json"
+}
+
 claude_plugins_install() {
-    local known_marketplaces marketplace installed_plugins plugin registered_mcp
+    local declared_marketplaces known_marketplaces marketplace installed_plugins plugin registered_mcp
     step "Installing Claude Code plugins and MCP servers"
     if command -v claude &>/dev/null; then
         # Only marketplaces Claude Code does not know yet are added, and their autoUpdate is set off
         # again afterwards: without it Claude Code updates plugins on its own and bypasses the cooldown
         # in update.sh.
-        if known_marketplaces=$(
+        if ! declared_marketplaces=$(
             set -o pipefail
-            claude plugin marketplace list --json 2>/dev/null | jq -r '.[].url'
+            claude_marketplaces_read | jq -r '.[].source.url | sub("\\.git$"; "")'
         ); then
-            for marketplace in "${CLAUDE_PLUGIN_MARKETPLACES[@]}"; do
-                printf '%s\n' "$known_marketplaces" | grep -qxF "$marketplace.git" && continue
+            warn "Could not read declared plugin marketplaces, skipping adding them"
+        elif known_marketplaces=$(
+            set -o pipefail
+            claude plugin marketplace list --json 2>/dev/null | jq -r '.[] | .url // empty | sub("\\.git$"; "")'
+        ); then
+            while IFS= read -r marketplace; do
+                [ -n "$marketplace" ] || continue
+                printf '%s\n' "$known_marketplaces" | grep -qxF "$marketplace" && continue
                 if ! claude plugin marketplace add "$marketplace" 2>/dev/null; then
                     warn "Could not add the $marketplace marketplace"
                 elif ! claude_marketplace_auto_update_off "$marketplace"; then
                     warn "Could not turn off auto-update for $marketplace, set \"autoUpdate\": false in ~/.claude/settings.json"
                 fi
-            done
+            done <<<"$declared_marketplaces"
         else
             warn "Could not list the plugin marketplaces, skipping adding them"
         fi
@@ -119,14 +126,19 @@ claude_plugins_cleanup() {
     # Only user-scope plugins are ours to manage, same reasoning as for the MCP servers below.
     # pipefail and a separate `local`, so a failing claude or a missing jq is reported
     # instead of reading as an empty list.
-    local installed_plugins
-    if ! installed_plugins=$(
+    local installed_plugins plugin_listing
+    if ! plugin_listing=$(
         set -o pipefail
-        claude plugin list --json 2>/dev/null | jq -r '.[] | select(.scope == "user") | .id'
+        claude plugin list --json 2>/dev/null | jq -cs '
+            if length == 1 and (.[0] | type == "array" and all(.[];
+                (.id | type == "string") and (.scope | type == "string")))
+            then .[0] else error("Expected plugin list with scopes") end'
     ); then
         read_failed=1
+        plugin_listing=""
         warn "Could not read installed Claude Code plugins, skipping their cleanup"
     else
+        installed_plugins=$(printf '%s\n' "$plugin_listing" | jq -r '.[] | select(.scope == "user") | .id')
         while IFS= read -r name; do
             [ -n "$name" ] || continue
             printf '%s\n' "${CLAUDE_PLUGINS[@]}" "${LOCAL_PLUGINS[@]}" | grep -qxF "$name" && continue
@@ -135,6 +147,42 @@ claude_plugins_cleanup() {
             note "Uninstalling undeclared plugin: $name (not in claude-plugins.sh)"
             claude plugin uninstall "$name" || warn "Could not uninstall $name, remove it manually"
         done <<<"$installed_plugins"
+    fi
+
+    local declared_marketplaces known_marketplaces
+    if [ -z "$plugin_listing" ]; then
+        warn "Could not verify plugin scopes, skipping marketplace cleanup"
+    elif ! declared_marketplaces=$(
+        set -o pipefail
+        claude_marketplaces_read | jq -r 'keys[]'
+    ); then
+        read_failed=1
+        warn "Could not read declared plugin marketplaces, skipping their cleanup"
+    elif ! known_marketplaces=$(
+        set -o pipefail
+        claude plugin marketplace list --json 2>/dev/null | jq -rs '
+            if length == 1 and (.[0] | type == "array" and all(.[];
+                .name | type == "string" and length > 0))
+            then .[0][].name else error("Expected marketplace list with names") end'
+    ); then
+        read_failed=1
+        warn "Could not read configured plugin marketplaces, skipping their cleanup"
+    else
+        while IFS= read -r name; do
+            [ -n "$name" ] || continue
+            printf '%s\n' "$declared_marketplaces" | grep -qxF "$name" && continue
+
+            # Removing a marketplace also uninstalls its plugins, including project/local scopes.
+            if printf '%s\n' "$plugin_listing" | jq -e --arg marketplace "$name" \
+                'any(.[]; .scope != "user" and (.id | endswith("@" + $marketplace)))' >/dev/null; then
+                note "Keeping marketplace $name: required by a project or local plugin"
+                continue
+            fi
+
+            found_undeclared=1
+            note "Removing undeclared marketplace: $name (not in settings.json)"
+            claude plugin marketplace remove "$name" || warn "Could not remove $name, remove it manually"
+        done <<<"$known_marketplaces"
     fi
 
     # No pipefail here: grep exits 1 when no server is configured at all, which is a valid

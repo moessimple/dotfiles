@@ -48,8 +48,8 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with_substring python3 "PIP_BREAK_SYSTEM_PACKAGES=1 -m pip install --user --quiet --no-warn-script-location pandas"
-    assert_binary_called_with_substring python3 "PIP_BREAK_SYSTEM_PACKAGES=1 -m pip install --user --quiet --no-warn-script-location --upgrade"
+    assert_binary_called_with_substring python3 "PIP_BREAK_SYSTEM_PACKAGES=1 -m pip install --user --quiet --no-warn-script-location --uploaded-prior-to P3D pandas"
+    assert_binary_called_with_substring python3 "PIP_BREAK_SYSTEM_PACKAGES=1 -m pip install --user --quiet --no-warn-script-location --uploaded-prior-to P3D --upgrade"
     assert_binary_called_with_substring python3 "PIP_BREAK_SYSTEM_PACKAGES=1 -m pip list"
     assert_binary_called_with_substring python3 "PIP_BREAK_SYSTEM_PACKAGES=1 -m pip uninstall"
 }
@@ -100,4 +100,22 @@ teardown() {
     # Assert
     assert_success
     assert_output_does_not_contain "Could not read user-installed Python packages"
+}
+
+@test "install and update apply a three-day cooldown without passing it to list or uninstall" {
+    given_fake_python_reporting_installed '[{"name":"leftpad"}]'
+
+    run call_setup_function "$target" python_packages_install python_packages_update python_packages_cleanup
+
+    assert_success
+    local call installs=0
+    while IFS= read -r call; do
+        if [[ "$call" == *"-m pip install "* ]]; then
+            [[ "$call" == *"--uploaded-prior-to P3D"* ]]
+            installs=$((installs + 1))
+        else
+            [[ "$call" != *"--uploaded-prior-to"* ]]
+        fi
+    done <"$fake_bin/python3.calls"
+    [ "$installs" -eq 2 ]
 }

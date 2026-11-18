@@ -146,6 +146,7 @@ given_fake_claude() {
 printf '%s\n' "\$*" >> "$fake_bin/claude.calls"
 case "\$*" in
     "plugin list --json")
+        [ ! -e "$fake_bin/plugin-list-fails" ] || exit 1
         printf '%s\n' '$plugin_list_json'
         ;;
     "plugin marketplace add "*)
@@ -228,25 +229,6 @@ assert_marketplace_auto_update_off() {
 
 assert_settings_still_linked_into_repository() {
     [ "$(readlink "$test_home/.claude/settings.json")" = "$fixture/repository/settings.json" ]
-}
-
-# Prints each URL in CLAUDE_PLUGIN_MARKETPLACES of claude-plugins.sh ($1) that has no
-# extraKnownMarketplaces entry with `"autoUpdate": false` in settings.json ($2). The entries
-# name the git URL with `.git`, the declaration names it without.
-declared_marketplaces_with_auto_update_not_off() {
-    local file="$1" settings="$2" marketplaces url
-    marketplaces=$(HOME="${test_home:-$HOME}" bash -ec '
-        step() { :; }; warn() { :; }; note() { :; }; success() { :; }
-        source "$1" >/dev/null
-        printf "%s\n" "${CLAUDE_PLUGIN_MARKETPLACES[@]}"
-    ' bash "$file") || return 1
-    [ -n "$marketplaces" ] || return 1
-
-    while IFS= read -r url; do
-        jq -e --arg url "$url" '.extraKnownMarketplaces | any(.[];
-            (.source.url | sub("\\.git$"; "")) == $url and .autoUpdate == false)' "$settings" >/dev/null \
-            || printf '%s\n' "$url"
-    done <<<"$marketplaces"
 }
 
 given_fake_claude_failing_to_report_plugins_and_mcp_servers() {

@@ -197,7 +197,10 @@ can still set the identity for individual commits.
 Composer and npm skip releases younger than 3 days. The setup sets this in their user-level configuration
 ([`support/setup/packages/composer-packages.sh`](support/setup/packages/composer-packages.sh),
 [`support/setup/packages/npm-packages.sh`](support/setup/packages/npm-packages.sh)), so it also applies to every
-project without its own setting.
+project without its own setting. Python installs and updates in
+[`support/setup/packages/python-packages.sh`](support/setup/packages/python-packages.sh) use pip's
+`--uploaded-prior-to P3D` (pip 26.1 or later), limiting candidates to uploads at least three days old on indexes
+with upload-time metadata.
 
 Claude Code plugins and skills get the same 3-day cooldown
 ([`support/setup/claude/update-cooldown.sh`](support/setup/claude/update-cooldown.sh)). Git does not record a
@@ -223,10 +226,12 @@ duplicates of Codex's built-in skills from being shared accidentally.
 Third-party skills are managed in
 [`support/setup/claude/claude-skills.sh`](support/setup/claude/claude-skills.sh), while plugins and user-level MCP
 servers are managed in [`support/setup/claude/claude-plugins.sh`](support/setup/claude/claude-plugins.sh). Run
-`bin/update.sh` after changing either file. A new plugin marketplace also needs an entry with `"autoUpdate": false`
-under `extraKnownMarketplaces` in [`home/.claude/settings.json`](home/.claude/settings.json), so that Claude Code
-does not update its plugins on its own, outside `bin/update.sh`. `claude plugin marketplace add` removes that
-setting, so `claude-plugins.sh` sets it again after adding a marketplace.
+`bin/update.sh` after changing either file. Plugin marketplaces are declared only under `extraKnownMarketplaces`
+in [`home/.claude/settings.json`](home/.claude/settings.json), with `"autoUpdate": false` to keep updates within
+`bin/update.sh`. `claude plugin marketplace add` removes that setting, so `claude-plugins.sh` sets it again after
+adding a marketplace. Update removes registered marketplaces absent from that declaration. The CLI also
+uninstalls their plugins and may delete those plugins' saved options, secrets, and data. Marketplaces used by
+project or local plugins are retained.
 
 ## Tests
 

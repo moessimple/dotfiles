@@ -24,15 +24,16 @@ python_pip() {
     PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip "$@" --disable-pip-version-check
 }
 
+# Wait three days after upload, as Composer and npm do for new releases. Requires pip 26.1+.
 python_packages_install() {
     step "Installing Python packages"
-    python_pip install --user --quiet --no-warn-script-location "${PYTHON_PACKAGES[@]}" || warn "Some Python packages failed to install"
+    python_pip install --user --quiet --no-warn-script-location --uploaded-prior-to P3D "${PYTHON_PACKAGES[@]}" || warn "Some Python packages failed to install"
     success "Python packages processed"
 }
 
 python_packages_update() {
     step "Updating Python packages"
-    if python_pip install --user --quiet --no-warn-script-location --upgrade "${PYTHON_PACKAGES[@]}"; then
+    if python_pip install --user --quiet --no-warn-script-location --uploaded-prior-to P3D --upgrade "${PYTHON_PACKAGES[@]}"; then
         success "Python packages updated"
     else
         warn "Could not update the Python packages, see the output above"
