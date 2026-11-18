@@ -136,3 +136,35 @@ teardown() {
     assert_herd_debug_ini 84
     assert_output_does_not_contain "SUCCESS:"
 }
+
+@test "a debug.ini that cannot be written is reported instead of claiming the ini files were installed" {
+    # Arrange
+    given_herd_reports_installed_php_versions 8.4
+    given_herd_ships_xdebug_build_for 84
+    given_herd_debug_template_is_present
+    given_ini_file_blocked 84/debug/debug.ini
+
+    # Act
+    run run_herd_debug_ini_setup
+
+    # Assert
+    assert_success
+    assert_output_contains "WARN: Could not install the Herd debug configuration for PHP 8.4"
+    assert_output_does_not_contain "SUCCESS:"
+}
+
+@test "an always-loaded xdebug.ini that cannot be written is reported instead of claiming the ini files were installed" {
+    # Arrange
+    given_herd_reports_installed_php_versions 8.4
+    given_herd_ships_xdebug_build_for 84
+    given_herd_debug_template_is_present
+    given_ini_file_blocked 84/xdebug.ini
+
+    # Act
+    run run_herd_debug_ini_setup
+
+    # Assert
+    assert_success
+    assert_output_contains "WARN: Could not install the always-loaded Xdebug ini for PHP 8.4"
+    assert_output_does_not_contain "SUCCESS:"
+}

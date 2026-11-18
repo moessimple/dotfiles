@@ -113,3 +113,9 @@ given_herd_config_directory_blocked_for() {
     mkdir -p "$(ini_path "")"
     printf 'not a directory\n' > "$(ini_path "$slug")"
 }
+
+# Puts a directory where the given ini file belongs (relative to Herd's PHP config
+# directory, e.g. 84/xdebug.ini), so writing that one file fails.
+given_ini_file_blocked() {
+    mkdir -p "$(ini_path "$1")"
+}
