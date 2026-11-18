@@ -6,7 +6,7 @@ _SEARCH_DIR="${0:A:h}"
 function search() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         echo "Usage: search <term>"
-        echo "  term  String or regex to search for in git history"
+        echo "  term  Exact text to search for in git history"
         echo "  Shows only the diff hunks that contain the search term (case-insensitive)."
         return 0
     fi

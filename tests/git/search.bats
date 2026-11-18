@@ -128,3 +128,17 @@ teardown() {
     assert_success
     assert_output_does_not_contain "add phpstan-baseline.neon"
 }
+
+@test "a term with regex characters shows the matching change of the commit that introduced it" {
+    # Arrange
+    given_clean_repository_on_main
+    given_commit_adding_term query.php '$query->where(1)'
+
+    # Act
+    run call_search '->where('
+
+    # Assert
+    assert_success
+    assert_output_contains "add query.php"
+    assert_colorless_output_contains '+$query->where(1)'
+}

@@ -99,3 +99,29 @@ teardown() {
     assert_success
     assert_colorless_output_contains "+-NEEDLE"
 }
+
+@test "a search term with regex characters is matched literally, as git log -S finds it" {
+    # Arrange
+    given_clean_repository_on_main
+    printf 'original\n$query->where(1)\n' > "$repository/tracked.txt"
+
+    # Act
+    run call_pickaxe_diff '->where(' -- tracked.txt
+
+    # Assert
+    assert_success
+    assert_colorless_output_contains '+$query->where(1)'
+}
+
+@test "a dot in the search term matches only a dot, not any character" {
+    # Arrange
+    given_clean_repository_on_main
+    printf 'original\nconfigXphp\n' > "$repository/tracked.txt"
+
+    # Act
+    run call_pickaxe_diff 'config.php' -- tracked.txt
+
+    # Assert
+    assert_success
+    assert_colorless_output_does_not_contain "configXphp"
+}

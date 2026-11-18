@@ -38,18 +38,25 @@ if { grepdiff -h 2>&1 || : ; } | \grep -q -e '--only-match'; then
   only_match_flag="--only-match=mod"
 fi
 
-# Make regex case-insensitive by converting letters to character classes
-# e.g., "acm" becomes "[aA][cC][mM]"
+# search() finds commits with `git log -S --regexp-ignore-case`, which matches the term
+# literally and ignoring case. The hunk filters below take an extended regex, so the term's
+# regex characters are escaped and each letter becomes a class of both cases ("a" -> "[aA]").
 safe_regex=""
 for (( i=0; i<${#GREPDIFF_REGEX}; i++ )); do
   char="${GREPDIFF_REGEX:$i:1}"
-  if [[ "$char" =~ [a-zA-Z] ]]; then
-    lower=$(echo "$char" | tr '[:upper:]' '[:lower:]')
-    upper=$(echo "$char" | tr '[:lower:]' '[:upper:]')
-    safe_regex+="[$lower$upper]"
-  else
-    safe_regex+="$char"
-  fi
+  case "$char" in
+    [a-zA-Z])
+      lower=$(echo "$char" | tr '[:upper:]' '[:lower:]')
+      upper=$(echo "$char" | tr '[:lower:]' '[:upper:]')
+      safe_regex+="[$lower$upper]"
+      ;;
+    '.' | '[' | '(' | ')' | '*' | '+' | '?' | '{' | '|' | '^' | '$' | '\')
+      safe_regex+="\\$char"
+      ;;
+    *)
+      safe_regex+="$char"
+      ;;
+  esac
 done
 
 # Escape leading dashes to prevent grepdiff from interpreting them as options
@@ -60,7 +67,7 @@ fi
 diff_output=$(git diff --no-color --no-ext-diff -p --src-prefix=a/ --dst-prefix=b/ "$old_file" "$new_file" || :)
 
 filtered_diff=$( { echo "$diff_output" | \
-                { grepdiff "$safe_regex" --output-matching=hunk ${only_match_flag} || true; } | \
+                { grepdiff -E "$safe_regex" --output-matching=hunk ${only_match_flag} || true; } | \
                 \grep -v -e '^--- a/' -e '^+++ b/' | \
                 \grep -v -e '^--- /dev/null' -e '^+++ /dev/null' | \
                 \grep -v -e '^diff --git' -e '^index ' | \
