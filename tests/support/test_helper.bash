@@ -181,7 +181,7 @@ assert_local_changes_are_present() {
 
 given_bare_origin_remote() {
     origin="$fixture/origin.git"
-    git init -q --bare "$origin"
+    git init -q --bare -b main "$origin"
     git -C "$repository" remote add origin "$origin"
 }
 
