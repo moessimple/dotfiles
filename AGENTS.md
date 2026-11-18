@@ -105,8 +105,11 @@ Claude remains the only installer and updater. Shared workflows keep their instr
 with agent-specific tools, paths, or runtime behavior stay exclusive to that agent.
 
 **Entry points vs. setup logic.** Files in `support/setup/` define variables and functions; sourcing them does
-not run setup. Each script under `bin/` sources every setup file it uses in one block after `set -e`, always from
-`~/.dotfiles`, the fixed location the symlinks and aliases already depend on. It then calls those functions
+not run setup. Calling one of those functions with the real `HOME` and `PATH` does: it installs, updates, or removes
+real packages, skills, and plugins. To find out what a function does, read it or call it through the test fixtures
+(fixture `HOME`, `given_fake_bin_on_path`). Each script under `bin/` sources every setup file it uses in one block
+after `set -e`, always from `~/.dotfiles`, the fixed location the symlinks and aliases already depend on. It then
+calls those functions
 explicitly, and each function prints its own step and result. Every step that changes machine state is such a
 function, even with a single caller: its name states the step's intent, and it can be tested without running the
 whole entry point. An entry point keeps only its own frame (confirmation prompts, `sudo -v`, `bin/update.sh`

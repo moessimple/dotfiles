@@ -84,6 +84,36 @@ technical boundary.
     Treat a flaky test as a defect. Do not rerun a failing test until it happens to pass; identify and remove the
     source of nondeterminism instead.
 
+18. Write expected values as literals derived from the requirement, next to the inputs that produce them. Never copy
+    the output the code currently produces into an assertion: a pasted actual value turns a bug into the
+    specification. The only exception is a characterization test that records current behavior before a change and
+    says so in its name.
+
+19. Treat a failing assertion as evidence. Do not delete, weaken, skip, or rewrite it to get the suite green until it
+    is clear whether the code or the expectation is wrong. Change an existing expectation only because a requirement
+    changed, and name that requirement in the commit message.
+
+20. See every new or changed test fail for the expected reason before relying on it. For a test of existing
+    behavior, temporarily invert the condition it protects in the production code, run the test, and restore the
+    production code. A test that stays green under that change protects nothing.
+
+21. Make a failure explain itself: it shows the expected value, the actual value, and the relevant inputs. Assert on
+    the value itself with the most precise assertion available, not on a boolean or a count derived from it.
+
+22. Do not mock types you do not own. Wrap a third-party API in a thin adapter the project owns, replace the adapter
+    in unit tests, and test the adapter against the real dependency. Take the format a fake reproduces from the real
+    tool's output or documentation, never from memory. Verify only the interactions and arguments that form the
+    contract, not every call.
+
+23. Never regenerate snapshots wholesale to get a suite green. Read the diff of each failing snapshot, fix the code
+    on a regression, and regenerate only the snapshot whose change is intended. Keep snapshots small and
+    deterministic by masking timestamps, IDs, and tokens, and assert the values that matter explicitly as well.
+
+24. Check the flags and behavior of a test tool or framework in the installed version's documentation, `--help`, or
+    source before a test or fake depends on them. When a script rewrites many tests at once, compare each changed
+    file with the previous version after filtering out the intended change, and run the full suite: a split line or
+    a moved statement can leave a test green while it checks something else.
+
 Before keeping a test, answer all three questions:
 
 1. Would it still pass after a behavior preserving refactor?
