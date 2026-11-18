@@ -45,3 +45,14 @@ teardown() {
     local temp_entries=("$TMPDIR"/*)
     [ "${#temp_entries[@]}" -eq 1 ]
 }
+
+@test "an unavailable Herd PHP falls back to PHP already on PATH" {
+    write_fake_binary herd 'exit 1'
+    write_fake_binary php 'echo existing-php'
+
+    run "$script" --stdio
+
+    assert_success
+    assert_output_contains "args:--stdio"
+    assert_output_contains "existing-php"
+}

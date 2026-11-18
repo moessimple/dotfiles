@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # Stop hook. Runs `quality fast` for every project the edit hooks left dirty
 # and blocks the turn while any gate still fails. Projects without a marker
@@ -22,13 +22,13 @@ dispatcher="$HOME/.claude/hooks/quality-gate.sh"
 source "$(dirname -- "${BASH_SOURCE[0]}")/support/exit-codes.sh"
 source "$(dirname -- "${BASH_SOURCE[0]}")/support/quality-runs.sh"
 
-input="$(cat)"
+input=$(cat)
 
-cwd="$(jq -r '.cwd // empty' <<<"$input")"
+cwd=$(jq -r '.cwd // empty' <<<"$input")
 [[ -n "$cwd" ]] || exit 0
 
-git_root="$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null)" || exit 0
-git_root="$(cd "$git_root" && pwd -P)" || exit 0
+git_root=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null) || exit 0
+git_root=$(cd "$git_root" && pwd -P) || exit 0
 
 dirty_projects=()
 while IFS= read -r marker; do
@@ -46,7 +46,7 @@ still_dirty=()
 for project in "${dirty_projects[@]}"; do
     # quality-gate.sh clears this project's own dirty marker on a clean run
     # and leaves it untouched on a failing one, so nothing here re-derives that.
-    output="$(CLAUDE_PROJECT_DIR="$project" "$dispatcher" fast 2>&1)"
+    output=$(CLAUDE_PROJECT_DIR="$project" "$dispatcher" fast 2>&1)
     status=$?
 
     # A dispatcher run with nothing to check (QUALITY_NO_PROJECT /

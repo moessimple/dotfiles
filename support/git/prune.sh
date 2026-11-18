@@ -3,7 +3,7 @@
 source "${0:A:h}/support/long-lived-branches.sh"
 
 # Delete local and remote branches that have been merged or whose remote is gone
-function prune() {
+prune() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         echo "Usage: prune"
         echo "  Prunes stale remote-tracking branches, deletes local branches merged into"

@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 # Push the current branch to origin and set its upstream
-function push() {
+push() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         echo "Usage: push [git push options]"
         echo "  Pushes the current branch to origin, setting it as upstream."

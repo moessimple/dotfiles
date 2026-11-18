@@ -439,3 +439,25 @@ undeclared-server: some-mcp-command" \
     assert_output_contains "Could not read installed Claude Code plugins"
     assert_binary_not_called_with_substring claude "plugin marketplace remove"
 }
+
+@test "marketplace cleanup leaves the current project's local declaration untouched" {
+    given_fake_claude '[]' ""
+    printf '%s\n' '[{"name":"stray"}]' >"$fake_bin/known-marketplaces.json"
+    mkdir -p "$fixture/project/.claude"
+    printf 'project declaration\n' >"$fixture/project/.claude/settings.local.json"
+    cat >>"$fake_bin/claude" <<'SCRIPT'
+if [[ "$*" == "plugin marketplace remove stray" ]]; then
+    rm -f .claude/settings.local.json
+fi
+SCRIPT
+    cleanup_in_project() (
+        cd "$fixture/project"
+        call_cleanup_function "$target" claude_plugins_cleanup
+    )
+
+    run cleanup_in_project
+
+    assert_success
+    assert_binary_called_with claude "plugin marketplace remove stray"
+    assert_file_content "$fixture/project/.claude/settings.local.json" "project declaration"
+}

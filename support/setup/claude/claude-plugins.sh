@@ -67,7 +67,7 @@ claude_plugins_install() {
             claude plugin marketplace list --json 2>/dev/null | jq -r '.[] | .url // empty | sub("\\.git$"; "")'
         ); then
             while IFS= read -r marketplace; do
-                [ -n "$marketplace" ] || continue
+                [[ -n "$marketplace" ]] || continue
                 printf '%s\n' "$known_marketplaces" | grep -qxF "$marketplace" && continue
                 if ! claude plugin marketplace add "$marketplace" 2>/dev/null; then
                     warn "Could not add the $marketplace marketplace"
@@ -95,14 +95,14 @@ claude_plugins_install() {
         # is not configured yet, which under the entry points' `set -e` would end the whole run.
         registered_mcp=$(claude mcp get chrome-devtools 2>/dev/null) || registered_mcp=""
         if [[ "$registered_mcp" != *"chrome-devtools-mcp@$CHROME_DEVTOOLS_MCP_VERSION "* ]]; then
-            if [ -n "$registered_mcp" ]; then
-                claude mcp remove chrome-devtools -s user >/dev/null 2>&1 || true
+            if [[ -n "$registered_mcp" ]]; then
+                claude mcp remove chrome-devtools -s user &>/dev/null || true
             fi
             claude mcp add chrome-devtools --scope user -- npx -y "chrome-devtools-mcp@$CHROME_DEVTOOLS_MCP_VERSION" --isolated 2>/dev/null || warn "Could not configure the chrome-devtools MCP server"
         fi
         success "Claude Code plugins and MCP servers installed"
     else
-        warn "claude CLI not found — install Claude Code first, then run: claude plugin install ${CLAUDE_PLUGINS[*]}"
+        warn "claude CLI not found. Install Claude Code first, then run: claude plugin install ${CLAUDE_PLUGINS[*]}"
     fi
 }
 
@@ -140,7 +140,7 @@ claude_plugins_cleanup() {
     else
         installed_plugins=$(printf '%s\n' "$plugin_listing" | jq -r '.[] | select(.scope == "user") | .id')
         while IFS= read -r name; do
-            [ -n "$name" ] || continue
+            [[ -n "$name" ]] || continue
             printf '%s\n' "${CLAUDE_PLUGINS[@]}" "${LOCAL_PLUGINS[@]}" | grep -qxF "$name" && continue
 
             found_undeclared=1
@@ -150,7 +150,7 @@ claude_plugins_cleanup() {
     fi
 
     local declared_marketplaces known_marketplaces
-    if [ -z "$plugin_listing" ]; then
+    if [[ -z "$plugin_listing" ]]; then
         warn "Could not verify plugin scopes, skipping marketplace cleanup"
     elif ! declared_marketplaces=$(
         set -o pipefail
@@ -169,7 +169,7 @@ claude_plugins_cleanup() {
         warn "Could not read configured plugin marketplaces, skipping their cleanup"
     else
         while IFS= read -r name; do
-            [ -n "$name" ] || continue
+            [[ -n "$name" ]] || continue
             printf '%s\n' "$declared_marketplaces" | grep -qxF "$name" && continue
 
             # Removing a marketplace also uninstalls its plugins, including project/local scopes.
@@ -181,7 +181,8 @@ claude_plugins_cleanup() {
 
             found_undeclared=1
             note "Removing undeclared marketplace: $name (not in settings.json)"
-            claude plugin marketplace remove "$name" || warn "Could not remove $name, remove it manually"
+            # The CLI also edits declarations in its working directory; keep project settings untouched.
+            (cd "$HOME" && claude plugin marketplace remove "$name") || warn "Could not remove $name, remove it manually"
         done <<<"$known_marketplaces"
     fi
 
@@ -195,7 +196,7 @@ claude_plugins_cleanup() {
         local mcp_names
         mcp_names=$(printf '%s\n' "$mcp_output" | grep -oE '^[a-zA-Z0-9_-]+:' | tr -d ':')
         while IFS= read -r name; do
-            [ -n "$name" ] || continue
+            [[ -n "$name" ]] || continue
             # Only user-scope servers are ours to manage. Project-scoped ones belong to
             # whatever project added them, `claude mcp add` defaults to project scope.
             claude mcp get "$name" 2>/dev/null | grep -q "Scope: User config" || continue
@@ -210,7 +211,7 @@ claude_plugins_cleanup() {
     # The cleanup goes on with whichever half it could read, so read_failed keeps a partial
     # read from being reported as clean.
     # An `if`, not `&&`, which would return 1 after a removal and trip `set -e` in bin/update.sh
-    if [ "$found_undeclared" -eq 0 ] && [ "$read_failed" -eq 0 ]; then
+    if ((found_undeclared == 0)) && ((read_failed == 0)); then
         success "No undeclared Claude Code plugins or MCP servers found"
     fi
 }

@@ -8,9 +8,9 @@
 
 set -Eeuo pipefail
 
-trap 'rc=$?; echo "${0}: ERR trap at line ${LINENO} (return code: $rc)"; exit $rc' ERR
+trap 'rc=$?; echo "${0}: ERR trap at line ${LINENO} (return code: $rc)" >&2; exit $rc' ERR
 
-if [ ! -z "${PICKAXEDIFF_TRACE+x}" ]; then
+if [[ -n "${PICKAXEDIFF_TRACE+x}" ]]; then
     set -x
 fi
 
@@ -54,7 +54,7 @@ for ((i = 0; i < ${#GREPDIFF_REGEX}; i++)); do
         *)
             lower=$(printf '%s' "$char" | /usr/bin/tr '[:upper:]' '[:lower:]')
             upper=$(printf '%s' "$char" | /usr/bin/tr '[:lower:]' '[:upper:]')
-            if [ "$lower" != "$upper" ]; then
+            if [[ "$lower" != "$upper" ]]; then
                 safe_regex+="($lower|$upper)"
             else
                 safe_regex+="$char"
@@ -92,17 +92,17 @@ echo_meta "diff --git $a_path $b_path"
 NULL='/dev/null'
 ZERO_OID="0000000"
 same_mode="$old_mode"
-if [ "$old_file" == "$NULL" ]; then
+if [[ "$old_file" == "$NULL" ]]; then
     old_path="$NULL"
     old_hex="$ZERO_OID"
     same_mode=''
     echo_meta "new file mode $new_mode"
-elif [ "$new_file" == "$NULL" ]; then
+elif [[ "$new_file" == "$NULL" ]]; then
     new_path="$NULL"
     new_hex="$ZERO_OID"
     same_mode=''
     echo_meta "deleted file mode $old_mode"
-elif [ "$old_mode" != "$new_mode" ]; then
+elif [[ "$old_mode" != "$new_mode" ]]; then
     echo_meta "old mode $old_mode"
     echo_meta "new mode $new_mode"
     same_mode=''

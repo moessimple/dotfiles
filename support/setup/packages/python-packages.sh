@@ -63,7 +63,7 @@ python_packages_cleanup() {
 
     local name found_undeclared=0
     while IFS= read -r name; do
-        [ -n "$name" ] || continue
+        [[ -n "$name" ]] || continue
         # Case-insensitive, because pip reports a package under the capitalization its
         # metadata uses (e.g. Pillow), which need not match the declared name.
         printf '%s\n' "${PYTHON_PACKAGES[@]}" | grep -qixF "$name" && continue
@@ -74,7 +74,7 @@ python_packages_cleanup() {
     done <<<"$installed"
 
     # An `if`, not `&&`, which would return 1 after a removal and trip `set -e` in bin/update.sh
-    if [ "$found_undeclared" -eq 0 ]; then
+    if ((found_undeclared == 0)); then
         success "No undeclared Python packages found"
     fi
 }

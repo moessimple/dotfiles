@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # Global dispatcher for the project quality gate.
 #
@@ -41,7 +41,7 @@ pint_covers_path() {
     [[ -f pint.json ]] || return 0
 
     local excluded_paths
-    excluded_paths="$(jq -r '(.exclude // []) + (.notPath // []) | .[]' pint.json 2>/dev/null)"
+    excluded_paths=$(jq -r '(.exclude // []) + (.notPath // []) | .[]' pint.json 2>/dev/null)
     [[ -n "$excluded_paths" ]] || return 0
 
     local excluded_path
@@ -119,11 +119,11 @@ if [[ "$mode" == "file" ]]; then
         exit "$exit_usage"
     fi
 
-    canonical="$(canonical_file_path "$file")" || exit "$exit_usage"
+    canonical=$(canonical_file_path "$file") || exit "$exit_usage"
 
     # A repository can nest several Composer projects, so the file's own
     # directory decides which one is gated, not the shell's current directory.
-    start_dir="$(dirname -- "$canonical")"
+    start_dir=$(dirname -- "$canonical")
 else
     start_dir="${CLAUDE_PROJECT_DIR:-$PWD}"
 fi
@@ -150,13 +150,13 @@ cd "$root" || exit "$exit_internal"
 #
 # Hooks run non-interactively, where .zshrc has not put Herd on PATH, so its
 # default install location is the fallback.
-herd_bin="$(command -v herd || true)"
+herd_bin=$(command -v herd || true)
 if [[ -z "$herd_bin" && -x "$HOME/Library/Application Support/Herd/bin/herd" ]]; then
     herd_bin="$HOME/Library/Application Support/Herd/bin/herd"
 fi
-php_bin="$([[ -n "$herd_bin" ]] && "$herd_bin" which-php 2>/dev/null)"
+php_bin=$([[ -n "$herd_bin" ]] && "$herd_bin" which-php 2>/dev/null)
 if [[ -x "$php_bin" ]]; then
-    php_shim_dir="$(mktemp -d)"
+    php_shim_dir=$(mktemp -d)
     trap 'rm -rf "$php_shim_dir"' EXIT
     ln -s "$php_bin" "$php_shim_dir/php"
     PATH="$php_shim_dir:$PATH"
@@ -175,7 +175,7 @@ has_phpunit=false
 has_artisan=false
 [[ -f artisan ]] && has_artisan=true
 has_composer=false
-command -v composer >/dev/null 2>&1 && has_composer=true
+command -v composer &>/dev/null && has_composer=true
 has_paratest=false
 [[ -x vendor/bin/paratest ]] && has_paratest=true
 
@@ -232,10 +232,10 @@ if [[ "$mode" != "file" ]]; then
     marker="$quality_runs_dir$root.dirty"
     mkdir -p "$(dirname -- "$record")"
 
-    sha="$(git rev-parse --short HEAD 2>/dev/null || echo none)"
+    sha=$(git rev-parse --short HEAD 2>/dev/null || echo none)
     tree="clean"
     [[ -n "$(git status --porcelain 2>/dev/null)" ]] && tree="dirty"
-    now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
     jq -nc --arg root "$root" --arg mode "$mode" --arg sha "$sha" --arg tree "$tree" \
         --argjson exit "$status" --arg started "$now" \

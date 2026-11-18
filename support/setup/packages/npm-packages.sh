@@ -27,15 +27,15 @@ global_npm() {
 # every older one is dead weight.
 agent_browser_prune_chrome() {
     local browsers="$HOME/.agent-browser/browsers"
-    [ -d "$browsers" ] || return 0
+    [[ -d "$browsers" ]] || return 0
 
     local newest
     newest=$(printf '%s\n' "$browsers"/chrome-* | sed 's#.*/chrome-##' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1)
 
     local dir
     for dir in "$browsers"/chrome-*; do
-        [ -d "$dir" ] || continue
-        [ "$dir" = "$browsers/chrome-$newest" ] && continue
+        [[ -d "$dir" ]] || continue
+        [[ "$dir" == "$browsers/chrome-$newest" ]] && continue
         rm -rf "$dir" || warn "Could not remove $dir"
     done
 }
@@ -71,7 +71,7 @@ npm_packages_update() {
 # Removes any globally installed npm package that isn't in NPM_PACKAGES or NPM_PACKAGES_KEEP.
 # Same idea as `brew bundle cleanup --force` and claude_skills_cleanup in claude-skills.sh.
 npm_packages_cleanup() {
-    [ -x "${HOMEBREW_PREFIX:-/opt/homebrew}/bin/npm" ] || return 0
+    [[ -x "${HOMEBREW_PREFIX:-/opt/homebrew}/bin/npm" ]] || return 0
 
     step "Checking for undeclared global npm packages"
 
@@ -88,7 +88,7 @@ npm_packages_cleanup() {
 
     local name found_undeclared=0
     while IFS= read -r name; do
-        [ -n "$name" ] || continue
+        [[ -n "$name" ]] || continue
         printf '%s\n' "${NPM_PACKAGES[@]}" "${NPM_PACKAGES_KEEP[@]}" | grep -qxF "$name" && continue
 
         found_undeclared=1
@@ -97,7 +97,7 @@ npm_packages_cleanup() {
     done <<<"$installed"
 
     # An `if`, not `&&`, which would return 1 after a removal and trip `set -e` in bin/update.sh
-    if [ "$found_undeclared" -eq 0 ]; then
+    if ((found_undeclared == 0)); then
         success "No undeclared global npm packages found"
     fi
 }
@@ -126,7 +126,7 @@ raise_npm_pin() {
         warn "Could not check $package for a newer release"
         return 0
     fi
-    [ -n "$newest" ] || return 0
+    [[ -n "$newest" ]] || return 0
 
     if ! sed -i '' "s/^$variable=\"$current\"$/$variable=\"$newest\"/" "$file"; then
         warn "Could not raise $package from $current to $newest in ${file#"$HOME/"}"

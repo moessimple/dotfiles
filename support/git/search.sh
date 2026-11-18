@@ -3,7 +3,7 @@
 # Search git history for commits that introduced or removed a string (pickaxe search)
 _SEARCH_DIR="${0:A:h}"
 
-function search() {
+search() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         echo "Usage: search <term>"
         echo "  term  Exact text to search for in git history"
@@ -11,7 +11,10 @@ function search() {
         return 0
     fi
 
-    test -z "$1" && echo "search term required" 1>&2 && return 1
+    if [[ -z "$1" ]]; then
+        echo "search term required" >&2
+        return 1
+    fi
 
     # Passed to git as a one-shot environment entry, not exported into the shell:
     # git forwards its environment to the diff.external driver, which reads

@@ -10,7 +10,7 @@ code() {
 # Search file contents with ripgrep and open the result in VS Code via fzf
 fif() {
     local rg_cmd="rg --color=always --line-number --no-heading --smart-case \
-        --glob '!{vendor,git,node_modules}/*' \
+        --glob '!{vendor,node_modules}/*' \
         --glob '!{phpstan-baseline.neon,phparkitect-baseline.json}'"
 
     fzf --ansi \
@@ -38,11 +38,12 @@ dataurl() {
         return 0
     fi
 
-    local mimeType=$(file -b --mime-type "$1")
-    if [[ $mimeType == text/* ]]; then
-        mimeType="${mimeType};charset=utf-8"
+    local mime_type
+    mime_type=$(file -b --mime-type "$1")
+    if [[ $mime_type == text/* ]]; then
+        mime_type="${mime_type};charset=utf-8"
     fi
-    echo "data:${mimeType};base64,$(openssl base64 -in "$1" | tr -d '\n')" | pbcopy && echo 'Copied to clipboard.'
+    echo "data:${mime_type};base64,$(openssl base64 -in "$1" | tr -d '\n')" | pbcopy && echo 'Copied to clipboard.'
 }
 
 # Open the current directory in Finder, or a given path
@@ -50,9 +51,9 @@ o() {
     open "${@:-.}"
 }
 
-# Show a colorized directory tree, excluding .git/node_modules/bower_components
+# Show a colorized directory tree, excluding .git/node_modules
 tre() {
-    tree -aC -I '.git|node_modules|bower_components' --dirsfirst "$@" | less -FRNX
+    tree -aC -I '.git|node_modules' --dirsfirst "$@" | less -FRNX
 }
 
 # Show all DNS records for a domain
@@ -86,7 +87,7 @@ cmdp() {
     fi
 
     local n="${1:-}"
-    if [[ "$n" != <-> || "$n" -lt 1 ]]; then
+    if [[ "$n" != <-> ]] || ((n < 1)); then
         echo "cmdp: n must be a positive integer" >&2
         return 1
     fi
@@ -118,10 +119,10 @@ fork() {
         return 0
     fi
 
-    [ -z "$1" ] && {
+    if [[ -z "$1" ]]; then
         echo "No repo was given." >&2
         return 1
-    }
+    fi
 
     gh config set -h github.com git_protocol ssh
     gh repo fork "$1" --clone
@@ -135,12 +136,12 @@ commit() {
         return 0
     fi
 
-    local commitMessage="$*"
+    local commit_message="$*"
     local prompt="Write a single-line commit message for this diff. Output ONLY the message, no quotes, no explanation, no markdown."
 
     git add --all || return
 
-    if [ "$commitMessage" = "" ]; then
+    if [[ "$commit_message" == "" ]]; then
         {
             spinner="⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
             while true; do
@@ -158,21 +159,22 @@ commit() {
         local interrupted=0
         trap 'interrupted=1' INT
 
-        local diff_input=$(echo "=== Summary ===" && git diff --cached --stat && echo -e "\n=== Diff (truncated if large) ===" && git diff --cached | head -c 50000)
+        local diff_input
+        diff_input=$(echo "=== Summary ===" && git diff --cached --stat && echo -e "\n=== Diff (truncated if large) ===" && git diff --cached | head -c 50000)
 
         local claude_result=""
 
         if command -v claude &>/dev/null \
             && claude_result=$(printf '%s\n' "$diff_input" | claude -p --no-session-persistence --output-format json "$prompt" 2>/dev/null); then
-            commitMessage=$(printf '%s\n' "$claude_result" | jq -er 'select(.type == "result" and .is_error == false) | .result | select(type == "string" and test("\\S"))') || commitMessage=""
+            commit_message=$(printf '%s\n' "$claude_result" | jq -er 'select(.type == "result" and .is_error == false) | .result | select(type == "string" and test("\\S"))') || commit_message=""
         fi
 
-        if [[ -z "${commitMessage//[[:space:]]/}" ]] && ((! interrupted)); then
+        if [[ -z "${commit_message//[[:space:]]/}" ]] && ((! interrupted)); then
             local codex_result=""
 
             if command -v codex &>/dev/null \
                 && codex_result=$(printf '%s\n' "$diff_input" | codex exec --json --ephemeral --sandbox read-only "$prompt" 2>/dev/null); then
-                commitMessage=$(printf '%s\n' "$codex_result" | jq -ser '
+                commit_message=$(printf '%s\n' "$codex_result" | jq -ser '
                     if any(.[]; .type == "turn.completed") and all(.[]; .type != "turn.failed" and .type != "error") then
                         [.[] | select(.type == "item.completed" and .item.type == "agent_message") | .item.text]
                         | last
@@ -180,7 +182,7 @@ commit() {
                     else
                         empty
                     end
-                ') || commitMessage=""
+                ') || commit_message=""
             fi
         fi
 
@@ -196,17 +198,17 @@ commit() {
             return 130
         fi
 
-        if [[ -z "${commitMessage//[[:space:]]/}" ]]; then
-            read -r "commitMessage?Claude and Codex were unavailable. Commit message: "
+        if [[ -z "${commit_message//[[:space:]]/}" ]]; then
+            read -r "commit_message?Claude and Codex were unavailable. Commit message: "
 
-            if [[ -z "${commitMessage//[[:space:]]/}" ]]; then
+            if [[ -z "${commit_message//[[:space:]]/}" ]]; then
                 echo "Commit cancelled: no message provided."
                 return 1
             fi
         fi
     fi
 
-    git commit -m "$commitMessage"
+    git commit -m "$commit_message"
 }
 
 # === PHP / Testing ===
@@ -218,7 +220,7 @@ phpstan() {
 
 # Run Rector, preferring the local vendor binary over a global installation
 rector() {
-    if [ -f ./vendor/bin/rector ]; then
+    if [[ -f ./vendor/bin/rector ]]; then
         herd php ./vendor/bin/rector "$@"
     else
         command rector "$@"
@@ -226,7 +228,7 @@ rector() {
 }
 
 _test_runner() {
-    if [ -f vendor/bin/pest ]; then
+    if [[ -f vendor/bin/pest ]]; then
         echo ./vendor/bin/pest
     else
         echo ./vendor/bin/phpunit
@@ -251,7 +253,7 @@ pf() {
 
 # Run tests with code coverage
 pc() {
-    if [ -f vendor/bin/pest ]; then
+    if [[ -f vendor/bin/pest ]]; then
         herd coverage -d memory_limit=2G ./vendor/bin/pest --testdox --coverage "$@"
     else
         herd coverage -d memory_limit=2G ./vendor/bin/phpunit --testdox --coverage-html build/coverage "$@"
@@ -260,7 +262,7 @@ pc() {
 
 # Run tests in parallel
 pp() {
-    if [ -f vendor/bin/pest ]; then
+    if [[ -f vendor/bin/pest ]]; then
         herd php -d memory_limit=2G ./vendor/bin/pest --parallel "$@"
     else
         herd php -d memory_limit=2G artisan test --parallel --passthru-php "'-d' 'memory_limit=2G'" --no-coverage "$@"
@@ -274,12 +276,12 @@ pwf() { pw --filter "$@"; }
 _run_until_fail() {
     local count=0
     while true; do
-        ((count++))
+        count=$((count + 1))
         if ! "$@"; then
             echo "❌ Failed after $count run(s)"
             return 1
         fi
-        echo "✅ Pass #$count — running again..."
+        echo "✅ Pass #$count, running again..."
     done
 }
 
@@ -299,10 +301,10 @@ puff() {
         return 0
     fi
 
-    [ -z "$1" ] && {
-        echo "test case required" 1>&2
+    if [[ -z "$1" ]]; then
+        echo "test case required" >&2
         return 1
-    }
+    fi
     _test_until_fail --filter "$1"
 }
 
@@ -314,10 +316,10 @@ ppuff() {
         return 0
     fi
 
-    [ -z "$1" ] && {
-        echo "test case required" 1>&2
+    if [[ -z "$1" ]]; then
+        echo "test case required" >&2
         return 1
-    }
+    fi
     _parallel_test_until_fail --filter "$1"
 }
 
@@ -329,10 +331,10 @@ puf() {
         return 0
     fi
 
-    [ -z "$1" ] && {
-        echo "file or directory required" 1>&2
+    if [[ -z "$1" ]]; then
+        echo "file or directory required" >&2
         return 1
-    }
+    fi
     _test_until_fail "$1"
 }
 
@@ -344,10 +346,10 @@ ppuf() {
         return 0
     fi
 
-    [ -z "$1" ] && {
-        echo "file or directory required" 1>&2
+    if [[ -z "$1" ]]; then
+        echo "file or directory required" >&2
         return 1
-    }
+    fi
     _parallel_test_until_fail "$1"
 }
 
@@ -410,7 +412,7 @@ tinker() {
         return 0
     fi
 
-    if [ -z "$1" ]; then
+    if [[ -z "$1" ]]; then
         herd php artisan tinker
     else
         herd php artisan tinker --execute="dd($1);"
@@ -431,7 +433,7 @@ cchangelog() {
     local mode="direct"
     local branch
 
-    while [[ $# -gt 0 ]]; do
+    while (($# > 0)); do
         case "$1" in
             -d | --direct)
                 mode="direct"
@@ -521,10 +523,10 @@ importdump() {
 
     local db="${1:?database name required}"
     shift
-    [[ $# -eq 0 ]] && {
-        echo "No SQL files provided." 1>&2
+    if (($# == 0)); then
+        echo "No SQL files provided." >&2
         return 1
-    }
+    fi
     _require_local_database || return
 
     # pipefail so an unreadable dump (pv fails) is not masked by mysql exiting 0 on
@@ -581,11 +583,11 @@ _mysql_cmd() {
 db() {
     case "$1" in
         refresh | create | drop)
-            [ -n "$2" ] || {
+            if [[ -z "$2" ]]; then
                 echo "db: '$1' requires a database name" >&2
                 echo "Run 'db --help' for usage." >&2
                 return 1
-            }
+            fi
             ;;
     esac
 
@@ -628,7 +630,7 @@ _migrate_databases() {
     local db
     for db in "$@"; do
         _mysql_cmd -e "DROP DATABASE IF EXISTS \`$db\`; CREATE DATABASE \`$db\`;" || return
-        if [ -d "database/skeema" ]; then
+        if [[ -d "database/skeema" ]]; then
             DB_DATABASE=$db herd php artisan skeema:push --allow-unsafe --force --skip-lint --env=local || failed=1
         else
             DB_DATABASE=$db herd php artisan migrate || failed=1
@@ -647,7 +649,7 @@ _all_databases() {
     test_db=$(grep -o 'name="DB_DATABASE" value="[^"]*' "$phpunit_config" 2>/dev/null | sed 's/.*value="//' | tail -n1)
 
     local databases=("$main_db")
-    if [ -n "$test_db" ]; then
+    if [[ -n "$test_db" ]]; then
         databases+=("$test_db")
         local i
         for ((i = 1; i <= $(nproc); i++)); do
@@ -660,10 +662,10 @@ _all_databases() {
 
 # Drop all project databases: main, test, and all parallel test shards
 dropdbs() {
-    [ ! -f .env ] && {
+    if [[ ! -f .env ]]; then
         echo "No .env file found." >&2
         return 1
-    }
+    fi
     _require_local_database || return
 
     local -a dbs
@@ -689,24 +691,25 @@ mfsa() { mfa && herd php artisan db:seed; }
 
 # Open the current project's database in a GUI client using credentials from .env
 opendb() {
-    [ ! -f .env ] && {
+    if [[ ! -f .env ]]; then
         echo "No .env file found." >&2
         return 1
-    }
+    fi
 
-    local DB_CONNECTION=$(_env_val DB_CONNECTION)
-    local DB_HOST=$(_env_val DB_HOST)
-    local DB_PORT=$(_env_val DB_PORT)
-    local DB_DATABASE=$(_env_val DB_DATABASE)
-    local DB_USERNAME=$(_env_val DB_USERNAME)
-    local DB_PASSWORD=$(_env_val DB_PASSWORD)
+    local DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD
+    DB_CONNECTION=$(_env_val DB_CONNECTION)
+    DB_HOST=$(_env_val DB_HOST)
+    DB_PORT=$(_env_val DB_PORT)
+    DB_DATABASE=$(_env_val DB_DATABASE)
+    DB_USERNAME=$(_env_val DB_USERNAME)
+    DB_PASSWORD=$(_env_val DB_PASSWORD)
 
     local var
     for var in DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME; do
-        [[ -z "${(P)var}" ]] && {
+        if [[ -z "${(P)var}" ]]; then
             echo "$var not found in .env file." >&2
             return 1
-        }
+        fi
     done
 
     # Only the characters that end the URL's userinfo early (and % itself) are percent-encoded.
@@ -740,7 +743,7 @@ sd() {
             return 0
             ;;
         load)
-            if [ ! -d "$bundle" ]; then
+            if [[ ! -d "$bundle" ]]; then
                 diskutil image create --encrypt blank --format UDSB --size 20g \
                     --volumeName "$volume" -fs APFS "$bundle"
             fi
@@ -767,7 +770,7 @@ sd() {
                 echo "Could not unmount $volume; not deleting." >&2
                 return 1
             fi
-            if [ -d "$bundle" ]; then
+            if [[ -d "$bundle" ]]; then
                 rm -rf "$bundle"
             else
                 echo "$volume does not exist."

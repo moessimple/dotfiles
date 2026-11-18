@@ -20,7 +20,7 @@ herd_debug_ini_install() {
     HERD_DEBUG_TEMPLATE="$HERD_RESOURCES_DIR/config/php/debug.ini"
     HERD_PHP_CONFIG_DIR="$HOME/Library/Application Support/Herd/config/php"
 
-    if [ ! -f "$HERD_DEBUG_TEMPLATE" ]; then
+    if [[ ! -f "$HERD_DEBUG_TEMPLATE" ]]; then
         warn "Herd's debug.ini template was not found, skipping Xdebug debug.ini setup"
     elif ! installed_versions=$(
         set -o pipefail
@@ -33,14 +33,14 @@ herd_debug_ini_install() {
     else
         write_failed=0
         while IFS= read -r version; do
-            [ -n "$version" ] || continue
+            [[ -n "$version" ]] || continue
             version_slug="${version//./}"
             debug_dir="$HERD_PHP_CONFIG_DIR/$version_slug/debug"
             debug_ini="$debug_dir/debug.ini"
             # Hardcoded to arm64: every machine these dotfiles run on is Apple Silicon.
             xdebug_extension="$HERD_RESOURCES_DIR/xdebug/xdebug-$version_slug-arm64.so"
 
-            if [ ! -f "$xdebug_extension" ]; then
+            if [[ ! -f "$xdebug_extension" ]]; then
                 note "Herd has no Xdebug build for PHP $version yet, skipping its Xdebug ini files"
                 continue
             fi
@@ -61,7 +61,7 @@ herd_debug_ini_install() {
                 write_failed=1
             fi
         done <<<"$installed_versions"
-        if [ "$write_failed" -eq 0 ]; then
+        if ((write_failed == 0)); then
             success "Herd Xdebug ini files installed"
         fi
     fi

@@ -15,7 +15,7 @@ herd_onboarding_wait() {
         attempt=0
         until command -v herd &>/dev/null; do
             attempt=$((attempt + 1))
-            if [ $((attempt % 12)) -eq 0 ]; then
+            if (((attempt % 12) == 0)); then
                 note "Still waiting for Herd's onboarding to finish..."
             fi
             sleep 5

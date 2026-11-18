@@ -157,3 +157,15 @@ teardown() {
     assert_output_contains "add notes.md"
     assert_colorless_output_contains '+Hinweis über Änderungen'
 }
+
+@test "the pickaxe diff driver's ERR trap reports only to stderr" {
+    given_fake_bin_on_path
+    write_fake_binary git 'exit 17'
+
+    run --separate-stderr "$dotfiles_dir/support/git/support/pickaxe-diff.sh" \
+        file old oldhex 100644 new newhex 100644
+
+    [ "$status" -eq 17 ]
+    [ -z "$output" ]
+    [[ "$stderr" == *"ERR trap"*"return code: 17"* ]]
+}

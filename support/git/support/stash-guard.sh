@@ -14,16 +14,16 @@
 _git_stash_guard() {
     _git_stash_guard_active=0
 
-    [ -n "$(git status --porcelain)" ] || return 0
+    [[ -n "$(git status --porcelain)" ]] || return 0
 
     local stash_before stash_after
     local -a message_options
-    [ -n "${1:-}" ] && message_options=(-m "$1")
+    [[ -n "${1:-}" ]] && message_options=(-m "$1")
     stash_before=$(git rev-parse -q --verify refs/stash 2>/dev/null)
     git stash push --include-untracked "${message_options[@]}" || return
     stash_after=$(git rev-parse -q --verify refs/stash 2>/dev/null)
 
-    if [ -z "$stash_after" ] || [ "$stash_after" = "$stash_before" ]; then
+    if [[ -z "$stash_after" ]] || [[ "$stash_after" == "$stash_before" ]]; then
         echo "Could not stash local changes." >&2
         return 1
     fi
@@ -35,6 +35,6 @@ _git_stash_guard() {
 # staged changes come back unstaged and conflicts are marked in the files.
 # Returns `git stash pop`'s exit code so a conflict on restore reaches the caller.
 _git_stash_restore() {
-    [ "$_git_stash_guard_active" -eq 1 ] || return 0
+    ((_git_stash_guard_active == 1)) || return 0
     git stash pop
 }

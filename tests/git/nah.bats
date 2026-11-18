@@ -137,3 +137,18 @@ teardown() {
     assert_success
     assert_worktree_is_clean
 }
+
+@test "nah outside a repository stops after resolving the Git directory fails" {
+    repository="$fixture/outside"
+    mkdir -p "$repository"
+    export REAL_GIT
+    REAL_GIT=$(command -v git)
+    given_fake_bin_on_path
+    write_fake_binary git 'exec "$REAL_GIT" "$@"'
+
+    run call_nah
+
+    assert_failure
+    assert_binary_called_with git "rev-parse --git-dir"
+    assert_binary_call_count git 1
+}

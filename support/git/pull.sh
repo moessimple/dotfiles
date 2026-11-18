@@ -3,7 +3,7 @@
 source "${0:A:h}/support/stash-guard.sh"
 
 # Pull the current branch from origin while preserving uncommitted changes
-function pull() {
+pull() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         echo "Usage: pull [git pull options]"
         echo "  Pulls the current branch from origin, keeping uncommitted changes in a stash meanwhile."
@@ -23,8 +23,8 @@ function pull() {
     git pull origin "$current_branch" "$@"
     exit_code=$?
 
-    if [ "$exit_code" -ne 0 ]; then
-        [ "$stashed" -eq 1 ] && echo "Pull failed; your changes remain in the stash." >&2
+    if ((exit_code != 0)); then
+        ((stashed == 1)) && echo "Pull failed; your changes remain in the stash." >&2
         return "$exit_code"
     fi
 

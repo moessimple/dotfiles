@@ -35,7 +35,7 @@ A checked project must:
 - contain a `composer.json` at or above the checked path, without going above the Git root; and
 - have at least one supported project tool, an `artisan` file, or a global `composer` command.
 
-The hook scripts also use Bash, Git, `find`, and `jq`. The full dotfiles installer provides the global commands, but
+The scripts in `home/.claude/hooks/` run under macOS `/bin/bash` 3.2 and also use Git, `find`, and `jq`. The full dotfiles installer provides the global commands, but
 the project's own Composer dependencies remain the project's responsibility.
 
 ## Checks and Modes

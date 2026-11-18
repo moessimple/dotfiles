@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 # List local branches by recent commit, including upstream information
-function branches() {
+branches() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         echo "Usage: branches"
         echo "  Lists local branches sorted by most recent commit, with upstream tracking info."

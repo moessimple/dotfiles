@@ -36,7 +36,7 @@ error() {
 # long run is neither missed nor reported as success.
 finish() {
     echo ""
-    if [ "${#DOTFILES_PROBLEMS[@]}" -eq 0 ]; then
+    if ((${#DOTFILES_PROBLEMS[@]} == 0)); then
         success "$1"
         return 0
     fi

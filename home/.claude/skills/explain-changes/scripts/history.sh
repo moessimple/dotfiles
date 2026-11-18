@@ -8,7 +8,7 @@
 
 set -euo pipefail
 
-if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+if (($# < 1)) || (($# > 2)); then
     echo "usage: history.sh <base> [<head>]" >&2
     exit 64
 fi
@@ -20,7 +20,7 @@ head="${2:-}"
 # its tip may already have changed or dropped the very lines the change removes.
 merge_base=$(git merge-base "$base" "${head:-HEAD}")
 
-if [ -n "$head" ]; then
+if [[ -n "$head" ]]; then
     diff_range=("$merge_base" "$head")
 else
     diff_range=("$merge_base")
@@ -101,11 +101,11 @@ describe_commit() {
     printf '== %s\n' "$(git show -s --format='%h %as %s' "$sha")"
     printf 'lines: %s\n' "$lines"
 
-    if [ -z "$repository" ]; then
+    if [[ -z "$repository" ]]; then
         echo "pr: not looked up, origin is not a GitHub repository"
     elif ! pulls=$(gh api "repos/$repository/commits/$sha/pulls" 2>/dev/null); then
         echo "pr: lookup failed (gh api)"
-    elif [ "$(jq 'length' <<<"$pulls")" -gt 0 ]; then
+    elif (($(jq 'length' <<<"$pulls") > 0)); then
         jq -r '.[0] | "pr: #\(.number) \(.title)\nurl: \(.html_url)\n"' <<<"$pulls"
         jq -r '.[0].body // ""' <<<"$pulls" | indent
         echo
@@ -120,7 +120,7 @@ describe_commit() {
 
 ranges=$(removed_ranges)
 
-if [ -z "$ranges" ]; then
+if [[ -z "$ranges" ]]; then
     echo "No removed or replaced lines: the change only adds code."
     exit 0
 fi

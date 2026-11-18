@@ -10,10 +10,10 @@ tinkerbench_setup() {
 
     TINKERBENCH_TARGET="$HOME/Code/tinkerbench"
 
-    if [ ! -d "$TINKERBENCH_TARGET" ] \
+    if [[ ! -d "$TINKERBENCH_TARGET" ]] \
         && ! git clone git@github.com:moessimple/tinkerbench.git "$TINKERBENCH_TARGET"; then
         warn "Could not clone tinkerbench"
-    elif [ ! -f "$TINKERBENCH_TARGET/.env" ] && ! (cd "$TINKERBENCH_TARGET" && composer setup); then
+    elif [[ ! -f "$TINKERBENCH_TARGET/.env" ]] && ! (cd "$TINKERBENCH_TARGET" && composer setup); then
         warn "Could not set up tinkerbench"
     else
         success "tinkerbench.test ready"

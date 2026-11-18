@@ -1,13 +1,13 @@
 #!/bin/bash
 
-set -e -o pipefail
+set -euo pipefail
 
-repository="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+repository=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
 cd "$repository"
 
 # Formats in place by default; --check only prints the diff and fails if anything is unformatted.
 mode=-w
-if [ "${1:-}" = "--check" ]; then
+if [[ "${1:-}" == "--check" ]]; then
     mode=-d
 fi
 

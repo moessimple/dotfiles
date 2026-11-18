@@ -1,10 +1,12 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Intelephense determines its target PHP version by running `php -v` on
 # PATH itself; without this, that would hit the static global Herd symlink
 # instead of a project's isolated version. Resolved once here via `herd
 # which-php` and exposed as a plain symlink ahead of PATH, so nothing on
 # PATH ever re-invokes `herd` and there is no recursion to guard against.
-php_bin="$(command -v herd >/dev/null 2>&1 && herd which-php 2>/dev/null)"
+set -euo pipefail
+
+php_bin=$(command -v herd &>/dev/null && herd which-php 2>/dev/null) || php_bin=""
 if [[ -x "$php_bin" ]]; then
     # Fixed shim dir, symlink refreshed on every launch. exec below runs no
     # cleanup trap, so a fresh mktemp dir per launch would leak one directory

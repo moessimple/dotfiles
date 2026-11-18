@@ -59,13 +59,13 @@ skills_cli() {
 # website. Keep only the runtime and license after every install/update.
 claude_skills_trim_clarity() {
     local skill_dir="$HOME/.claude/skills/clarity"
-    [ -f "$skill_dir/SKILL.md" ] || return 0
+    [[ -f "$skill_dir/SKILL.md" ]] || return 0
 
     find "$skill_dir/." -mindepth 1 -maxdepth 1 \
         ! -name SKILL.md ! -name LICENSE ! -name references ! -name scripts \
         -exec rm -rf -- {} + || return 1
 
-    [ -d "$skill_dir/scripts" ] || return 0
+    [[ -d "$skill_dir/scripts" ]] || return 0
     find "$skill_dir/scripts/." -mindepth 1 -maxdepth 1 \
         ! -name strip_markdown.py ! -name prose_stats.py -exec rm -rf -- {} +
 }
@@ -76,7 +76,7 @@ claude_skills_install() {
     # installed skill changes only through update_skills_after_cooldown. No lock file yet means
     # nothing is installed.
     local installed_skills="" entry repo skill
-    if [ -f "$SKILL_LOCK_FILE" ] && ! installed_skills=$(jq -r '.skills // {} | keys[]' "$SKILL_LOCK_FILE" 2>/dev/null); then
+    if [[ -f "$SKILL_LOCK_FILE" ]] && ! installed_skills=$(jq -r '.skills // {} | keys[]' "$SKILL_LOCK_FILE" 2>/dev/null); then
         warn "Could not read $SKILL_LOCK_FILE, adding every declared skill"
         installed_skills=""
     fi
@@ -104,7 +104,7 @@ claude_skills_update() {
 # `npx skills add` (or by Claude on request), even when only their entry in the lock file
 # is left and the folder is already gone.
 claude_skills_cleanup() {
-    [ -f "$SKILL_LOCK_FILE" ] || return 0
+    [[ -f "$SKILL_LOCK_FILE" ]] || return 0
 
     step "Checking for undeclared Claude Code skills"
 
@@ -123,7 +123,7 @@ claude_skills_cleanup() {
 
     local name found_undeclared=0
     while IFS= read -r name; do
-        [ -n "$name" ] || continue
+        [[ -n "$name" ]] || continue
         printf '%s\n' "${declared_names[@]}" | grep -qxF "$name" && continue
 
         found_undeclared=1
@@ -134,7 +134,7 @@ claude_skills_cleanup() {
     done <<<"$installed"
 
     # An `if`, not `&&`, which would return 1 after a removal and trip `set -e` in bin/update.sh
-    if [ "$found_undeclared" -eq 0 ]; then
+    if ((found_undeclared == 0)); then
         success "No undeclared Claude Code skills found"
     fi
 }

@@ -33,12 +33,12 @@ link_codex_skill() {
     skill=$(basename "$source_path")
     target_path="$CODEX_SKILLS_TARGET/$skill"
 
-    if [ ! -f "$source_path/SKILL.md" ]; then
+    if [[ ! -f "$source_path/SKILL.md" ]]; then
         warn "Skipping $skill, no SKILL.md found"
         return 1
     fi
 
-    if [ -e "$target_path" ] && [ ! -L "$target_path" ]; then
+    if [[ -e "$target_path" ]] && [[ ! -L "$target_path" ]]; then
         warn "Skipping $skill, $target_path is not a symlink"
         return 1
     fi
@@ -62,12 +62,12 @@ codex_skills_link() {
     # clears renamed skills and old plugin-version links without touching anything
     # Codex or the user installed independently.
     for target_path in "$CODEX_SKILLS_TARGET"/*; do
-        [ -L "$target_path" ] || continue
+        [[ -L "$target_path" ]] || continue
         linked_path=$(readlink "$target_path")
         case "$linked_path" in
             "$CODEX_SKILLS_SOURCE"/*) rm "$target_path" ;;
             "$CLAUDE_PLUGIN_CACHE"/*)
-                if [ "$plugin_skills_available" -eq 1 ]; then
+                if ((plugin_skills_available == 1)); then
                     rm "$target_path"
                 fi
                 ;;
@@ -80,7 +80,7 @@ codex_skills_link() {
         fi
     done
 
-    if [ "$plugin_skills_available" -eq 1 ]; then
+    if ((plugin_skills_available == 1)); then
         for plugin_skill in "${CODEX_COMPATIBLE_CLAUDE_PLUGIN_SKILLS[@]}"; do
             plugin_id="${plugin_skill%%:*}"
             relative_path="${plugin_skill#*:}"
@@ -91,26 +91,26 @@ codex_skills_link() {
                 | last.installPath // empty
             ' "$CLAUDE_INSTALLED_PLUGINS")
 
-            if [ -z "$install_path" ] || [ ! -d "$install_path" ]; then
+            if [[ -z "$install_path" ]] || [[ ! -d "$install_path" ]]; then
                 warn "Skipping $plugin_id, no active Claude plugin installation found"
                 continue
             fi
 
             plugin_source="$install_path/$relative_path"
-            if [ -f "$plugin_source/SKILL.md" ]; then
+            if [[ -f "$plugin_source/SKILL.md" ]]; then
                 if link_codex_skill "$plugin_source"; then
                     linked=$((linked + 1))
                 fi
                 continue
             fi
 
-            if [ ! -d "$plugin_source" ]; then
+            if [[ ! -d "$plugin_source" ]]; then
                 warn "Skipping $plugin_id, no compatible skill path found"
                 continue
             fi
 
             for source_path in "$plugin_source"/*; do
-                [ -f "$source_path/SKILL.md" ] || continue
+                [[ -f "$source_path/SKILL.md" ]] || continue
                 if link_codex_skill "$source_path"; then
                     linked=$((linked + 1))
                 fi

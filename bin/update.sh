@@ -8,7 +8,7 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/output.sh"
 source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/machine-profile.sh"
 machine_profile_load
 
-if [ -z "${DOTFILES_UPDATE_PULLED:-}" ]; then
+if [[ -z "${DOTFILES_UPDATE_PULLED:-}" ]]; then
     echo ""
     step "Updating dotfiles"
     echo ""
@@ -26,11 +26,11 @@ if [ -z "${DOTFILES_UPDATE_PULLED:-}" ]; then
         error "~/.dotfiles is in detached HEAD state. Check out main, then run update again."
     fi
 
-    if [ "$current_branch" != "main" ]; then
+    if [[ "$current_branch" != "main" ]]; then
         error "~/.dotfiles is on '$current_branch'. Check out main, then run update again."
     fi
 
-    if [ -n "$(git -C ~/.dotfiles status --porcelain)" ]; then
+    if [[ -n "$(git -C ~/.dotfiles status --porcelain)" ]]; then
         echo ""
         git -C ~/.dotfiles status --short
         echo ""

@@ -2,7 +2,7 @@
 
 # Review changed files in the current branch against a base branch via fzf,
 # including uncommitted and untracked changes in the working tree
-function review() {
+review() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         echo "Usage: review [base]"
         echo "  base  Branch to compare against (default: default branch)"
@@ -20,13 +20,13 @@ function review() {
     } \
         | BASE="$base" fzf \
             --no-sort \
-            --preview 'if [ -n "$(git ls-files --others --exclude-standard -- {})" ]; then
+            --preview 'if [[ -n "$(git ls-files --others --exclude-standard -- {})" ]]; then
                     git diff --color=always --no-index /dev/null {}
                 else
                     git diff --color=always --merge-base "$BASE" -- {}
                 fi' \
             --preview-window=right:65%:wrap \
             --height=90% \
-            --header="changed files vs ${base}, including uncommitted — Enter: open in editor" \
+            --header="changed files vs ${base}, including uncommitted. Enter: open in editor" \
             --bind "enter:execute(code --goto {})"
 }

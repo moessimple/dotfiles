@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Lists the entry points of a Laravel application as Markdown: the inventory of capabilities to characterize.
 # Run it from the project root. It only reads: routes, commands, the schedule, and files.
 

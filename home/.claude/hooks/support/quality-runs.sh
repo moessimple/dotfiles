@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # Where quality-gate.sh records a Composer project's last fast or full run
 # (<root>.json) and post-edit.sh marks the project as changed since then

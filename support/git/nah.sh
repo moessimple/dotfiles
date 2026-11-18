@@ -2,7 +2,7 @@
 
 # Abort an in-progress rebase, merge, cherry-pick, revert, or bisect, then
 # reset to HEAD and remove untracked files
-function nah() {
+nah() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         echo "Usage: nah"
         echo "  Aborts any in-progress rebase, merge, cherry-pick, revert, or bisect,"
@@ -10,17 +10,18 @@ function nah() {
         return 0
     fi
 
-    local git_path=$(git rev-parse --git-dir)
+    local git_path
+    git_path=$(git rev-parse --git-dir) || return
 
-    if [ -d "${git_path}/rebase-merge" ] || [ -d "${git_path}/rebase-apply" ]; then
+    if [[ -d "${git_path}/rebase-merge" ]] || [[ -d "${git_path}/rebase-apply" ]]; then
         git rebase --abort
-    elif [ -f "${git_path}/MERGE_HEAD" ]; then
+    elif [[ -f "${git_path}/MERGE_HEAD" ]]; then
         git merge --abort
-    elif [ -f "${git_path}/CHERRY_PICK_HEAD" ]; then
+    elif [[ -f "${git_path}/CHERRY_PICK_HEAD" ]]; then
         git cherry-pick --abort
-    elif [ -f "${git_path}/REVERT_HEAD" ]; then
+    elif [[ -f "${git_path}/REVERT_HEAD" ]]; then
         git revert --abort
-    elif [ -f "${git_path}/BISECT_LOG" ]; then
+    elif [[ -f "${git_path}/BISECT_LOG" ]]; then
         git bisect reset
     fi
 

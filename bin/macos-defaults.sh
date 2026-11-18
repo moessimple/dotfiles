@@ -156,7 +156,7 @@ defaults write NSGlobalDomain AppleMeasurementUnits -string "Centimeters"
 defaults write NSGlobalDomain AppleMetricUnits -bool true
 
 # Set the timezone; see `systemsetup -listtimezones` for other values
-sudo systemsetup -settimezone "Europe/Berlin" >/dev/null 2>&1
+sudo systemsetup -settimezone "Europe/Berlin" &>/dev/null
 
 ###############################################################################
 # SSD-specific tweaks                                                         #

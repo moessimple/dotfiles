@@ -62,7 +62,7 @@ ollama_models_cleanup() {
 
     local name found_undeclared=0
     while IFS= read -r name; do
-        [ -n "$name" ] || continue
+        [[ -n "$name" ]] || continue
         printf '%s\n' "${OLLAMA_MODELS[@]}" | grep -qxF "$name" && continue
 
         found_undeclared=1
@@ -71,7 +71,7 @@ ollama_models_cleanup() {
     done <<<"$installed"
 
     # An `if`, not `&&`, which would return 1 after a removal and trip `set -e` in bin/update.sh
-    if [ "$found_undeclared" -eq 0 ]; then
+    if ((found_undeclared == 0)); then
         success "No undeclared Ollama models found"
     fi
 }

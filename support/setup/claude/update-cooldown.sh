@@ -27,7 +27,10 @@ cooled_down() {
             return 1
             ;;
     esac
-    [ $((now - seen)) -ge $((UPDATE_COOLDOWN_DAYS * 86400)) ]
+    if ((now - seen >= UPDATE_COOLDOWN_DAYS * 86400)); then
+        return 0
+    fi
+    return 1
 }
 
 # Prints the upstream state of plugin <name> in the marketplace <checkout> of <url>: the tree of its
@@ -45,9 +48,9 @@ plugin_state() {
     if folder=$(jq -er 'strings' <<<"$source"); then
         folder=${folder#./}
         folder=${folder%/}
-        [ "$folder" != . ] || folder=""
+        [[ "$folder" != "." ]] || folder=""
     elif jq -e --arg url "${url%.git}" --arg slug "$slug" \
-        '(.repo // "") == $slug and $slug != "" or ((.url // "") | sub("\\.git$"; "")) == $url' \
+        '((.repo // "") == $slug and $slug != "") or (((.url // "") | sub("\\.git$"; "")) == $url)' \
         <<<"$source" >/dev/null; then
         folder=""
     else
@@ -76,7 +79,7 @@ update_plugins_after_cooldown() {
     local name url checkout plugin state plugins all_cooled_down
     # The list arrives on fd 3, so the claude calls in the loop cannot consume it from stdin.
     while IFS=$'\t' read -r -u 3 name url; do
-        [ -n "$name" ] || continue
+        [[ -n "$name" ]] || continue
         checkout=$(mktemp -d)
         if ! git clone --quiet --filter=blob:none --no-checkout "$url" "$checkout" 2>/dev/null; then
             warn "Could not check the $name marketplace, its plugins are not updated"
@@ -90,7 +93,7 @@ update_plugins_after_cooldown() {
         # The refresh therefore waits until the states of all declared plugins have passed the
         # cooldown. Every state is still checked, so each one's first sighting is recorded.
         for plugin in "${CLAUDE_PLUGINS[@]}"; do
-            [ "${plugin#*@}" = "$name" ] || continue
+            [[ "${plugin#*@}" == "$name" ]] || continue
             if ! state=$(plugin_state "${plugin%@*}" "$checkout" "$url"); then
                 warn "Could not check $plugin in the $name marketplace, not updated"
                 all_cooled_down=0
@@ -100,7 +103,9 @@ update_plugins_after_cooldown() {
             plugins+=("$plugin")
         done
         rm -rf "$checkout"
-        [ "$all_cooled_down" -eq 1 ] && [ "${#plugins[@]}" -gt 0 ] || continue
+        if ((all_cooled_down != 1 || ${#plugins[@]} == 0)); then
+            continue
+        fi
         if ! claude plugin marketplace update "$name"; then
             warn "Could not refresh the $name marketplace, its plugins are not updated"
             continue
@@ -117,7 +122,7 @@ update_plugins_after_cooldown() {
 installed_skill_tree() {
     local name="$1" checkout="$2" hash
     hash=$(jq -r --arg name "$name" '.skills[$name].skillFolderHash // empty' "$SKILL_LOCK_FILE" 2>/dev/null) || return 1
-    [ -n "$hash" ] || return 1
+    [[ -n "$hash" ]] || return 1
     git -C "$checkout" rev-parse --verify --quiet "$hash^{tree}"
 }
 
@@ -135,14 +140,14 @@ update_skills_after_cooldown() {
     local name url skill_dir checkout upstream
     # The list arrives on fd 3, so the skills CLI in the loop cannot consume it from stdin.
     while IFS=$'\t' read -r -u 3 name url skill_dir; do
-        [ -n "$name" ] || continue
+        [[ -n "$name" ]] || continue
         # shortcut: one clone per skill, even for skills from the same repository. Each takes about
         # a second; share them per repository if the list grows.
         checkout=$(mktemp -d)
         if ! git clone --quiet --filter=blob:none --no-checkout "$url" "$checkout" 2>/dev/null \
             || ! upstream=$(git -C "$checkout" rev-parse --verify --quiet "HEAD:$skill_dir"); then
             warn "Could not check $name, not updated"
-        elif [ "$upstream" != "$(installed_skill_tree "$name" "$checkout")" ] && cooled_down "$name" "$upstream"; then
+        elif [[ "$upstream" != "$(installed_skill_tree "$name" "$checkout")" ]] && cooled_down "$name" "$upstream"; then
             skills_cli update "$name" -g || warn "Could not update $name"
         fi
         rm -rf "$checkout"

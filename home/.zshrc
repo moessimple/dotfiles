@@ -23,7 +23,7 @@ _fix_tty() { stty sane 2>/dev/null }
 # Load the shell dotfiles. Functions come before aliases: zsh expands aliases while it reads a
 # function, so aliases loaded first would end up inside the functions, unseen by their tests.
 for _dotfile in ~/.{exports,paths,functions}; do
-    [ -r "$_dotfile" ] && [ -f "$_dotfile" ] && source "$_dotfile"
+    [[ -r "$_dotfile" ]] && [[ -f "$_dotfile" ]] && source "$_dotfile"
 done
 unset _dotfile
 
@@ -34,10 +34,10 @@ for _git_fn in $DOTFILES_DIR/support/git/*.sh; do
 done
 unset _git_fn
 
-[ -r ~/.aliases ] && [ -f ~/.aliases ] && source ~/.aliases
+[[ -r ~/.aliases ]] && [[ -f ~/.aliases ]] && source ~/.aliases
 
 # Load machine-specific shell configuration
-[ -r ~/.extra ] && [ -f ~/.extra ] && source ~/.extra
+[[ -r ~/.extra ]] && [[ -f ~/.extra ]] && source ~/.extra
 
 # Load SSH keys from Keychain
 ssh-add --apple-load-keychain 2>/dev/null
@@ -55,7 +55,7 @@ if command -v zoxide &>/dev/null; then
 fi
 
 # Enable autosuggestions (installed via brew)
-if [ -f "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+if [[ -f "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
     source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
 fi
 

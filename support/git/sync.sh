@@ -4,7 +4,7 @@ source "${0:A:h}/support/stash-guard.sh"
 source "${0:A:h}/support/long-lived-branches.sh"
 
 # Sync local long-lived branches from upstream and push them to origin
-function sync() {
+sync() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         echo "Usage: sync"
         echo "  Fetches from upstream, resets develop/main/master/release to match upstream,"
@@ -15,7 +15,7 @@ function sync() {
 
     local current_branch current_commit
     current_branch=$(git symbolic-ref --quiet --short HEAD)
-    if [ -z "$current_branch" ]; then
+    if [[ -z "$current_branch" ]]; then
         current_commit=$(git rev-parse HEAD) || return
     fi
 
@@ -42,36 +42,36 @@ function sync() {
             && git reset --hard "upstream/$branch" \
             && git push origin "$branch" --force
         exit_code=$?
-        [ "$exit_code" -eq 0 ] || break
+        ((exit_code == 0)) || break
     done
 
-    if [ "$exit_code" -eq 0 ]; then
+    if ((exit_code == 0)); then
         git push origin --tags
         exit_code=$?
     fi
 
     local restore_exit
-    if [ -n "$current_branch" ]; then
+    if [[ -n "$current_branch" ]]; then
         git switch "$current_branch"
     else
         git switch --detach "$current_commit"
     fi
     restore_exit=$?
 
-    if [ "$restore_exit" -ne 0 ]; then
-        [ "$stashed" -eq 1 ] && echo "Could not restore the starting ref; your changes remain in the stash." >&2
-        [ "$exit_code" -ne 0 ] && return "$exit_code"
+    if ((restore_exit != 0)); then
+        ((stashed == 1)) && echo "Could not restore the starting ref; your changes remain in the stash." >&2
+        ((exit_code != 0)) && return "$exit_code"
         return "$restore_exit"
     fi
 
     local pop_exit=0
-    if [ "$stashed" -eq 1 ]; then
+    if ((stashed == 1)); then
         _git_stash_restore
         pop_exit=$?
     fi
 
-    [ "$exit_code" -ne 0 ] && return "$exit_code"
-    [ "$pop_exit" -ne 0 ] && return "$pop_exit"
+    ((exit_code != 0)) && return "$exit_code"
+    ((pop_exit != 0)) && return "$pop_exit"
 
     prune
 }

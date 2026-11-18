@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # Exit codes the quality-gate.sh dispatcher returns. Sourced by the dispatcher
 # and by every caller that branches on one, so each number's meaning lives in

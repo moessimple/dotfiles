@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Lists the hits a characterization run can find mechanically in its own uncommitted changes, staged or
 # not: files it must not touch, changed or deleted acceptance tests, a changed acceptance guard or lock
 # entry, acceptance tests missing from the lock, changed production packages, tests made easier, checks
@@ -8,7 +8,7 @@
 
 set -euo pipefail
 
-if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+if ! git rev-parse --is-inside-work-tree &>/dev/null; then
     echo "Run this inside the project's git repository." >&2
     exit 1
 fi
@@ -83,7 +83,7 @@ unlocked_acceptance_tests() {
         git ls-files -- tests
         git ls-files --others --exclude-standard -- tests
     } | { grep '\.php$' || true; } | while read -r file; do
-        if grep -E "group\(['\"]acceptance['\"]\)" "$file" >/dev/null 2>&1 && ! grep -qxF -- "$file" <<<"$keys"; then
+        if grep -E "group\(['\"]acceptance['\"]\)" "$file" &>/dev/null && ! grep -qxF -- "$file" <<<"$keys"; then
             printf '%s\n' "$file"
         fi
     done
@@ -143,7 +143,7 @@ report "Assertions removed from existing tests (check each: moved or gone?)" \
 report "Coverage exclusions and thresholds changed (each needs its reason in the report)" \
     "$(git diff HEAD --unified=0 -- phpunit.xml composer.json | grep -E '^[-+].*(<file>|<directory>|<exclude>|--min|--exactly|--coverage)' || true)"
 
-if [[ $hits -eq 0 ]]; then
+if ((hits == 0)); then
     echo "No hits."
 fi
 

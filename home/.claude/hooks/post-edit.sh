@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # PostToolUse hook for existing PHP files and composer.json files changed by Write or Edit.
 #
@@ -19,20 +19,20 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/support/project-root.sh"
 source "$(dirname -- "${BASH_SOURCE[0]}")/support/exit-codes.sh"
 source "$(dirname -- "${BASH_SOURCE[0]}")/support/quality-runs.sh"
 
-input="$(cat)"
-file="$(jq -r '.tool_input.file_path // empty' <<<"$input")"
+input=$(cat)
+file=$(jq -r '.tool_input.file_path // empty' <<<"$input")
 
 [[ -n "$file" && -f "$file" ]] || exit 0
 [[ "$file" == *.php || "$(basename -- "$file")" == "composer.json" ]] || exit 0
 
-canonical="$(canonical_file_path "$file")" || exit 0
+canonical=$(canonical_file_path "$file") || exit 0
 
 # quality-gate.sh independently resolves the project from $file. This lookup is
 # only for the marker path and still handles Composer projects nested below the
 # session's starting directory.
 resolve_project_root "$(dirname -- "$canonical")" git_root root || exit 0
 
-output="$("$HOME/.claude/hooks/quality-gate.sh" file "$file" 2>&1)"
+output=$("$HOME/.claude/hooks/quality-gate.sh" file "$file" 2>&1)
 status=$?
 
 [[ "$status" == "$exit_nothing_to_check" ]] && exit 0
