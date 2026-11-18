@@ -116,9 +116,22 @@ reader can follow it across the system without translating.
 actually enforce it, not at the layer that happens to notice the problem first. Code that checks a value is not a
 guarantee when two requests can run at the same time.
 
+**Sensitive data goes only where it is needed.** Never log or report secrets, tokens, or credentials. Do not log
+full request or message bodies or personal data such as email addresses unless the project deliberately records
+them (an audit trail, a webhook replay log); log identifiers instead. Never put a credential that grants lasting
+access (a password, an API key, a session or access token) in a URL, a queued job payload, or data sent to the
+frontend: URLs end up in server logs, browser history, and `Referer` headers, and queues store payloads unencrypted
+unless told otherwise. Short-lived, single-use, or signed tokens that exist to travel in a link (password reset,
+email verification, signed URLs) are the exception. Store personal data and third-party responses only to the
+extent a feature uses them, not whole payloads kept "just in case". Send a third-party service only the fields its
+call needs, and request the narrowest OAuth scopes and API permissions that work.
+
 **Make problems visible while they are still cheap.** A mistake caught while the code is being written costs
 minutes, the same mistake found in production costs hours and pulls in other people. Prefer the check that fails
 immediately and loudly (a test, a constraint, an explicit guard) over the one that depends on somebody noticing later.
+Never make a failing check pass by weakening it: no lowered coverage or quality thresholds, new exclusions,
+baseline entries, or suppressions, and no skipped, deleted, or loosened tests, unless I ask for it. When a check
+cannot pass or looks wrong, say so instead of working around it.
 
 **Production code, tests, documentation, data constraints, and operational behavior are one system.** They should
 describe and protect the same intended behavior. When a change makes one of them wrong, bringing the others back
