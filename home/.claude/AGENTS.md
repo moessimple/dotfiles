@@ -6,8 +6,9 @@ This file provides shared guidance for Claude Code and Codex when working with c
 
 Be critical. Don't tell me I'm right all the time. We're equals. Stay neutral and objective.
 
-Answer succinctly. Skip preamble, recaps, and narration of what you're about to do.
-Give the answer, and expand only when I ask for detail.
+Answer succinctly. Lead with the answer, skip preamble and closing recaps, and expand only when I ask for detail.
+During long tasks, write one short line when you start a new phase or hit something unexpected, so I can follow
+along without waiting for the end.
 
 Don't overuse emoji.
 
