@@ -97,11 +97,6 @@ and Ollama models (`support/setup/packages/`), Claude Code skills/plugins (`supp
 `claude-plugins.sh`), user-scope MCP servers (`CLAUDE_MCP_SERVERS` in `claude-plugins.sh`), Codex-compatible skills
 (`support/setup/codex/codex-skills.sh`), and plugin marketplaces
 (`extraKnownMarketplaces` in `home/.claude/settings.json`) are each treated as the full desired state.
-`install_claude_plugins` and `clean_up_claude_plugins` in `support/setup/claude/claude-plugins.sh` read that
-marketplace declaration instead of maintaining a second URL list. Marketplace cleanup uses the CLI to remove
-undeclared registry entries; this also uninstalls their plugins and can delete saved plugin data. Marketplaces
-needed by project/local plugins are retained. Removal runs from `$HOME` so the CLI cannot change declarations
-in the calling project. An unreadable plugin listing prevents marketplace cleanup.
 After each update step, `bin/update.sh` removes anything installed but not declared: Homebrew and
 Mac App Store apps (the Brewfile's `mas` entries) via `brew bundle cleanup --force` in
 `support/setup/packages/homebrew-packages.sh`, the others via a

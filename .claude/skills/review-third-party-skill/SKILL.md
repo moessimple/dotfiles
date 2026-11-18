@@ -21,9 +21,6 @@ Before adding an entry to `support/setup/claude/claude-skills.sh`, follow this m
 
 Adapted from [Anthropic's review checklist](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/enterprise#review-checklist).
 
-TODO: Automate a pre-install scan for network calls, credential/Keychain/cookie access, and hardcoded secrets
-before `skills_cli add`, so review does not depend on remembering this checklist.
-
 Add each new `THIRD_PARTY_SKILLS` entry from `support/setup/claude/claude-skills.sh` to the third-party ignore
 list in `.editorconfig`, so `bin/format.sh` leaves its scripts as upstream wrote them.
 `tests/setup/claude/claude-skills.bats` fails while the two lists differ.

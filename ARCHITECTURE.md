@@ -80,6 +80,13 @@ prompt for profile or email and default to private without a saved profile. `sup
 reads the same profile and excludes AusweisApp, Discord, OneCast and WhatsApp on work machines, including from the desired state
 used by update's cleanup. Other packages and sudo steps are shared.
 
+`install_claude_plugins` and `clean_up_claude_plugins` in `support/setup/claude/claude-plugins.sh` read the
+marketplace declaration (`extraKnownMarketplaces` in `home/.claude/settings.json`) instead of maintaining a second
+URL list. Marketplace cleanup uses the CLI to remove undeclared registry entries; this also uninstalls their plugins
+and can delete saved plugin data. Marketplaces needed by project/local plugins are retained. Removal runs from
+`$HOME` so the CLI cannot change declarations in the calling project. An unreadable plugin listing prevents
+marketplace cleanup.
+
 ## Home directory preparation
 
 **`support/setup/home-directories.sh` prepares directories and clears paths for symlinks.** Its `prepare_home_directories`
