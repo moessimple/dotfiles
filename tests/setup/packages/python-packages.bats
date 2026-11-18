@@ -111,11 +111,23 @@ teardown() {
     local call installs=0
     while IFS= read -r call; do
         if [[ "$call" == *"-m pip install "* ]]; then
-            [[ "$call" == *"--uploaded-prior-to P3D"* ]]
+            [[ "$call" == *"--uploaded-prior-to P3D"* ]] || false
             installs="$((installs + 1))"
         else
-            [[ "$call" != *"--uploaded-prior-to"* ]]
+            [[ "$call" != *"--uploaded-prior-to"* ]] || false
         fi
     done <"$fake_bin/python3.calls"
     [ "$installs" -eq 2 ]
+}
+
+@test "a failed removal is reported while remaining undeclared entries are still removed" {
+    given_fake_python_reporting_installed '[{"name":"stale-one"},{"name":"stale-two"},{"name":"pypdf"}]'
+    printf '\ncase "$*" in "-m pip uninstall --yes --quiet stale-one "*) exit 17 ;; esac\n' >>"$fake_bin/python3"
+
+    run call_cleanup_function "$target" clean_up_python_packages
+
+    assert_success
+    assert_output_contains "Could not remove stale-one"
+    assert_binary_called_with_substring python3 "-m pip uninstall --yes --quiet stale-two"
+    assert_binary_not_called_with_substring python3 "uninstall --yes --quiet pypdf"
 }

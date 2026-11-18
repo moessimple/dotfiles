@@ -167,5 +167,5 @@ teardown() {
 
     [ "$status" -eq 17 ]
     [ -z "$output" ]
-    [[ "$stderr" == *"ERR trap"*"return code: 17"* ]]
+    [[ "$stderr" == *"ERR trap"*"return code: 17"* ]] || false
 }

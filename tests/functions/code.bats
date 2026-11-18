@@ -30,3 +30,10 @@ teardown() {
     assert_success
     assert_binary_called_with code "src/App.php"
 }
+
+@test "code preserves multiple paths, spaces, and empty arguments" {
+    run call_code "a path/file.php" "" "another path/file.php"
+
+    assert_success
+    assert_binary_called_with_args code "a path/file.php" "" "another path/file.php"
+}

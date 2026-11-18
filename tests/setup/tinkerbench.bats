@@ -67,3 +67,17 @@ teardown() {
     assert_success
     assert_output_equals ""
 }
+
+@test "an initialized tinkerbench checkout is left untouched" {
+    mkdir -p "$test_home/Code/tinkerbench"
+    printf 'local environment' >"$test_home/Code/tinkerbench/.env"
+    write_fake_binary git
+    write_fake_binary composer
+
+    run call_setup_function "$target" set_up_tinkerbench
+
+    assert_success
+    assert_binary_not_called git
+    assert_binary_not_called composer
+    assert_file_content "$test_home/Code/tinkerbench/.env" "local environment"
+}

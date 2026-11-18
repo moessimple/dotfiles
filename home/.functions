@@ -39,12 +39,13 @@ dataurl() {
         return 0
     fi
 
-    local mime_type
-    mime_type="$(file -b --mime-type "$1")"
+    local mime_type encoded
+    mime_type="$(file -b --mime-type "$1")" || return
+    encoded="$(openssl base64 -in "$1")" || return
     if [[ $mime_type == text/* ]]; then
         mime_type="${mime_type};charset=utf-8"
     fi
-    echo "data:${mime_type};base64,$(openssl base64 -in "$1" | tr -d '\n')" | pbcopy && echo 'Copied to clipboard.'
+    printf 'data:%s;base64,%s\n' "$mime_type" "${encoded//$'\n'/}" | pbcopy && echo 'Copied to clipboard.'
 }
 
 # Open the current directory in Finder, or a given path
@@ -615,6 +616,7 @@ db() {
             _mysql_cmd -e "drop database \`$2\`"
             ;;
         list)
+            setopt localoptions pipefail
             _mysql_cmd -e "show databases" | sed 's/[|[:space:]]//g'
             ;;
         *)

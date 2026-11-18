@@ -101,3 +101,15 @@ teardown() {
     assert_success
     assert_output_contains "Ollama is not installed, skipping models"
 }
+
+@test "a failed removal is reported while remaining undeclared entries are still removed" {
+    given_fake_ollama_listing $'stale-one\nstale-two\nembeddinggemma:latest'
+    printf '\nif [[ "$*" == "rm stale-one" ]]; then exit 17; fi\n' >>"$fake_bin/ollama"
+
+    run call_cleanup_function "$target" clean_up_ollama_models
+
+    assert_success
+    assert_output_contains "Could not remove stale-one"
+    assert_binary_called_with_substring ollama "rm stale-two"
+    assert_binary_not_called_with_substring ollama "rm embeddinggemma:latest"
+}

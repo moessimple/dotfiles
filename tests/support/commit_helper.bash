@@ -12,12 +12,23 @@ call_commit_with_input() {
     call_commit <<<"$1"
 }
 
-# Runs commit, then reports whether its spinner and Ctrl-C internals stayed in the shell.
-call_commit_then_report_leaked_state() {
-    zsh -c 'source "$1"; cd "$2"; commit &>/dev/null;
-        printf "spinner_pid=[%s] interrupted=[%s] int_trap=[" "${spinner_pid-<unset>}" "${interrupted-<unset>}"
-        trap | grep INT; printf "]"' \
-        zsh "$functions_file" "$working_directory"
+# Reports persistent shell state changes after generating a commit message.
+call_commit_then_report_shell_changes() {
+    zsh -c '
+        source "$1"
+        cd "$2"
+        local parameter traps_before
+        local -a parameters_before
+        traps_before="$(trap)"
+        parameters_before=("${(@k)parameters}")
+        commit &>/dev/null || exit
+        [[ "$(trap)" == "$traps_before" ]] || { echo "signal traps changed"; exit 1; }
+        for parameter in "${(@k)parameters}"; do
+            if ((parameters_before[(Ie)$parameter] == 0)); then
+                print -r -- "$parameter"
+            fi
+        done
+    ' zsh "$functions_file" "$working_directory"
 }
 
 # Runs commit in a zsh that exports its own PID, so a fake provider can send it

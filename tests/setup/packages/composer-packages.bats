@@ -102,3 +102,15 @@ teardown() {
     # would appear, so its absence is what proves the guard fired.
     assert_output_does_not_contain "Could not read global Composer packages"
 }
+
+@test "a failed removal is reported while remaining undeclared entries are still removed" {
+    given_fake_composer_reporting_installed '{"installed":[{"name":"stale/one"},{"name":"stale/two"},{"name":"laravel/pint"}]}'
+    printf '\nif [[ "$*" == "global remove stale/one" ]]; then exit 17; fi\n' >>"$fake_bin/composer"
+
+    run call_cleanup_function "$target" clean_up_composer_packages
+
+    assert_success
+    assert_output_contains "Could not remove stale/one"
+    assert_binary_called_with_substring composer "global remove stale/two"
+    assert_binary_not_called_with_substring composer "global remove laravel/pint"
+}

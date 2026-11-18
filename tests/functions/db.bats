@@ -110,7 +110,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with mysql '-h127.0.0.1 -P3306 -udbuser -e create database `mydb` -psecret word'
+    assert_binary_called_with_args mysql -h127.0.0.1 -P3306 -udbuser -e 'create database `mydb`' '-psecret word'
 }
 
 @test "db connects to the port from .env" {
@@ -193,4 +193,12 @@ teardown() {
     assert_failure
     assert_output_contains "db.example.com is not a local database host"
     assert_binary_not_called mysql
+}
+
+@test "db list reports a failed database query" {
+    write_fake_binary mysql 'exit 42'
+
+    run call_db list
+
+    assert_status 42
 }

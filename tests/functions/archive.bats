@@ -5,19 +5,20 @@ load ../support/archive_helper
 
 setup() {
     new_dotfiles_fixture
-    given_fake_bin_on_path
-    write_fake_binary zip
+    mkdir -p "$fixture/build folder"
+    printf 'archived content' >"$fixture/build folder/file.txt"
 }
 
 teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "archive zips the given file or directory into a matching .zip" {
-    # Act
-    run call_archive "build"
+@test "archive creates a readable ZIP containing the selected directory" {
+    run call_archive "build folder"
 
-    # Assert
     assert_success
-    assert_binary_called_with zip "-r build.zip build"
+    assert_file_exists "$fixture/build folder.zip"
+    run /usr/bin/unzip -p "$fixture/build folder.zip" "build folder/file.txt"
+    assert_success
+    assert_output_equals "archived content"
 }

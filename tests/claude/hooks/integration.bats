@@ -10,17 +10,22 @@ teardown() {
     teardown_quality_fixture
 }
 
-@test "a PHP edit is checked again before the response can finish" {
-    # Arrange
-    given_dirty_project_after_php_edit_with_tools composer pint phpstan rector pest phpunit
+@test "a failed PHP edit remains gated until a subsequent project check passes" {
+    given_project_with_tools composer pint phpstan
+    marker="$config_home/claude-quality/runs$project.dirty"
 
-    # Act
+    QUALITY_FAIL_TOOL=pint run post_event post-edit.sh "$project/src/Example.php"
+
+    assert_status 2
+    assert_path_exists "$marker"
+
+    QUALITY_FAIL_TOOL=phpstan run stop_event false
+
+    assert_status 2
+    assert_path_exists "$marker"
+
     run stop_event false
 
-    # Assert
     assert_success
-    assert_tool_ran phpstan
-    assert_tool_ran composer
-    assert_tool_ran pest
     assert_path_does_not_exist "$marker"
 }

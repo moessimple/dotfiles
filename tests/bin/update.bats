@@ -88,7 +88,7 @@ teardown() {
     assert_success
     assert_output_contains "Update complete!"
     assert_file_exists "$test_home/reconfigured"
-    [[ "$output" == *"Configuration applied"*"Update complete!"* ]]
+    [[ "$output" == *"Configuration applied"*"Update complete!"* ]] || false
     assert_output_contains "No undeclared global Composer packages found"
     assert_output_contains "No undeclared global npm packages found"
     assert_output_contains "No undeclared Python packages found"

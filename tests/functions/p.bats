@@ -25,19 +25,8 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with php "-d memory_limit=2G ./vendor/bin/pest --testdox"
-}
-
-@test "p runs Pest through Herd, so the project's own PHP version applies" {
-    # Arrange
-    given_pest_installed
-
-    # Act
-    run call_p
-
-    # Assert
-    assert_success
-    assert_binary_called_with herd "php -d memory_limit=2G ./vendor/bin/pest --testdox"
+    assert_binary_called_with_args php -d memory_limit=2G ./vendor/bin/pest --testdox
+    assert_binary_called_with_args herd php -d memory_limit=2G ./vendor/bin/pest --testdox
 }
 
 @test "p falls back to PHPUnit with testdox when Pest is not installed" {

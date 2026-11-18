@@ -7,6 +7,13 @@ cd "$repository"
 
 export TERM="${TERM:-xterm}"
 
+# Bats and its subprocesses use /usr/bin/env bash, as do the fake executables.
+# Keep them on the same interpreter as the setup scripts on the target machine.
+interpreter_dir="$(mktemp -d "${TMPDIR:-/tmp}/dotfiles-test-shell.XXXXXX")"
+trap '/bin/rm -rf "$interpreter_dir"' EXIT
+ln -s /bin/bash "$interpreter_dir/bash"
+export PATH="$interpreter_dir:$PATH"
+
 if (($# == 0)); then
     set -- -r tests/
 fi
@@ -19,4 +26,4 @@ fi
 # debugging a test that only fails under concurrency.
 jobs="${BATS_JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}"
 
-exec bats --pretty --timing --jobs "$jobs" --parallel-binary-name rush "$@"
+bats --pretty --timing --jobs "$jobs" --parallel-binary-name rush "$@"

@@ -166,3 +166,15 @@ teardown() {
     assert_success
     assert_path_does_not_exist "$test_home/.agent-browser"
 }
+
+@test "a failed removal is reported while remaining undeclared entries are still removed" {
+    given_fake_npm_reporting_installed '{"dependencies":{"stale-one":{},"stale-two":{},"typescript":{}}}'
+    printf '\nif [[ "$*" == "uninstall -g stale-one" ]]; then exit 17; fi\n' >>"$fake_bin/npm"
+
+    run call_cleanup_function "$target" clean_up_npm_packages
+
+    assert_success
+    assert_output_contains "Could not remove stale-one"
+    assert_binary_called_with_substring npm "uninstall -g stale-two"
+    assert_binary_not_called_with_substring npm "uninstall -g typescript"
+}

@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 
 load ../support/test_helper
+load ../support/configuration_helper
 
 setup() {
     new_dotfiles_fixture
@@ -41,7 +42,7 @@ teardown() {
 
     # Assert
     assert_success
-    [ "$(readlink "$test_home/.aliases")" = "$repository/home/.aliases" ]
+    assert_managed_dotfiles_are_linked
     assert_file_exists "$test_home/herd-xdebug.sh.applied"
     assert_file_exists "$test_home/herd-onboarding.sh.applied"
     assert_file_exists "$test_home/tinkerbench.sh.applied"
@@ -54,7 +55,7 @@ teardown() {
         [ -d "$test_home/$directory" ]
     done
     assert_file_exists "$test_home/.extra"
-    [[ "$output" == *"Preparing home directories"*"Home directories prepared"*"Creating symlinks"*"Symlinks created"* ]]
+    [[ "$output" == *"Preparing home directories"*"Home directories prepared"*"Creating symlinks"*"Symlinks created"* ]] || false
 }
 
 @test "sourcing home-directories leaves existing directories untouched" {
@@ -80,4 +81,59 @@ teardown() {
     [ -z "$output" ]
     [ ! -L "$test_home/.aliases" ]
     [ "$(cat "$test_home/.aliases")" = "local aliases" ]
+}
+
+@test "reconfigure replaces managed drift and preserves local data on repeated runs" {
+    local directory
+    for directory in agents commands hooks rules skills; do
+        mkdir -p "$test_home/.claude/$directory"
+        touch "$test_home/.claude/$directory/local-copy"
+    done
+    mkdir -p "$test_home/.codex"
+    printf 'local aliases' >"$test_home/.aliases"
+    ln -s "$fixture/missing" "$test_home/.paths"
+    ln -s "$fixture/wrong-instructions" "$test_home/.codex/AGENTS.md"
+    printf 'local settings' >"$test_home/.extra"
+    printf 'local identity' >"$test_home/.gitconfig-local"
+    printf 'unmanaged data' >"$test_home/unmanaged"
+    printf 'repository skill' >"$repository/home/.claude/skills/source-sentinel"
+
+    local attempt
+    for attempt in 1 2; do
+        run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/reconfigure.sh"
+
+        assert_success
+        assert_managed_dotfiles_are_linked
+        assert_file_content "$test_home/.extra" "local settings"
+        assert_file_content "$test_home/.gitconfig-local" "local identity"
+        assert_file_content "$test_home/unmanaged" "unmanaged data"
+        assert_file_content "$repository/home/.claude/skills/source-sentinel" "repository skill"
+        for directory in agents commands hooks rules skills; do
+            assert_path_does_not_exist "$test_home/.claude/$directory/local-copy"
+        done
+    done
+}
+
+@test "a directory preparation failure stops reconfigure before links or dependent setup" {
+    touch "$test_home/Screenshots"
+
+    run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/reconfigure.sh"
+
+    assert_failure
+    [ ! -L "$test_home/.aliases" ]
+    assert_path_does_not_exist "$test_home/herd-onboarding.sh.applied"
+    assert_path_does_not_exist "$test_home/codex-skills.sh.applied"
+    assert_output_does_not_contain "Configuration applied"
+}
+
+@test "a symlink failure stops reconfigure before dependent setup" {
+    write_fake_binary ln 'if [[ "$3" == "$HOME/.exports" ]]; then exit 73; fi
+exec /bin/ln "$@"'
+
+    run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/reconfigure.sh"
+
+    assert_status 73
+    assert_path_does_not_exist "$test_home/herd-onboarding.sh.applied"
+    assert_path_does_not_exist "$test_home/codex-skills.sh.applied"
+    assert_output_does_not_contain "Configuration applied"
 }

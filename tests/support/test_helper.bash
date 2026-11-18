@@ -2,6 +2,7 @@
 bats_require_minimum_version 1.5.0
 
 new_dotfiles_fixture() {
+    fixture_original_path="$PATH"
     dotfiles_dir="$(cd "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
     functions_file="$dotfiles_dir/home/.functions"
     aliases_file="$dotfiles_dir/home/.aliases"
@@ -10,8 +11,8 @@ new_dotfiles_fixture() {
 }
 
 teardown_dotfiles_fixture() {
-    # A plain `rm` would resolve to a test's fake rm in $fake_bin and stay hashed
-    # in this shell after the fixture is gone, so Bats' own cleanup `rm` then fails.
+    # Bats still needs its external commands after the fake executables are removed.
+    export PATH="$fixture_original_path"
     /bin/rm -rf -- "$fixture"
 }
 
@@ -89,6 +90,7 @@ write_fake_binary() {
     cat >"$fake_bin/$name" <<SCRIPT
 #!/usr/bin/env bash
 printf '%s\n' "\$*" >> "$fake_bin/$name.calls"
+printf '%s\0' "\$#" "\$@" >> "$fake_bin/$name.argv"
 $body
 SCRIPT
     chmod +x "$fake_bin/$name"
@@ -96,6 +98,32 @@ SCRIPT
 
 assert_binary_called_with() {
     grep -qxF -- "$2" "$fake_bin/$1.calls"
+}
+
+assert_binary_called_with_args() {
+    local name="$1" count argument index matches
+    shift
+    local expected=("$@") actual=()
+    [ -f "$fake_bin/$name.argv" ] || return 1
+    while IFS= read -r -d '' count; do
+        actual=()
+        for ((index = 0; index < count; index++)); do
+            IFS= read -r -d '' argument || return 1
+            actual+=("$argument")
+        done
+        [ "$count" -eq "${#expected[@]}" ] || continue
+        matches=1
+        for ((index = 0; index < count; index++)); do
+            if [ "${actual[index]}" != "${expected[index]}" ]; then
+                matches=0
+                break
+            fi
+        done
+        if [ "$matches" -eq 1 ]; then
+            return 0
+        fi
+    done <"$fake_bin/$name.argv"
+    return 1
 }
 
 assert_binary_called_with_substring() {

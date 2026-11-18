@@ -51,6 +51,10 @@ GNU `parallel`, selected with `--parallel-binary-name`. Job count defaults to th
 run serially when debugging a test that only fails under concurrency. Fixtures keep all mutable state under
 `$BATS_TEST_TMPDIR`, so tests are order-independent and safe to parallelize.
 
+`bin/test.sh` prepends a temporary `bash` link to `/bin/bash` to PATH for Bats and its subprocesses,
+including fake executables. This keeps the suite on macOS Bash 3.2 even when Homebrew's Bash is installed.
+The link is removed when the runner exits, including on failure.
+
 A quiet start followed by bursts of output is not a hang. Most of the wall time is macOS `syspolicyd` assessing each
 freshly written fake-binary stub (`write_fake_binary` in `tests/support/test_helper.bash`) on its first exec. That
 check is serial and cannot be skipped, so more jobs do not shorten it. Cutting it would mean creating the stubs once
@@ -276,25 +280,43 @@ place that logic lives; callers never re-derive it. Its priority order is covere
 **Tests mirror source layout.**
 
 - `tests/claude/hooks/*.bats`: the quality gate hooks
+- `tests/claude/statusline.bats`: context thresholds and input fallbacks in `home/.claude/statusline.sh`
 - `tests/claude/skills/*/*.bats`: the bundled scripts of local skills under `home/.claude/skills/`
 - `tests/claude/skills/portability.bats`: the skills shared with Codex
 - `tests/functions/*.bats`: selected functions from `home/.functions`
 - `tests/aliases/*.bats`: selected aliases from `home/.aliases`
 - `tests/git/*.bats`: the helpers from `support/git/`
+- `tests/shell/startup.bats`: loading `home/.zprofile` and `home/.zshrc` together, command availability,
+  and PATH priority and deduplication from `home/.paths`, with external initialization isolated
 - `tests/setup/claude/*.bats`, `tests/setup/codex/*.bats`, `tests/setup/packages/*.bats`: the setup/cleanup
   declarations in `support/setup/claude/`, `support/setup/codex/`, and `support/setup/packages/`
 - `tests/setup/herd/*.bats`: `support/setup/herd/herd-xdebug.sh` and `support/setup/herd/herd-onboarding.sh`
 - `tests/setup/*.bats`: the files directly in `support/setup/`, the profile handling in `support/config/Brewfile`,
   and that sourcing a setup file changes nothing
 - `tests/bin/macos-defaults.bats`: `bin/macos-defaults.sh`
-- `tests/bin/install.bats`: that `bin/install.sh` calls every step `bin/reconfigure.sh` calls
+- `tests/bin/install.bats`: full `bin/install.sh` orchestration with external setup steps stubbed,
+  real directory preparation and links, dependency ordering, repetition, and failure handling
 - `tests/bin/update.bats`: a full `bin/update.sh` run across all package cleanups
 - `tests/bin/reconfigure.bats`: configuration application without macOS defaults or an unconditional sudo request
 - `tests/bin/setup-ssh.bats`: standalone SSH key setup and protection of existing keys
+- `tests/bin/test.bats`: interpreter selection, argument forwarding, and failure propagation in `bin/test.sh`
+- `tests/test-helper.bats`: lossless command argument assertions from `tests/support/test_helper.bash`
 
 `tests/support/test_helper.bash` provides shared fixtures (`new_dotfiles_fixture`, `call_dotfiles_function`,
 `call_dotfiles_function_in`, `call_dotfiles_alias`) for building throwaway Git repos/projects under
 `$BATS_TEST_TMPDIR`; most suites also load their own `tests/support/<name>_helper.bash` for suite-specific fixtures.
+`tests/support/configuration_helper.bash` holds the independent expected link mapping used by install and
+reconfigure tests. `assert_binary_called_with_args` in `tests/support/test_helper.bash` checks NUL-separated
+argument records from `write_fake_binary`, preserving empty arguments, whitespace, and literal special characters.
+The text call log remains available for output and partial command checks.
+
+Tests assert observable files, Git state, output, exit status, and public command contracts. Do not assert source
+spelling, private helper names, arbitrary step ordering, or prose formulations. Static checks are appropriate for
+declarative configuration and shared document formats consumed by other tools or skills. At external boundaries
+that cannot safely run in tests, check command arguments and failure handling; use real tools with isolated data
+when practical. `tests/bin/macos-defaults.bats` records privileged calls without executing them and confines real
+PlistBuddy writes to its fixture HOME. These tests do not prove that macOS accepts every declared preference or
+that a fresh machine can install every external package.
 
 ## Shell conventions
 

@@ -97,7 +97,7 @@ configure_profile() (
     configure_profile <<<$'2\ndeveloper@example.invalid'
     run configure_profile </dev/null
     assert_success
-    [[ "$output" != *'What kind of machine'* ]]
+    [[ "$output" != *'What kind of machine'* ]] || false
     [ "$(git config --global --includes user.email)" = developer@example.invalid ]
 }
 
@@ -106,7 +106,7 @@ configure_profile() (
     echo work >"$profile_file"
     run configure_profile <<<'developer@example.invalid'
     assert_success
-    [[ "$output" != *'What kind of machine'* ]]
+    [[ "$output" != *'What kind of machine'* ]] || false
     [ "$(cat "$profile_file")" = work ]
     [ "$(git config --file "$HOME/.gitconfig-local" user.email)" = developer@example.invalid ]
 }
@@ -160,7 +160,7 @@ configure_profile() (
     [ "$(cat "$profile_file")" = work ]
     run /bin/bash "$dotfiles_dir/bin/install.sh" <<<'y'
     [ "$status" -eq 73 ]
-    [[ "$output" != *'1) Private'* ]]
+    [[ "$output" != *'1) Private'* ]] || false
 }
 
 @test "declining installation does not configure a profile" {
@@ -195,7 +195,7 @@ configure_profile() (
     run /bin/bash "$dotfiles_dir/bin/update.sh" </dev/null
     assert_failure
     assert_output_contains 'Invalid machine profile'
-    [[ "$output" != *'Pulling latest changes'* ]]
+    [[ "$output" != *'Pulling latest changes'* ]] || false
 }
 
 @test "reconfigure rejects an invalid profile before machine changes" {

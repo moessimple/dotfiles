@@ -36,3 +36,16 @@ given_herd_cli_appears_during_the_wait() {
     assert_output_equals ""
     assert_binary_called_with open "-a Herd"
 }
+
+@test "an available Herd CLI does not reopen onboarding or wait" {
+    write_fake_binary herd
+    write_fake_binary open
+    write_fake_binary sleep
+
+    run call_setup_function "$target" wait_for_herd_onboarding
+
+    assert_success
+    assert_binary_not_called open
+    assert_binary_not_called sleep
+    assert_output_contains "Herd is ready"
+}

@@ -27,8 +27,8 @@ list_mas_apps() {
 @test "without a profile the Brewfile still includes private apps" {
     run list_casks
     assert_success
-    [[ $'\n'"$output"$'\n' == *$'\ndiscord\n'* ]]
-    [[ $'\n'"$output"$'\n' == *$'\nwhatsapp\n'* ]]
+    [[ $'\n'"$output"$'\n' == *$'\ndiscord\n'* ]] || false
+    [[ $'\n'"$output"$'\n' == *$'\nwhatsapp\n'* ]] || false
 }
 
 @test "explicit private profile preserves the default cask list" {

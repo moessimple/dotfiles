@@ -35,17 +35,6 @@ teardown() {
     assert_tool_ran rector
     assert_tool_ran composer
     assert_tool_ran pest
-}
-
-@test "a successful final check clears the dirty project" {
-    # Arrange
-    given_dirty_project_after_php_edit_with_tools composer pint phpstan rector pest phpunit
-
-    # Act
-    run stop_event false
-
-    # Assert
-    assert_success
     assert_path_does_not_exist "$marker"
 }
 
@@ -75,18 +64,6 @@ teardown() {
     assert_tool_ran pint
     assert_tool_did_not_run rector
     assert_tool_ran pest
-}
-
-@test "a failed final check blocks the response" {
-    # Arrange
-    given_dirty_project_after_php_edit_with_tools composer pint phpstan rector pest phpunit
-    failing_tool=phpstan
-
-    # Act
-    QUALITY_FAIL_TOOL="$failing_tool" run stop_event false
-
-    # Assert
-    assert_status 2
 }
 
 @test "a failed final check keeps the project dirty" {

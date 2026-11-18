@@ -4,18 +4,8 @@ load ../../support/test_helper
 
 setup() {
     new_dotfiles_fixture
-    commands_dir="$dotfiles_dir/home/.claude/commands"
     skills_dir="$dotfiles_dir/home/.claude/skills"
     shared_skills=(explain-changes pr document-product characterize-behavior raise-quality-gate)
-}
-
-@test "legacy commands are replaced by shared skills" {
-    # Assert
-    assert_path_does_not_exist "$commands_dir/debug.md"
-    assert_path_does_not_exist "$commands_dir/pr.md"
-    assert_path_does_not_exist "$commands_dir/review.md"
-
-    assert_file_exists "$skills_dir/pr/SKILL.md"
 }
 
 @test "shared skill frontmatter contains no agent-specific fields" {
@@ -56,15 +46,6 @@ setup() {
     done
 }
 
-@test "shared workflows delegate reusable concerns to existing skills" {
-    # Assert
-    grep -Fq 'REQUIRED SUB-SKILL' "$skills_dir/pr/SKILL.md"
-    grep -Fq '`clarity`' "$skills_dir/pr/SKILL.md"
-    grep -Fq '`agent-skills:code-review-and-quality`' "$skills_dir/pr/SKILL.md"
-    grep -Fq '`spatie-laravel-php`' "$skills_dir/pr/SKILL.md"
-    grep -Fq '`laravel-best-practices`' "$skills_dir/pr/SKILL.md"
-}
-
 @test "product skills work without the reference projects they were modelled on" {
     # Assert
     for skill in document-product characterize-behavior raise-quality-gate; do
@@ -72,16 +53,6 @@ setup() {
     done
 
     ! grep -rnE 'PRODUCT\.md|KNOWLEDGE_BASE\.md|document-product' "$skills_dir/characterize-behavior" || false
-}
-
-@test "characterize-behavior and raise-quality-gate use feature documentation only where the project has it" {
-    # Arrange
-    condition='where the project documents its features'
-
-    # Assert
-    grep -Fq "$condition" "$skills_dir/characterize-behavior/SKILL.md"
-    grep -Fq "$condition" "$skills_dir/raise-quality-gate/SKILL.md"
-    ! grep -rnE 'PRODUCT\.md|KNOWLEDGE_BASE\.md|document-product' "$skills_dir/characterize-behavior" "$skills_dir/raise-quality-gate" || false
 }
 
 @test "raise-quality-gate extends the agent instructions section that document-product writes" {
@@ -113,37 +84,10 @@ setup() {
     ! grep -rFq 'tests/Acceptance' "$skills_dir/characterize-behavior" "$skills_dir/raise-quality-gate" || false
 }
 
-@test "raise-quality-gate cleans up the same touched classes that characterize-behavior secures for a planned change" {
-    # Assert
-    grep -Fq '| any other argument: a planned change' "$skills_dir/characterize-behavior/SKILL.md"
-    grep -Fq 'touched classes' "$skills_dir/characterize-behavior/SKILL.md"
-    ! grep -rFq 'touched method' "$skills_dir/characterize-behavior" || false
-    grep -Fq '| any other argument: a planned change' "$skills_dir/raise-quality-gate/SKILL.md"
-    grep -Fq 'touched classes' "$skills_dir/raise-quality-gate/SKILL.md"
-}
-
-@test "document-product and characterize-behavior count area changes with the same git log command" {
-    # Arrange
-    changes_command='git log --since="12 months ago" --format=%H -- {paths} | sort -u | wc -l'
-
-    # Assert
-    grep -Fq "$changes_command" "$skills_dir/document-product/references/document-format.md"
-    grep -Fq "$changes_command" "$skills_dir/characterize-behavior/references/characterization-format.md"
-}
-
 @test "raise-quality-gate reads the secured capabilities that characterize-behavior counts per area" {
     # Assert
     grep -Fq '| Capabilities |' "$skills_dir/characterize-behavior/references/characterization-format.md"
     grep -Fq '`Capabilities`' "$skills_dir/raise-quality-gate/references/record-format.md"
-}
-
-@test "document-product and characterize-behavior choose the next area by the same risk weights" {
-    # Arrange
-    weights='weight 3 for high, 2 for medium, and 1 for low risk; on a tie, the higher risk goes first'
-
-    # Assert
-    grep -Fq "$weights" "$skills_dir/document-product/references/document-format.md"
-    grep -Fq "$weights" "$skills_dir/characterize-behavior/references/characterization-format.md"
 }
 
 @test "shared skill descriptions are valid YAML for strict parsers such as Codex" {

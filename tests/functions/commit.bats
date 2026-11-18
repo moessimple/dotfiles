@@ -238,16 +238,16 @@ SCRIPT
     assert_commit_count 1
 }
 
-@test "generating a message leaves no spinner or Ctrl-C state in the shell" {
+@test "generating a message leaves no shell variables or signal traps behind" {
     # Arrange
     given_repository_with_modified_tracked_file
     write_successful_claude "Describe the tracked change"
     write_provider_that_must_not_run codex
 
     # Act
-    run call_commit_then_report_leaked_state
+    run call_commit_then_report_shell_changes
 
     # Assert
     assert_success
-    assert_output_equals "spinner_pid=[<unset>] interrupted=[<unset>] int_trap=[]"
+    assert_output_equals ""
 }
