@@ -257,7 +257,8 @@ bin/format.sh --check
 ## Further Documentation
 
 - [Quality Gate Hooks](home/.claude/hooks/README.md)
-- [Repository Architecture](AGENTS.md), for working on this repository with Claude Code or Codex
+- [Agent Instructions](AGENTS.md), working rules and required reading for Claude Code and Codex
+- [Repository Architecture](ARCHITECTURE.md), setup processes, subsystem decisions, and test infrastructure
 
 ## Credits
 
