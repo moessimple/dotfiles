@@ -66,8 +66,14 @@ if command -v claude &>/dev/null; then
     else
         warn "Could not list the plugin marketplaces, skipping adding them"
     fi
+    # Only missing plugins are installed, so a failed install is a real problem.
+    if ! installed_plugins=$(set -o pipefail; claude plugin list --json 2>/dev/null | jq -r '.[] | select(.scope == "user") | .id'); then
+        warn "Could not read installed Claude Code plugins, installing every declared one"
+        installed_plugins=""
+    fi
     for plugin in "${CLAUDE_PLUGINS[@]}"; do
-        claude plugin install "$plugin" 2>/dev/null || note "$plugin already installed"
+        printf '%s\n' "$installed_plugins" | grep -qxF "$plugin" && continue
+        claude plugin install "$plugin" || warn "Could not install $plugin"
     done
     # `claude mcp add` refuses an existing name, so a registration with another version is
     # removed first; that is how a raised version takes effect. `mcp get` fails when the server

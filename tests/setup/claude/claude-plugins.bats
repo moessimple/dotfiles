@@ -143,6 +143,46 @@ teardown() {
     assert_output_contains "STEP: Installing Claude Code plugins and MCP servers"
 }
 
+@test "a declared plugin that is already installed is not installed again" {
+    # Arrange
+    given_fake_claude '[{"id":"agent-skills@addy-agent-skills","scope":"user"}]' ""
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_binary_not_called_with_substring claude "plugin install agent-skills@addy-agent-skills"
+    assert_binary_called_with claude "plugin install laravel@laravel"
+}
+
+@test "a plugin that cannot be installed is reported as a warning" {
+    # Arrange
+    given_fake_claude '[]' ""
+    given_claude_failing_to_install_plugins
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_output_contains "WARN: Could not install laravel@laravel"
+}
+
+@test "an unreadable plugin list installs every declared plugin and says so" {
+    # Arrange
+    given_fake_claude_failing_to_report_plugins_and_mcp_servers
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_output_contains "WARN: Could not read installed Claude Code plugins, installing every declared one"
+    assert_binary_called_with claude "plugin install agent-skills@addy-agent-skills"
+    assert_binary_called_with claude "plugin install laravel@laravel"
+}
+
 @test "an installed user-scope plugin not declared in claude-plugins.sh is uninstalled" {
     # Arrange
     given_fake_claude \

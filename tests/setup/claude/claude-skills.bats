@@ -64,6 +64,45 @@ teardown() {
     assert_binary_called_with_substring npx "--min-release-age=3 --yes skills@1.7.6 add"
 }
 
+@test "a declared skill that is already installed is not added again" {
+    # Arrange
+    given_skill_lock_file '{"skills":{"pdf":{}}}'
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_binary_not_called_with_substring npx "add anthropics/skills -s pdf "
+    assert_binary_called_with_substring npx "add mattpocock/skills -s diagnosing-bugs "
+}
+
+@test "a skill that cannot be added is reported as a warning" {
+    # Arrange
+    given_skills_cli_failing_to_add_skills
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_output_contains "WARN: Could not install diagnosing-bugs"
+}
+
+@test "an unreadable lock file adds every declared skill and says so" {
+    # Arrange
+    given_unreadable_skill_lock_file
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    assert_output_contains "WARN: Could not read"
+    assert_binary_called_with_substring npx "add anthropics/skills -s pdf "
+    assert_binary_called_with_substring npx "add mattpocock/skills -s diagnosing-bugs "
+}
+
 @test "an installed skill not declared in claude-skills.sh is removed" {
     # Arrange
     given_skill_lock_file '{"skills":{"diagnosing-bugs":{},"stale-skill":{}}}'

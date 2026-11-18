@@ -140,6 +140,9 @@ case "\$*" in
             printf '%s\n' "\$updated" > "\$settings"
         fi
         ;;
+    "plugin install "*)
+        [ ! -e "$fake_bin/plugin-install-fails" ] || exit 1
+        ;;
     "plugin marketplace list --json")
         [ -e "$fake_bin/marketplace-list-fails" ] && exit 1
         cat "$fake_bin/known-marketplaces.json" 2>/dev/null || printf '[]\n'
@@ -179,6 +182,14 @@ given_claude_knows_marketplaces() {
 
 given_claude_failing_to_list_marketplaces() {
     touch "$fake_bin/marketplace-list-fails"
+}
+
+given_claude_failing_to_install_plugins() {
+    touch "$fake_bin/plugin-install-fails"
+}
+
+given_skills_cli_failing_to_add_skills() {
+    write_fake_binary npx 'case "$*" in *" add "*) exit 1 ;; esac'
 }
 
 # A settings.json in the test HOME that is a symlink into a repository copy, as symlink-dotfiles.sh
