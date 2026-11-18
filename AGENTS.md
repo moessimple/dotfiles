@@ -63,7 +63,7 @@ The architecture is shared reference documentation for contributors and agents; 
 | Install, reconfigure, update, machine profile, services, or SSH setup (`bin/install.sh`, `bin/reconfigure.sh`, `bin/update.sh`, `bin/macos-defaults.sh`, `bin/setup-ssh.sh`, `support/setup/`, `support/config/Brewfile`) | [Setup entry points](ARCHITECTURE.md#setup-entry-points); for symlinks, also [Home directory preparation](ARCHITECTURE.md#home-directory-preparation) |
 | Plugin, skill, or package release-age handling (`support/setup/claude/`, `support/setup/packages/`, `home/.claude/settings.json`) | [Update cooldown](ARCHITECTURE.md#update-cooldown) |
 | Hooks (`home/.claude/hooks/`), their tests, or the `quality` function in `home/.functions` | [Quality gate](ARCHITECTURE.md#quality-gate) and [Hook behavior](home/.claude/hooks/README.md) |
-| Git helpers (`support/git/`), Git configuration, shell startup, or Git-related functions in `home/.functions` | [Git helpers](ARCHITECTURE.md#git-helpers) |
+| Git helpers (`support/git/`), the loop in `home/.zshrc` that sources them, Git configuration, or Git-related functions in `home/.functions` | [Git helpers](ARCHITECTURE.md#git-helpers) |
 | Adding or changing tests (`tests/`) | [Test layout and fixtures](ARCHITECTURE.md#test-layout-and-fixtures) |
 | Test runner, formatter, CI, or `.editorconfig` | [Verification tooling](ARCHITECTURE.md#verification-tooling) |
 

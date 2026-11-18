@@ -224,4 +224,3 @@ job means updating the ruleset in the same change.
 
 There is no build step and no static analysis. Bash and zsh get the same checks, formatting and tests: ShellCheck
 covers only Bash, and no zsh linter is mature enough to depend on, so neither language gets one.
-
