@@ -51,9 +51,9 @@ GNU `parallel`, selected with `--parallel-binary-name`. Job count defaults to th
 run serially when debugging a test that only fails under concurrency. Fixtures keep all mutable state under
 `$BATS_TEST_TMPDIR`, so tests are order-independent and safe to parallelize.
 
-`bin/test.sh` prepends a temporary `bash` link to `/bin/bash` to PATH for Bats and its subprocesses,
-including fake executables. This keeps the suite on macOS Bash 3.2 even when Homebrew's Bash is installed.
-The link is removed when the runner exits, including on failure.
+`bin/test.sh` prepends `support/test-shell/` to PATH. Its tracked `bash` symlink targets `/bin/bash`, keeping Bats
+and its subprocesses, including fake executables, on macOS Bash 3.2 even when Homebrew's Bash is installed.
+The runner uses `exec` to replace itself with Bats, so signals sent to the runner PID reach Bats directly.
 
 A quiet start followed by bursts of output is not a hang. Most of the wall time is macOS `syspolicyd` assessing each
 freshly written fake-binary stub (`write_fake_binary` in `tests/support/test_helper.bash`) on its first exec. That
@@ -299,7 +299,8 @@ place that logic lives; callers never re-derive it. Its priority order is covere
 - `tests/bin/update.bats`: a full `bin/update.sh` run across all package cleanups
 - `tests/bin/reconfigure.bats`: configuration application without macOS defaults or an unconditional sudo request
 - `tests/bin/setup-ssh.bats`: standalone SSH key setup and protection of existing keys
-- `tests/bin/test.bats`: interpreter selection, argument forwarding, and failure propagation in `bin/test.sh`
+- `tests/bin/test.bats`: interpreter selection, argument forwarding, failure propagation, and signal cancellation
+  in `bin/test.sh`
 - `tests/support/test-helper.bats`: lossless command argument assertions and fixture cleanup from
   `tests/support/test_helper.bash`
 

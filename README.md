@@ -244,6 +244,7 @@ bin/test.sh
 
 The suite covers the Claude Code quality hooks, scripts bundled with local skills, selected shell functions and
 aliases, the Git helpers, shell startup, the status line, and the update and setup scripts.
+The process signal tests use Python 3, included in the repository's Homebrew packages.
 
 Format the shell scripts with [shfmt](https://github.com/mvdan/sh) in the style set in `.editorconfig`, or only
 check them, as CI does:
