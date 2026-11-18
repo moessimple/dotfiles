@@ -100,6 +100,9 @@ if ! command -v brew &>/dev/null; then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
+# A failed download runs the installer with an empty script, and shellenv of a missing brew
+# prints nothing; both exit 0, so only finding brew shows that the installation worked.
+command -v brew &>/dev/null || error "Homebrew installation failed"
 success "Homebrew installed"
 
 # Symlinks: needed before anything below can rely on ~/.aliases, ~/.zshrc etc. existing.
@@ -157,7 +160,7 @@ touch ~/.extra
 
 # macOS defaults: run last because they quit the affected apps, Terminal among them.
 step "Applying macOS defaults"
-~/.dotfiles/bin/macos-defaults.sh
+~/.dotfiles/bin/macos-defaults.sh || warn "Could not apply every macOS default, see the output above"
 
 step "Next steps:"
 echo "  • extra    — opens ~/.extra; add your personal aliases, tokens, and machine-specific settings here"

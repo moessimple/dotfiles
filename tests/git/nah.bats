@@ -67,6 +67,22 @@ teardown() {
     assert_path_does_not_exist "$repository/untracked.txt"
 }
 
+@test "nah run from a subdirectory also removes untracked files outside it" {
+    # Arrange
+    given_clean_repository_on_main
+    mkdir "$repository/subdirectory"
+    printf 'untracked\n' >"$repository/top-level-untracked.txt"
+    printf 'untracked\n' >"$repository/subdirectory/untracked.txt"
+
+    # Act
+    run call_nah_in subdirectory
+
+    # Assert
+    assert_success
+    assert_path_does_not_exist "$repository/top-level-untracked.txt"
+    assert_path_does_not_exist "$repository/subdirectory/untracked.txt"
+}
+
 @test "nah aborts an in-progress cherry-pick and discards the conflict" {
     # Arrange
     given_clean_repository_on_main

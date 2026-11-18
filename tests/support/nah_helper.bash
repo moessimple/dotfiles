@@ -3,6 +3,12 @@ call_nah() {
         zsh "$dotfiles_dir/support/git/nah.sh" "$repository" "$@"
 }
 
+call_nah_in() {
+    local directory="$1"
+    zsh -c 'source "$1"; cd "$2"; nah' \
+        zsh "$dotfiles_dir/support/git/nah.sh" "$repository/$directory"
+}
+
 given_conflicting_merge_in_progress() {
     git -C "$repository" switch -qc other
     printf 'other change\n' >"$repository/tracked.txt"

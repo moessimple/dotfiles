@@ -93,6 +93,25 @@ teardown() {
     assert_output_contains "No undeclared Ollama models found"
 }
 
+@test "the pulled version of update.sh runs the rest of the update, and the pull happens only once" {
+    # Arrange
+    given_clean_repository_on_main
+    given_repository_with_real_setup_scripts
+    given_bare_origin_remote
+    git -C "$repository" push -q origin main
+    given_origin_changes_update_script_to_print "pulled update.sh is running"
+    given_every_external_tool_update_touches_is_faked
+
+    # Act
+    run call_update
+
+    # Assert
+    assert_success
+    assert_output_contains_before "Dotfiles updated" "pulled update.sh is running"
+    assert_output_contains_exactly_once "Pulling latest changes"
+    assert_output_contains "Update complete!"
+}
+
 @test "a failed configuration step fails the update and is listed in its summary" {
     # Arrange
     given_clean_repository_on_main

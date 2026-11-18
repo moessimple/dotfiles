@@ -25,6 +25,7 @@ assert_update_side_effect_was_not_reached() {
 given_repository_with_real_setup_scripts() {
     cp -R "$dotfiles_dir/support" "$repository/support"
     mkdir -p "$repository/bin"
+    cp "$dotfiles_dir/bin/update.sh" "$repository/bin/update.sh"
     cat >"$repository/bin/reconfigure.sh" <<'SCRIPT'
 #!/bin/bash
 touch "$HOME/reconfigured"
@@ -176,6 +177,25 @@ given_update_ran_days_ago() {
     call_update >/dev/null 2>&1 || true
     given_first_sightings_aged_by_days "$days"
     rm -f "$fake_bin"/*.calls
+}
+
+# Pushes a commit to origin that makes bin/update.sh print <marker> as its first line, so a run
+# shows whether the pulled version of update.sh took over after the pull.
+given_origin_changes_update_script_to_print() {
+    local marker="$1" work="$fixture/origin-work"
+    git clone -q "$origin" "$work"
+    configure_test_repository "$work"
+    sed -i '' "1a\\
+echo \"$marker\"
+" "$work/bin/update.sh"
+    git -C "$work" commit -qam "change update.sh"
+    git -C "$work" push -q origin main
+}
+
+assert_output_contains_exactly_once() {
+    local rest="${output#*"$1"}"
+    [[ "$output" == *"$1"* ]] || false
+    [[ "$rest" != *"$1"* ]] || false
 }
 
 given_homebrew_upgrade_fails() {

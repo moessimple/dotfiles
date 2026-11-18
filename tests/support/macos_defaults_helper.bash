@@ -7,17 +7,6 @@ given_path_without_system_commands() {
     ln -s /usr/bin/dirname "$restricted_path/dirname"
 }
 
-# Sources <script> under set -e, answering
-# its confirmation prompt with <answer>, then prints a line only a still-running caller reaches.
-source_from_setup_script_answering() {
-    local answer="$1" script="$2"
-    PATH="$restricted_path" /bin/bash -c '
-        set -e
-        source "$1"
-        echo "Setup script continued"
-    ' bash "$script" <<<"$answer"
-}
-
 run_standalone_answering() {
     local answer="$1" script="$2"
     PATH="$restricted_path" /bin/bash "$script" <<<"$answer"

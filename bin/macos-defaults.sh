@@ -12,8 +12,7 @@ read -p "Continue? (y/n) " -n 1 -r
 echo ""
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     echo "Cancelled."
-    # Return to a sourcing caller, or exit cleanly when run directly.
-    return 0 2>/dev/null || exit 0
+    exit 0
 fi
 
 # Close any open System Preferences panes, to prevent them from overriding

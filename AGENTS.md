@@ -105,7 +105,9 @@ with agent-specific tools, paths, or runtime behavior stay exclusive to that age
 - `bin/reconfigure.sh` reapplies symlinks, Codex skill links, services, and Herd/tinkerbench setup without package
   updates or an unconditional sudo request.
 - `bin/update.sh` pulls the repo, updates managed packages, skills, plugins, and Ollama models, then runs
-  `bin/reconfigure.sh`. It reports completion only if that succeeds.
+  `bin/reconfigure.sh`. It reports completion only if that succeeds. After the pull it `exec`s the pulled
+  `~/.dotfiles/bin/update.sh` with `DOTFILES_UPDATE_PULLED=1`, which skips the pull, so the rest of the run never
+  mixes the old script with the pulled setup files.
 - `bin/macos-defaults.sh` (alias `macos-defaults` in `home/.aliases`) applies macOS preferences directly,
   with confirmation, sudo, and application termination.
 
