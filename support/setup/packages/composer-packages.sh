@@ -10,7 +10,7 @@ COMPOSER_PACKAGES=(
     cpx/cpx
 )
 
-composer_packages_install() {
+install_composer_packages() {
     step "Installing global Composer packages"
     # A 3-day cooldown in the machine-wide config, the same window as the npm tools and as the projects
     # that set their own: update, require and remove skip releases younger than that, which keeps out
@@ -27,7 +27,7 @@ composer_packages_install() {
     success "Composer packages processed"
 }
 
-composer_packages_update() {
+update_composer_packages() {
     step "Updating global Composer packages"
     if composer global update; then
         success "Composer packages updated"
@@ -37,9 +37,9 @@ composer_packages_update() {
 }
 
 # Removes any globally required Composer package that isn't in COMPOSER_PACKAGES. Same idea
-# as `brew bundle cleanup --force` and claude_skills_cleanup in claude-skills.sh: only direct
+# as `brew bundle cleanup --force` and clean_up_claude_skills in claude-skills.sh: only direct
 # requires are considered, so transitive dependencies are never touched.
-composer_packages_cleanup() {
+clean_up_composer_packages() {
     command -v composer &>/dev/null || return 0
 
     step "Checking for undeclared global Composer packages"

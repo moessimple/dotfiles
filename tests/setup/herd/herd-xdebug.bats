@@ -2,11 +2,11 @@
 
 load ../../support/test_helper
 load ../../support/setup_cleanup_helper
-load ../../support/herd_debug_ini_helper
+load ../../support/herd_xdebug_helper
 
 setup() {
     new_dotfiles_fixture
-    setup_herd_debug_ini_fixture
+    setup_herd_xdebug_fixture
 }
 
 teardown() {
@@ -20,7 +20,7 @@ teardown() {
     given_herd_debug_template_is_present
 
     # Act
-    run run_herd_debug_ini_setup
+    run run_herd_xdebug_setup
 
     # Assert
     assert_success
@@ -35,7 +35,7 @@ teardown() {
     given_herd_debug_template_is_present
 
     # Act
-    run run_herd_debug_ini_setup
+    run run_herd_xdebug_setup
 
     # Assert
     assert_success
@@ -49,7 +49,7 @@ teardown() {
     given_herd_debug_template_is_present
 
     # Act
-    run run_herd_debug_ini_setup
+    run run_herd_xdebug_setup
 
     # Assert
     assert_success
@@ -65,7 +65,7 @@ teardown() {
     given_herd_debug_template_is_present
 
     # Act
-    run run_herd_debug_ini_setup
+    run run_herd_xdebug_setup
 
     # Assert
     assert_success
@@ -81,7 +81,7 @@ teardown() {
     given_existing_ini_file 84/debug/debug.ini "hand-tuned by herd"
 
     # Act
-    run run_herd_debug_ini_setup
+    run run_herd_xdebug_setup
 
     # Assert
     assert_success
@@ -96,7 +96,7 @@ teardown() {
     given_herd_debug_template_is_present
 
     # Act
-    run run_herd_debug_ini_setup
+    run run_herd_xdebug_setup
 
     # Assert
     assert_success
@@ -111,7 +111,7 @@ teardown() {
     given_herd_ships_xdebug_build_for 84
 
     # Act
-    run run_herd_debug_ini_setup
+    run run_herd_xdebug_setup
 
     # Assert
     assert_success
@@ -127,7 +127,7 @@ teardown() {
     given_herd_config_directory_blocked_for 83
 
     # Act
-    run run_herd_debug_ini_setup
+    run run_herd_xdebug_setup
 
     # Assert
     assert_success
@@ -145,7 +145,7 @@ teardown() {
     given_ini_file_blocked 84/debug/debug.ini
 
     # Act
-    run run_herd_debug_ini_setup
+    run run_herd_xdebug_setup
 
     # Assert
     assert_success
@@ -161,7 +161,7 @@ teardown() {
     given_ini_file_blocked 84/xdebug.ini
 
     # Act
-    run run_herd_debug_ini_setup
+    run run_herd_xdebug_setup
 
     # Assert
     assert_success
@@ -177,7 +177,7 @@ teardown() {
     export HERD_RESOURCES_DIR="$herd_resources"
 
     # Act
-    run list_variables_left_by_setup_function "$target" herd_debug_ini_install
+    run list_variables_left_by_setup_function "$target" install_herd_xdebug
 
     # Assert
     assert_success

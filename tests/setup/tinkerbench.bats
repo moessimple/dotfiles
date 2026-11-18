@@ -8,7 +8,7 @@ setup() {
     given_fake_bin_on_path
     test_home="$fixture/home"
     mkdir -p "$test_home/Code"
-    target="$dotfiles_dir/support/setup/tinkerbench/tinkerbench.sh"
+    target="$dotfiles_dir/support/setup/tinkerbench.sh"
 }
 
 teardown() {
@@ -20,7 +20,7 @@ teardown() {
     write_fake_binary git 'exit 128'
 
     # Act
-    run call_setup_function "$target" tinkerbench_setup
+    run call_setup_function "$target" set_up_tinkerbench
 
     # Assert
     assert_success
@@ -34,7 +34,7 @@ teardown() {
     write_fake_binary composer 'exit 1'
 
     # Act
-    run call_setup_function "$target" tinkerbench_setup
+    run call_setup_function "$target" set_up_tinkerbench
 
     # Assert
     assert_success
@@ -48,7 +48,7 @@ teardown() {
     write_fake_binary composer
 
     # Act
-    run call_setup_function "$target" tinkerbench_setup
+    run call_setup_function "$target" set_up_tinkerbench
 
     # Assert
     assert_success
@@ -61,7 +61,7 @@ teardown() {
     write_fake_binary git 'exit 128'
 
     # Act
-    run list_variables_left_by_setup_function "$target" tinkerbench_setup
+    run list_variables_left_by_setup_function "$target" set_up_tinkerbench
 
     # Assert
     assert_success

@@ -31,7 +31,7 @@ teardown() {
     given_fake_ollama_listing ''
 
     # Act
-    run call_setup_function "$target" ollama_models_install
+    run call_setup_function "$target" install_ollama_models
 
     # Assert
     assert_success
@@ -45,7 +45,7 @@ teardown() {
     write_fake_binary sleep
 
     # Act
-    run call_setup_function "$target" ollama_models_install
+    run call_setup_function "$target" install_ollama_models
 
     # Assert
     assert_success
@@ -58,7 +58,7 @@ teardown() {
     given_fake_ollama_listing $'qwen3.5:4b-q4_K_M\nllama3.2:latest'
 
     # Act
-    run call_cleanup_function "$target" ollama_models_cleanup
+    run call_cleanup_function "$target" clean_up_ollama_models
 
     # Assert
     assert_success
@@ -71,7 +71,7 @@ teardown() {
     given_fake_ollama_listing $'qwen3.5:4b-q4_K_M\nembeddinggemma:latest'
 
     # Act
-    run call_cleanup_function "$target" ollama_models_cleanup
+    run call_cleanup_function "$target" clean_up_ollama_models
 
     # Assert
     assert_success
@@ -85,7 +85,7 @@ teardown() {
     write_fake_binary sleep
 
     # Act
-    run call_cleanup_function "$target" ollama_models_cleanup
+    run call_cleanup_function "$target" clean_up_ollama_models
 
     # Assert
     assert_success
@@ -95,7 +95,7 @@ teardown() {
 
 @test "models are skipped entirely when ollama is not installed" {
     # Act
-    PATH="/usr/bin:/bin" run call_setup_function "$target" ollama_models_install
+    PATH="/usr/bin:/bin" run call_setup_function "$target" install_ollama_models
 
     # Assert
     assert_success

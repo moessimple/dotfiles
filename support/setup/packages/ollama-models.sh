@@ -7,7 +7,7 @@
 # Pin the GGUF quantization (q4_K_M): Ollama rejects structured output (a JSON schema `format`)
 # for the default tag's NVFP4 (MLX) build with 501.
 # Each model costs several GB of disk under ~/.ollama/models, check `df -h` before adding one.
-# Tags are explicit because ollama_models_cleanup compares them against `ollama list`,
+# Tags are explicit because clean_up_ollama_models compares them against `ollama list`,
 # which always reports a tag (`embeddinggemma` is listed as `embeddinggemma:latest`).
 OLLAMA_MODELS=(
     qwen3.5:4b-q4_K_M
@@ -16,7 +16,7 @@ OLLAMA_MODELS=(
 
 # The Homebrew service starts `ollama serve` asynchronously (services.sh on install, a
 # restart during `brew upgrade` on update), so give it a moment before talking to it.
-ollama_models_wait_for_server() {
+wait_for_ollama_server() {
     local attempt
     for ((attempt = 0; attempt < 10; attempt++)); do
         ollama list &>/dev/null && return 0
@@ -27,11 +27,11 @@ ollama_models_wait_for_server() {
 
 # `ollama pull` on an installed model only fetches changed layers, so this is both the
 # install and the update step.
-ollama_models_install() {
+install_ollama_models() {
     step "Installing Ollama models"
     if ! command -v ollama &>/dev/null; then
         warn "Ollama is not installed, skipping models"
-    elif ! ollama_models_wait_for_server; then
+    elif ! wait_for_ollama_server; then
         warn "Ollama server is not reachable, skipping models (start it with: brew services start ollama)"
     else
         local model
@@ -44,7 +44,7 @@ ollama_models_install() {
 
 # Removes any pulled model that isn't in OLLAMA_MODELS: a model pulled by hand to try it
 # out is gone after the next update unless it is declared here.
-ollama_models_cleanup() {
+clean_up_ollama_models() {
     command -v ollama &>/dev/null || return 0
 
     step "Checking for undeclared Ollama models"

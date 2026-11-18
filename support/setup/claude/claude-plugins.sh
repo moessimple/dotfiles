@@ -12,7 +12,7 @@ CLAUDE_PLUGINS=(
 # LSP configs written directly in this repo, living in home/.claude/skills/ with their own
 # .claude-plugin/plugin.json, rather than installed via `claude plugin install`. Claude Code
 # auto-detects them from that directory (id suffix @skills-dir) and lists them as user-scope
-# plugins, so claude_plugins_cleanup needs to recognize them as intentional. `claude plugin
+# plugins, so clean_up_claude_plugins needs to recognize them as intentional. `claude plugin
 # uninstall` always fails on them anyway, since skills-dir plugins have no marketplace backing.
 LOCAL_PLUGINS=(
     "laravel-lsp@skills-dir"
@@ -20,7 +20,7 @@ LOCAL_PLUGINS=(
 )
 
 # User-scope MCP servers this file configures. Each has its own `claude mcp add` args below
-# (scope, command, flags), so this only tracks the names, for claude_plugins_cleanup.
+# (scope, command, flags), so this only tracks the names, for clean_up_claude_plugins.
 CLAUDE_MCP_SERVERS=(
     chrome-devtools
 )
@@ -33,7 +33,7 @@ CHROME_DEVTOOLS_MCP_VERSION="1.13.0"
 # "autoUpdate": false, also for one declared there before it is first cloned. Sets it again for the
 # entry with git <url>. settings.json is a symlink into this repository, so it is written through
 # the link rather than replaced.
-claude_marketplace_auto_update_off() {
+disable_marketplace_auto_update() {
     local url="$1" settings="$HOME/.claude/settings.json" updated
     updated=$(jq --arg url "${url%.git}" '.extraKnownMarketplaces |= with_entries(
         if (.value.source.url // "" | sub("\\.git$"; "")) == $url then .value.autoUpdate = false else . end)' \
@@ -41,7 +41,7 @@ claude_marketplace_auto_update_off() {
     printf '%s\n' "$updated" >"$settings"
 }
 
-claude_marketplaces_read() {
+read_claude_marketplaces() {
     jq -es '
         if length == 1 and (.[0] | type == "object") then .[0] else error("Expected one settings object") end |
         if has("extraKnownMarketplaces") then .extraKnownMarketplaces else {} end |
@@ -50,7 +50,7 @@ claude_marketplaces_read() {
         then . else error("Expected git marketplace declarations") end' "$HOME/.claude/settings.json"
 }
 
-claude_plugins_install() {
+install_claude_plugins() {
     local declared_marketplaces known_marketplaces marketplace installed_plugins plugin registered_mcp
     step "Installing Claude Code plugins and MCP servers"
     if command -v claude &>/dev/null; then
@@ -59,7 +59,7 @@ claude_plugins_install() {
         # in update.sh.
         if ! declared_marketplaces=$(
             set -o pipefail
-            claude_marketplaces_read | jq -r '.[].source.url | sub("\\.git$"; "")'
+            read_claude_marketplaces | jq -r '.[].source.url | sub("\\.git$"; "")'
         ); then
             warn "Could not read declared plugin marketplaces, skipping adding them"
         elif known_marketplaces=$(
@@ -71,7 +71,7 @@ claude_plugins_install() {
                 printf '%s\n' "$known_marketplaces" | grep -qxF "$marketplace" && continue
                 if ! claude plugin marketplace add "$marketplace" 2>/dev/null; then
                     warn "Could not add the $marketplace marketplace"
-                elif ! claude_marketplace_auto_update_off "$marketplace"; then
+                elif ! disable_marketplace_auto_update "$marketplace"; then
                     warn "Could not turn off auto-update for $marketplace, set \"autoUpdate\": false in ~/.claude/settings.json"
                 fi
             done <<<"$declared_marketplaces"
@@ -108,15 +108,15 @@ claude_plugins_install() {
 
 # A new upstream version of a plugin waits out the same 3-day cooldown as Composer and npm. Needs
 # support/setup/claude/update-cooldown.sh sourced as well.
-claude_plugins_update() {
+update_claude_plugins() {
     step "Updating Claude Code plugins"
     update_plugins_after_cooldown
     success "Claude Code plugin updates processed"
 }
 
 # Removes any installed plugin or configured MCP server that isn't declared above. Same
-# idea as `brew bundle cleanup --force` and claude_skills_cleanup in claude-skills.sh.
-claude_plugins_cleanup() {
+# idea as `brew bundle cleanup --force` and clean_up_claude_skills in claude-skills.sh.
+clean_up_claude_plugins() {
     command -v claude &>/dev/null || return 0
 
     step "Checking for undeclared Claude Code plugins and MCP servers"
@@ -152,7 +152,7 @@ claude_plugins_cleanup() {
         : # Removing a marketplace uninstalls its plugins in every scope, which only the listing shows.
     elif ! declared_marketplaces=$(
         set -o pipefail
-        claude_marketplaces_read | jq -r 'keys[]'
+        read_claude_marketplaces | jq -r 'keys[]'
     ); then
         read_failed=1
         warn "Could not read declared plugin marketplaces, skipping their cleanup"

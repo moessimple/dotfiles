@@ -212,7 +212,7 @@ given_skills_cli_failing_to_add_skills() {
     write_fake_binary npx 'case "$*" in *" add "*) exit 1 ;; esac'
 }
 
-# A settings.json in the test HOME that is a symlink into a repository copy, as symlink-dotfiles.sh
+# A settings.json in the test HOME that is a symlink into a repository copy, as dotfile-links.sh
 # links it, declaring the marketplace at <url> with "autoUpdate": false.
 given_settings_linked_from_repository_with_marketplace() {
     local url="$1"

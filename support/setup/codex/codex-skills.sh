@@ -49,7 +49,7 @@ link_codex_skill() {
     fi
 }
 
-codex_skills_link() {
+link_codex_skills() {
     local plugin_skills_available=1 linked=0
     local target_path linked_path skill plugin_skill plugin_id relative_path install_path plugin_source source_path
 

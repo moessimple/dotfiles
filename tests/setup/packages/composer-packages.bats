@@ -31,7 +31,7 @@ teardown() {
     given_fake_composer_reporting_installed '{"installed":[]}'
 
     # Act
-    run call_setup_function "$target" composer_packages_install
+    run call_setup_function "$target" install_composer_packages
 
     # Assert
     assert_success
@@ -44,7 +44,7 @@ teardown() {
     given_fake_composer_reporting_installed '{"installed":[]}'
 
     # Act
-    run call_setup_function "$target" composer_packages_install
+    run call_setup_function "$target" install_composer_packages
 
     # Assert
     assert_success
@@ -57,7 +57,7 @@ teardown() {
     given_fake_composer_reporting_installed '{"installed":[{"name":"laravel/pint"},{"name":"foo/undeclared"}]}'
 
     # Act
-    run call_cleanup_function "$target" composer_packages_cleanup
+    run call_cleanup_function "$target" clean_up_composer_packages
 
     # Assert
     assert_success
@@ -70,7 +70,7 @@ teardown() {
     given_fake_composer_reporting_installed '{"installed":[{"name":"laravel/pint"},{"name":"cpx/cpx"}]}'
 
     # Act
-    run call_cleanup_function "$target" composer_packages_cleanup
+    run call_cleanup_function "$target" clean_up_composer_packages
 
     # Assert
     assert_success
@@ -83,7 +83,7 @@ teardown() {
     given_fake_composer_failing_to_report_installed
 
     # Act
-    run call_cleanup_function "$target" composer_packages_cleanup
+    run call_cleanup_function "$target" clean_up_composer_packages
 
     # Assert
     assert_success
@@ -93,7 +93,7 @@ teardown() {
 
 @test "cleanup is skipped entirely when composer is not installed" {
     # Act
-    PATH="/usr/bin:/bin" run call_cleanup_function "$target" composer_packages_cleanup
+    PATH="/usr/bin:/bin" run call_cleanup_function "$target" clean_up_composer_packages
 
     # Assert
     assert_success

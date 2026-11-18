@@ -85,11 +85,11 @@ covers only Bash, and no zsh linter is mature enough to depend on, so neither la
 **`home/` mirrors `$HOME`.** Every file under `home/` except `home/.claude/AGENTS.md` (see below) is symlinked to the
 same relative path below `$HOME` (e.g. `home/.zshrc` → `~/.zshrc`, `home/.claude/skills` → `~/.claude/skills`).
 Editing the path in either location changes the file tracked in this repository.
-`support/setup/symlink-dotfiles.sh` is the single source of truth for which paths are linked and whether a given path
+`support/setup/dotfile-links.sh` is the single source of truth for which paths are linked and whether a given path
 is linked as a file (`ln -sf`) or as a directory (`ln -sfn`, used for `.claude/agents`, `.claude/commands`,
 `.claude/hooks`, `.claude/rules`, `.claude/skills`).
 
-`home/.claude/AGENTS.md` holds the global instructions and is the one exception to the mirror: `symlink-dotfiles.sh`
+`home/.claude/AGENTS.md` holds the global instructions and is the one exception to the mirror: `dotfile-links.sh`
 links it as `~/.claude/CLAUDE.md`, the only name Claude Code reads user-level instructions from, and as
 `~/.codex/AGENTS.md` for Codex, so both share one file instead of two copies. A Claude Code session started in
 `home/` also reads `home/.claude/AGENTS.md` as project instructions and so loads the global instructions twice;
@@ -102,9 +102,9 @@ with agent-specific tools, paths, or runtime behavior stay exclusive to that age
 **Entry points vs. setup logic.** Files in `support/setup/` define variables and functions; sourcing them does
 not run setup. Each script under `bin/` sources every setup file it uses in one block after `set -e`, always from
 `~/.dotfiles`, the fixed location the symlinks and aliases already depend on. It then calls those functions
-explicitly, and each function prints its own step and result. `herd_onboarding_wait` in `support/setup/herd-onboarding.sh` waits for Herd's CLI,
-`herd_debug_ini_install` in `support/setup/herd-debug-ini.sh` writes Xdebug configuration, and `tinkerbench_setup`
-in `support/setup/tinkerbench/tinkerbench.sh` prepares the local project.
+explicitly, and each function prints its own step and result. `wait_for_herd_onboarding` in `support/setup/herd/herd-onboarding.sh` waits for Herd's CLI,
+`install_herd_xdebug` in `support/setup/herd/herd-xdebug.sh` writes Xdebug configuration, and `set_up_tinkerbench`
+in `support/setup/tinkerbench.sh` prepares the local project.
 
 Scripts under `bin/` orchestrate these functions:
 
@@ -119,14 +119,14 @@ Scripts under `bin/` orchestrate these functions:
   with confirmation, sudo, and application termination.
 
 Failure handling follows `brew bundle`, using the helpers in `support/setup/output.sh`. A step that later steps
-depend on (the profile, the `~/.dotfiles` checkout, Homebrew itself, `clean-state.sh`, the symlinks) stops the run
+depend on (the profile, the `~/.dotfiles` checkout, Homebrew itself, `home-directories.sh`, the symlinks) stops the run
 with `error`. Any other step that cannot be completed, such as one package, PHP version, or service, reports it with
 `warn` and the run goes on. `finish` ends install, reconfigure, and update: it prints the success message only when
 nothing warned, and otherwise lists every warning and exits 1. `note` is for information that is not a problem
 (an undeclared package being removed, a reminder to restart the terminal) and is never counted.
 
-`herd_debug_ini_install` in `support/setup/herd-debug-ini.sh` reapplies both managed Xdebug ini files on every install/reconfigure/update run,
-replacing local changes. `services_start` in `support/setup/services.sh` likewise rewrites `/opt/homebrew/var/config.toml` with
+`install_herd_xdebug` in `support/setup/herd/herd-xdebug.sh` reapplies both managed Xdebug ini files on every install/reconfigure/update run,
+replacing local changes. `start_services` in `support/setup/services.sh` likewise rewrites `/opt/homebrew/var/config.toml` with
 `upgrade_db = true`, so the Meilisearch service migrates its local database after a version bump instead of
 refusing to start.
 
@@ -135,7 +135,7 @@ macOS Keychain, and copies the public key for manual registration on GitHub. It 
 and does not run as part of `bin/install.sh`.
 
 `bin/install.sh`, `bin/reconfigure.sh`, and `bin/update.sh` read and validate the saved profile through
-`machine_profile_load` in `support/setup/machine-profile.sh`. All three call it explicitly after sourcing;
+`load_machine_profile` in `support/setup/machine-profile.sh`. All three call it explicitly after sourcing;
 sourcing the file alone does not read or set the profile. On its first run, `bin/install.sh` asks private/work,
 saves the choice in `~/.config/dotfiles/profile`, and asks for the machine's Git email for either profile.
 Private setup offers the existing global email as a default. Only `user.email` is written to the untracked
@@ -148,8 +148,8 @@ reads the same profile and excludes AusweisApp, Discord, OneCast and WhatsApp on
 used by update's cleanup. Other packages and sudo steps are shared.
 
 **Claude Code plugin and skill updates (`support/setup/claude/update-cooldown.sh`).** Neither Claude Code nor the
-skills CLI has a release-age cooldown, so `claude_skills_update` in `claude-skills.sh` calls
-`update_skills_after_cooldown` and `claude_plugins_update` in `claude-plugins.sh` calls
+skills CLI has a release-age cooldown, so `update_claude_skills` in `claude-skills.sh` calls
+`update_skills_after_cooldown` and `update_claude_plugins` in `claude-plugins.sh` calls
 `update_plugins_after_cooldown`, which give them the same 3 days that Composer, npm, and Python packages wait.
 `support/setup/packages/python-packages.sh` passes `--uploaded-prior-to P3D` only to pip install and update
 (requires pip 26.1+, with upload-time metadata from the index). The upstream state (a
@@ -166,7 +166,7 @@ itself; `claude-plugins.sh` sets it again after `claude plugin marketplace add`.
 and Ollama models (`support/setup/packages/`), Claude Code skills/plugins (`support/setup/claude/claude-skills.sh`,
 `claude-plugins.sh`), Codex-compatible skills (`support/setup/codex/codex-skills.sh`), and plugin marketplaces
 (`extraKnownMarketplaces` in `home/.claude/settings.json`) are each treated as the full desired state.
-`claude_plugins_install` and `claude_plugins_cleanup` in `support/setup/claude/claude-plugins.sh` read that
+`install_claude_plugins` and `clean_up_claude_plugins` in `support/setup/claude/claude-plugins.sh` read that
 marketplace declaration instead of maintaining a second URL list. Marketplace cleanup uses the CLI to remove
 undeclared registry entries; this also uninstalls their plugins and can delete saved plugin data. Marketplaces
 needed by project/local plugins are retained. Removal runs from `$HOME` so the CLI cannot change declarations
@@ -174,7 +174,7 @@ in the calling project. An unreadable plugin listing prevents marketplace cleanu
 After each update step, `bin/update.sh` removes anything installed but not declared: Homebrew and
 Mac App Store apps (the Brewfile's `mas` entries) via `brew bundle cleanup --force` in
 `support/setup/packages/homebrew-packages.sh`, the others via a
-`*_cleanup` function in the declaring file, while `codex-skills.sh`
+`clean_up_*` function in the declaring file, while `codex-skills.sh`
 prunes its own stale links on every run. When adding a package or skill, add it to the declaration; do not
 install it out of band, or the next `update.sh` run removes it. Run the third-party skill review below before
 adding a skill to `support/setup/claude/claude-skills.sh`. Add a source to `CODEX_COMPATIBLE_SKILLS` or
@@ -214,12 +214,12 @@ before `skills_cli add`, so review does not depend on remembering this checklist
 Add each new `THIRD_PARTY_SKILLS` entry from `support/setup/claude/claude-skills.sh` to the third-party ignore
 list in `.editorconfig`, so `bin/format.sh` leaves its scripts as upstream wrote them.
 
-**`support/setup/clean-state.sh` prepares directories and clears paths for symlinks.** Its `clean_state_apply`
+**`support/setup/home-directories.sh` prepares directories and clears paths for symlinks.** Its `prepare_home_directories`
 creates `~/Screenshots`, `~/Temp`, `~/Code`, `~/.config/ghostty`, `~/.config/git`, `~/.claude`, and `~/.codex`,
 and an empty `~/.extra` when none exists.
-`support/setup/symlink-dotfiles.sh` defines `symlink_dotfiles_apply`, which uses `ln -sf`/`ln -sfn` for every
+`support/setup/dotfile-links.sh` defines `link_dotfiles`, which uses `ln -sf`/`ln -sfn` for every
 managed path. Those commands already replace an existing file or symlink, but cannot replace a real directory,
-so `clean_state_apply` clears the five `~/.claude/` paths (`agents`, `commands`, `hooks`, `rules`, `skills`)
+so `prepare_home_directories` clears the five `~/.claude/` paths (`agents`, `commands`, `hooks`, `rules`, `skills`)
 before symlinking. The content of an existing `~/.extra` and files it does not know about are left untouched. Both files only define
 functions when sourced; install and reconfigure call them explicitly, and each function reports its own step
 and result.
@@ -273,7 +273,7 @@ place that logic lives; callers never re-derive it. Its priority order is covere
 - `tests/git/*.bats`: the helpers from `support/git/`
 - `tests/setup/claude/*.bats`, `tests/setup/codex/*.bats`, `tests/setup/packages/*.bats`: the setup/cleanup
   declarations in `support/setup/claude/`, `support/setup/codex/`, and `support/setup/packages/`
-- `tests/setup/herd/*.bats`: `support/setup/herd-debug-ini.sh` and `support/setup/herd-onboarding.sh`
+- `tests/setup/herd/*.bats`: `support/setup/herd/herd-xdebug.sh` and `support/setup/herd/herd-onboarding.sh`
 - `tests/bin/macos-defaults.bats`: `bin/macos-defaults.sh`
 - `tests/bin/update.bats`: a full `bin/update.sh` run across all package cleanups
 - `tests/bin/reconfigure.bats`: configuration application without macOS defaults or an unconditional sudo request
@@ -302,8 +302,12 @@ These conventions apply to the repository's own shell code, excluding third-part
   so callers can distinguish diagnostics from normal output.
 - Use explicit `if` blocks for argument checks, making each error and return visible.
 - Check `-h`/`--help` before argument validation, print usage to stdout, and return 0 so help does no work.
-- Setup files define variables/functions; entry points call `<file>_<verb>` functions explicitly, keeping
+- Setup files define variables/functions; entry points call them explicitly, keeping
   sourcing free of machine changes.
+- Name functions verb first, after the action and its subject (`install_npm_packages`, `wait_for_herd_onboarding`),
+  so an entry point reads as the sequence of steps it runs. Predicates start with `is_` or `has_`, functions that
+  print a value with `print_` or `read_`, and a wrapper around one command keeps that command's name (`global_npm`,
+  `skills_cli`).
 - Keep only contract or constraint comments under `home/.claude/rules/code-comments.md`; shared rationale
   belongs here to avoid repetition.
 - Do not use en or em dashes as punctuation, including output strings, matching the writing rules.

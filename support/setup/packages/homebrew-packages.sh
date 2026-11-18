@@ -5,7 +5,7 @@
 
 # Already-installed packages are skipped; any remaining bundle failure is downgraded to a
 # warning so the installation can continue.
-homebrew_packages_install() {
+install_homebrew_packages() {
     step "Installing packages from Brewfile"
     if brew bundle --file=~/.dotfiles/support/config/Brewfile; then
         success "Brewfile processed"
@@ -16,8 +16,8 @@ homebrew_packages_install() {
 
 # update/upgrade first so bundle's own install and the cleanup below act on current formula
 # versions. A package that cannot be updated is reported and the update goes on, as in
-# homebrew_packages_install.
-homebrew_packages_update() {
+# install_homebrew_packages.
+update_homebrew_packages() {
     step "Updating Homebrew packages"
     brew update || warn "Could not update Homebrew itself, see the output above"
     brew upgrade || warn "Could not upgrade every Homebrew package, see the output above"

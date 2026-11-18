@@ -31,7 +31,7 @@ teardown() {
     write_fake_binary brew
 
     # Act
-    run call_setup_function "$target" homebrew_packages_install
+    run call_setup_function "$target" install_homebrew_packages
 
     # Assert
     assert_success
@@ -44,7 +44,7 @@ teardown() {
     write_fake_binary brew 'exit 1'
 
     # Act
-    run call_setup_function "$target" homebrew_packages_install
+    run call_setup_function "$target" install_homebrew_packages
 
     # Assert
     assert_success
@@ -56,7 +56,7 @@ teardown() {
     write_fake_binary brew
 
     # Act
-    run call_setup_function "$target" homebrew_packages_update
+    run call_setup_function "$target" update_homebrew_packages
 
     # Assert
     assert_success

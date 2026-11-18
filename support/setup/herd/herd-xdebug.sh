@@ -12,7 +12,7 @@
 # exports XDEBUG_MODE (a project's `composer test` sets XDEBUG_MODE=coverage)
 # activates it for that run only. This is what Pest's coverage-driver detection
 # expects and mirrors CI; the debug.ini above stays for `herd debug`.
-herd_debug_ini_install() {
+install_herd_xdebug() {
     step "Installing Herd's Xdebug ini files for installed PHP versions"
 
     local installed_versions version version_slug debug_dir debug_ini xdebug_extension always_ini write_failed

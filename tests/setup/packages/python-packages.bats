@@ -31,7 +31,7 @@ teardown() {
     given_fake_python_reporting_installed '[]'
 
     # Act
-    run call_setup_function "$target" python_packages_install
+    run call_setup_function "$target" install_python_packages
 
     # Assert
     assert_success
@@ -44,7 +44,7 @@ teardown() {
     given_fake_python_reporting_installed '[{"name":"leftpad"}]'
 
     # Act
-    run call_setup_function "$target" python_packages_install python_packages_update python_packages_cleanup
+    run call_setup_function "$target" install_python_packages update_python_packages clean_up_python_packages
 
     # Assert
     assert_success
@@ -59,7 +59,7 @@ teardown() {
     given_fake_python_reporting_installed '[{"name":"pypdf"},{"name":"leftpad"}]'
 
     # Act
-    run call_cleanup_function "$target" python_packages_cleanup
+    run call_cleanup_function "$target" clean_up_python_packages
 
     # Assert
     assert_success
@@ -72,7 +72,7 @@ teardown() {
     given_fake_python_reporting_installed '[{"name":"PyPDF"},{"name":"ReportLab"}]'
 
     # Act
-    run call_cleanup_function "$target" python_packages_cleanup
+    run call_cleanup_function "$target" clean_up_python_packages
 
     # Assert
     assert_success
@@ -85,7 +85,7 @@ teardown() {
     given_fake_python_failing_to_report_installed
 
     # Act
-    run call_cleanup_function "$target" python_packages_cleanup
+    run call_cleanup_function "$target" clean_up_python_packages
 
     # Assert
     assert_success
@@ -95,7 +95,7 @@ teardown() {
 
 @test "cleanup is skipped entirely when python3 is not installed" {
     # Act
-    PATH="/bin" run call_cleanup_function "$target" python_packages_cleanup
+    PATH="/bin" run call_cleanup_function "$target" clean_up_python_packages
 
     # Assert
     assert_success
@@ -105,7 +105,7 @@ teardown() {
 @test "install and update apply a three-day cooldown without passing it to list or uninstall" {
     given_fake_python_reporting_installed '[{"name":"leftpad"}]'
 
-    run call_setup_function "$target" python_packages_install python_packages_update python_packages_cleanup
+    run call_setup_function "$target" install_python_packages update_python_packages clean_up_python_packages
 
     assert_success
     local call installs=0

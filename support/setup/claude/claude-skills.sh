@@ -26,7 +26,7 @@ skills_cli() {
 
 # Clarity's root SKILL.md makes the CLI copy its whole repository, including the
 # website. Keep only the runtime and license after every install/update.
-claude_skills_trim_clarity() {
+trim_clarity_skill() {
     local skill_dir="$HOME/.claude/skills/clarity"
     [[ -f "$skill_dir/SKILL.md" ]] || return 0
 
@@ -39,7 +39,7 @@ claude_skills_trim_clarity() {
         ! -name strip_markdown.py ! -name prose_stats.py -exec rm -rf -- {} +
 }
 
-claude_skills_install() {
+install_claude_skills() {
     step "Installing Claude Code skills"
     # Only skills missing from the lock file are added, so a failed add is a real problem, and an
     # installed skill changes only through update_skills_after_cooldown. No lock file yet means
@@ -55,16 +55,16 @@ claude_skills_install() {
         printf '%s\n' "$installed_skills" | grep -qxF "$skill" && continue
         skills_cli add "$repo" -s "$skill" --global -y --agent claude-code || warn "Could not install $skill"
     done
-    claude_skills_trim_clarity || warn "Could not trim Clarity's repository extras"
+    trim_clarity_skill || warn "Could not trim Clarity's repository extras"
     success "Claude Code skills processed"
 }
 
 # A new upstream version of a skill waits out the same 3-day cooldown as Composer and npm. Needs
 # support/setup/claude/update-cooldown.sh sourced as well.
-claude_skills_update() {
+update_claude_skills() {
     step "Updating Claude Code skills"
     update_skills_after_cooldown
-    claude_skills_trim_clarity || warn "Could not trim Clarity's repository extras"
+    trim_clarity_skill || warn "Could not trim Clarity's repository extras"
     success "Claude Code skill updates processed"
 }
 
@@ -72,7 +72,7 @@ claude_skills_update() {
 # equivalent of `brew bundle cleanup --force`. That includes skills added by hand with
 # `npx skills add` (or by Claude on request), even when only their entry in the lock file
 # is left and the folder is already gone.
-claude_skills_cleanup() {
+clean_up_claude_skills() {
     [[ -f "$SKILL_LOCK_FILE" ]] || return 0
 
     step "Checking for undeclared Claude Code skills"

@@ -35,7 +35,7 @@ teardown() {
     given_herd_npm_first_on_path
 
     # Act
-    run call_setup_function "$target" npm_packages_install
+    run call_setup_function "$target" install_npm_packages
 
     # Assert
     assert_success
@@ -49,7 +49,7 @@ teardown() {
     write_fake_binary agent-browser
 
     # Act
-    run call_setup_function "$target" npm_packages_install
+    run call_setup_function "$target" install_npm_packages
 
     # Assert
     assert_success
@@ -62,7 +62,7 @@ teardown() {
     given_herd_npm_first_on_path
 
     # Act
-    run call_cleanup_function "$target" npm_packages_cleanup
+    run call_cleanup_function "$target" clean_up_npm_packages
 
     # Assert
     assert_success
@@ -75,7 +75,7 @@ teardown() {
     given_fake_npm_reporting_installed '{"dependencies":{"typescript":{},"leftpad":{}}}'
 
     # Act
-    run call_cleanup_function "$target" npm_packages_cleanup
+    run call_cleanup_function "$target" clean_up_npm_packages
 
     # Assert
     assert_success
@@ -88,7 +88,7 @@ teardown() {
     given_fake_npm_reporting_installed '{"dependencies":{"npm":{},"corepack":{}}}'
 
     # Act
-    run call_cleanup_function "$target" npm_packages_cleanup
+    run call_cleanup_function "$target" clean_up_npm_packages
 
     # Assert
     assert_success
@@ -100,7 +100,7 @@ teardown() {
     given_fake_npm_reporting_installed '{"dependencies":{"typescript":{},"intelephense":{}}}'
 
     # Act
-    run call_cleanup_function "$target" npm_packages_cleanup
+    run call_cleanup_function "$target" clean_up_npm_packages
 
     # Assert
     assert_success
@@ -113,7 +113,7 @@ teardown() {
     given_fake_npm_failing_to_report_installed
 
     # Act
-    run call_cleanup_function "$target" npm_packages_cleanup
+    run call_cleanup_function "$target" clean_up_npm_packages
 
     # Assert
     assert_success
@@ -123,7 +123,7 @@ teardown() {
 
 @test "cleanup is skipped entirely when npm is not installed" {
     # Act
-    PATH="/usr/bin:/bin" run call_cleanup_function "$target" npm_packages_cleanup
+    PATH="/usr/bin:/bin" run call_cleanup_function "$target" clean_up_npm_packages
 
     # Assert
     assert_success
@@ -143,7 +143,7 @@ teardown() {
         "$test_home/.agent-browser/browsers/chrome-99.0.1.1"
 
     # Act
-    run call_setup_function "$target" npm_packages_install
+    run call_setup_function "$target" install_npm_packages
 
     # Assert
     assert_success
@@ -160,7 +160,7 @@ teardown() {
     write_fake_binary agent-browser
 
     # Act
-    run call_setup_function "$target" npm_packages_install
+    run call_setup_function "$target" install_npm_packages
 
     # Assert
     assert_success

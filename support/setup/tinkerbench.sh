@@ -5,7 +5,7 @@
 # untouched and updated like any other project. Clone and setup are guarded
 # separately: composer setup creates `.env`, so an interrupted setup is retried
 # on the next run.
-tinkerbench_setup() {
+set_up_tinkerbench() {
     step "Setting up tinkerbench.test"
 
     local target="$HOME/Code/tinkerbench"

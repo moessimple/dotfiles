@@ -1,6 +1,6 @@
 #!/bin/bash
 
-oh_my_zsh_install() {
+install_oh_my_zsh() {
     step "Installing Oh My Zsh"
     # The directory check also catches a failed download, which leaves sh with empty input and
     # a zero exit status.

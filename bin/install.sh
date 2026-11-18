@@ -5,12 +5,12 @@ set -e
 source ~/.dotfiles/support/setup/output.sh
 source ~/.dotfiles/support/setup/machine-profile.sh
 source ~/.dotfiles/support/setup/services.sh
-source ~/.dotfiles/support/setup/herd-onboarding.sh
-source ~/.dotfiles/support/setup/herd-debug-ini.sh
-source ~/.dotfiles/support/setup/tinkerbench/tinkerbench.sh
-source ~/.dotfiles/support/setup/clean-state.sh
+source ~/.dotfiles/support/setup/herd/herd-onboarding.sh
+source ~/.dotfiles/support/setup/herd/herd-xdebug.sh
+source ~/.dotfiles/support/setup/tinkerbench.sh
+source ~/.dotfiles/support/setup/home-directories.sh
 source ~/.dotfiles/support/setup/oh-my-zsh.sh
-source ~/.dotfiles/support/setup/symlink-dotfiles.sh
+source ~/.dotfiles/support/setup/dotfile-links.sh
 source ~/.dotfiles/support/setup/packages/homebrew-packages.sh
 source ~/.dotfiles/support/setup/packages/composer-packages.sh
 source ~/.dotfiles/support/setup/packages/npm-packages.sh
@@ -20,7 +20,7 @@ source ~/.dotfiles/support/setup/claude/claude-skills.sh
 source ~/.dotfiles/support/setup/claude/claude-plugins.sh
 source ~/.dotfiles/support/setup/codex/codex-skills.sh
 
-machine_profile_load
+load_machine_profile
 
 echo ""
 step "Install Dotfiles"
@@ -87,9 +87,9 @@ fi
 echo ""
 sudo -v
 
-clean_state_apply
+prepare_home_directories
 
-oh_my_zsh_install
+install_oh_my_zsh
 
 # Installer shells do not read home/.zprofile, so a new Homebrew installation needs shellenv here.
 step "Installing Homebrew"
@@ -102,36 +102,36 @@ fi
 command -v brew &>/dev/null || error "Homebrew installation failed"
 success "Homebrew installed"
 
-symlink_dotfiles_apply
+link_dotfiles
 
-homebrew_packages_install
+install_homebrew_packages
 
-composer_packages_install
+install_composer_packages
 
 # Herd onboarding: Homebrew installs only the app bundle. The following steps
 # need the CLI binaries created during Herd's one-time onboarding.
-herd_onboarding_wait
+wait_for_herd_onboarding
 
 # Install Xdebug configuration before any Herd project uses coverage or debug.
-herd_debug_ini_install
+install_herd_xdebug
 
-tinkerbench_setup
+set_up_tinkerbench
 
-npm_packages_install
+install_npm_packages
 
 # Python packages: after the Brewfile, which installs python3 and the PDF tools they call.
-python_packages_install
+install_python_packages
 
-claude_skills_install
+install_claude_skills
 
-claude_plugins_install
+install_claude_plugins
 
-codex_skills_link
+link_codex_skills
 
-services_start
+start_services
 
 # Ollama models: after services.sh, which starts the Ollama service the pulls talk to.
-ollama_models_install
+install_ollama_models
 
 # macOS defaults: run last because they quit the affected apps, Terminal among them.
 step "Applying macOS defaults"

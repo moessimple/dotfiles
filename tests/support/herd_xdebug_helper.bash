@@ -1,15 +1,15 @@
-# Fixtures for tests/setup/herd/xdebug-ini.bats.
+# Fixtures for tests/setup/herd/herd-xdebug.bats.
 #
-# bin/install.sh and bin/reconfigure.sh call herd_debug_ini_install from
-# support/setup/herd-debug-ini.sh. These helpers stand in for the two
+# bin/install.sh and bin/reconfigure.sh call install_herd_xdebug from
+# support/setup/herd/herd-xdebug.sh. These helpers stand in for the two
 # things it reaches outside the repo:
 #   - `herd php:list --json`, faked on PATH to report chosen PHP versions
 #   - the Herd.app resources tree (debug.ini template + xdebug-<slug>-arm64.so
 #     builds), redirected with HERD_RESOURCES_DIR to a fixture directory
 # HOME points at a fixture so the generated ini files land under a temp scan dir.
 
-setup_herd_debug_ini_fixture() {
-    target="$dotfiles_dir/support/setup/herd-debug-ini.sh"
+setup_herd_xdebug_fixture() {
+    target="$dotfiles_dir/support/setup/herd/herd-xdebug.sh"
     test_home="$fixture/home"
     herd_resources="$fixture/herd-resources"
     mkdir -p "$test_home" "$herd_resources"
@@ -72,10 +72,10 @@ given_existing_ini_file() {
     printf '%s\n' "$contents" >"$absolute_path"
 }
 
-# Calls herd_debug_ini_install the way bin/reconfigure.sh does. Call it through `run` from
+# Calls install_herd_xdebug the way bin/reconfigure.sh does. Call it through `run` from
 # the test body.
-run_herd_debug_ini_setup() {
-    HERD_RESOURCES_DIR="$herd_resources" call_setup_function "$target" herd_debug_ini_install
+run_herd_xdebug_setup() {
+    HERD_RESOURCES_DIR="$herd_resources" call_setup_function "$target" install_herd_xdebug
 }
 
 ini_path() {

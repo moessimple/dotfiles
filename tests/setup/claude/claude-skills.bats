@@ -41,7 +41,7 @@ teardown() {
         touch "$clarity_dir/README.md" "$clarity_dir/scripts/validate_package.py"
 
         # Act
-        run call_setup_function "$target" claude_skills_install
+        run call_setup_function "$target" install_claude_skills
 
         # Assert
         assert_success
@@ -58,7 +58,7 @@ teardown() {
     touch "$test_home/.claude/skills/clarity/site/keep"
 
     # Act
-    run call_setup_function "$target" claude_skills_install
+    run call_setup_function "$target" install_claude_skills
 
     # Assert
     assert_success
@@ -67,7 +67,7 @@ teardown() {
 
 @test "skills are installed through the pinned skills CLI with a release-age cooldown" {
     # Act
-    run call_setup_function "$target" claude_skills_install
+    run call_setup_function "$target" install_claude_skills
 
     # Assert
     assert_success
@@ -79,7 +79,7 @@ teardown() {
     given_skill_lock_file '{"skills":{"pdf":{}}}'
 
     # Act
-    run call_setup_function "$target" claude_skills_install
+    run call_setup_function "$target" install_claude_skills
 
     # Assert
     assert_success
@@ -92,7 +92,7 @@ teardown() {
     given_skills_cli_failing_to_add_skills
 
     # Act
-    run call_setup_function "$target" claude_skills_install
+    run call_setup_function "$target" install_claude_skills
 
     # Assert
     assert_success
@@ -104,7 +104,7 @@ teardown() {
     given_unreadable_skill_lock_file
 
     # Act
-    run call_setup_function "$target" claude_skills_install
+    run call_setup_function "$target" install_claude_skills
 
     # Assert
     assert_success
@@ -118,7 +118,7 @@ teardown() {
     given_skill_lock_file '{"skills":{"diagnosing-bugs":{},"stale-skill":{}}}'
 
     # Act
-    run call_cleanup_function "$target" claude_skills_cleanup
+    run call_cleanup_function "$target" clean_up_claude_skills
 
     # Assert
     assert_success
@@ -132,7 +132,7 @@ teardown() {
     given_skill_lock_file '{"skills":{"pdf":{}}}'
 
     # Act
-    run call_cleanup_function "$target" claude_skills_cleanup
+    run call_cleanup_function "$target" clean_up_claude_skills
 
     # Assert
     assert_success
@@ -145,7 +145,7 @@ teardown() {
     given_unreadable_skill_lock_file
 
     # Act
-    run call_cleanup_function "$target" claude_skills_cleanup
+    run call_cleanup_function "$target" clean_up_claude_skills
 
     # Assert
     assert_success
@@ -155,7 +155,7 @@ teardown() {
 
 @test "cleanup is skipped entirely when no lock file exists yet" {
     # Act
-    run call_cleanup_function "$target" claude_skills_cleanup
+    run call_cleanup_function "$target" clean_up_claude_skills
 
     # Assert
     assert_success

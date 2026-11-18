@@ -12,11 +12,11 @@ setup() {
     write_fake_binary sudo
 
     # Keep the real directory preparation and symlinks; isolate service and app setup.
-    given_setup_function_stub herd-onboarding.sh herd_onboarding_wait
-    given_setup_function_stub herd-debug-ini.sh herd_debug_ini_install
-    given_setup_function_stub tinkerbench/tinkerbench.sh tinkerbench_setup
-    given_setup_function_stub services.sh services_start
-    given_setup_function_stub codex/codex-skills.sh codex_skills_link
+    given_setup_function_stub herd/herd-onboarding.sh wait_for_herd_onboarding
+    given_setup_function_stub herd/herd-xdebug.sh install_herd_xdebug
+    given_setup_function_stub tinkerbench.sh set_up_tinkerbench
+    given_setup_function_stub services.sh start_services
+    given_setup_function_stub codex/codex-skills.sh link_codex_skills
     printf 'echo "macOS settings must stay separate"\nexit 89\n' >"$repository/bin/macos-defaults.sh"
 }
 
@@ -42,7 +42,7 @@ teardown() {
     # Assert
     assert_success
     [ "$(readlink "$test_home/.aliases")" = "$repository/home/.aliases" ]
-    assert_file_exists "$test_home/herd-debug-ini.sh.applied"
+    assert_file_exists "$test_home/herd-xdebug.sh.applied"
     assert_file_exists "$test_home/herd-onboarding.sh.applied"
     assert_file_exists "$test_home/tinkerbench.sh.applied"
     assert_file_exists "$test_home/services.sh.applied"
@@ -54,15 +54,15 @@ teardown() {
         [ -d "$test_home/$directory" ]
     done
     assert_file_exists "$test_home/.extra"
-    [[ "$output" == *"Prepare clean state"*"Clean state prepared"*"Creating symlinks"*"Symlinks created"* ]]
+    [[ "$output" == *"Preparing home directories"*"Home directories prepared"*"Creating symlinks"*"Symlinks created"* ]]
 }
 
-@test "sourcing clean-state leaves existing directories untouched" {
+@test "sourcing home-directories leaves existing directories untouched" {
     mkdir -p "$test_home/.claude/skills"
     touch "$test_home/.claude/skills/local-skill"
 
     run env HOME="$test_home" /bin/bash -c 'source "$1"' bash \
-        "$repository/support/setup/clean-state.sh"
+        "$repository/support/setup/home-directories.sh"
 
     assert_success
     [ -z "$output" ]
@@ -70,11 +70,11 @@ teardown() {
     assert_path_does_not_exist "$test_home/Screenshots"
 }
 
-@test "sourcing symlink-dotfiles leaves existing files untouched" {
+@test "sourcing dotfile-links leaves existing files untouched" {
     printf 'local aliases\n' >"$test_home/.aliases"
 
     run env HOME="$test_home" /bin/bash -c 'source "$1"' bash \
-        "$repository/support/setup/symlink-dotfiles.sh"
+        "$repository/support/setup/dotfile-links.sh"
 
     assert_success
     [ -z "$output" ]

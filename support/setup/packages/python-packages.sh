@@ -19,19 +19,19 @@ PYTHON_PACKAGES=(
 # the packages in ~/Library/Python/<version>, apart from Homebrew's own site-packages. That
 # directory is per Python minor version, so after Homebrew moves to a new one the packages
 # are missing until the next install or update run installs them there again, and the
-# directory of the previous version stays behind, unseen by python_packages_cleanup.
+# directory of the previous version stays behind, unseen by clean_up_python_packages.
 python_pip() {
     PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip "$@" --disable-pip-version-check
 }
 
 # Wait three days after upload, as Composer and npm do for new releases. Requires pip 26.1+.
-python_packages_install() {
+install_python_packages() {
     step "Installing Python packages"
     python_pip install --user --quiet --no-warn-script-location --uploaded-prior-to P3D "${PYTHON_PACKAGES[@]}" || warn "Some Python packages failed to install"
     success "Python packages processed"
 }
 
-python_packages_update() {
+update_python_packages() {
     step "Updating Python packages"
     if python_pip install --user --quiet --no-warn-script-location --uploaded-prior-to P3D --upgrade "${PYTHON_PACKAGES[@]}"; then
         success "Python packages updated"
@@ -41,8 +41,8 @@ python_packages_update() {
 }
 
 # Removes any user-installed Python package that isn't in PYTHON_PACKAGES. Same idea as
-# `brew bundle cleanup --force` and npm_packages_cleanup in npm-packages.sh.
-python_packages_cleanup() {
+# `brew bundle cleanup --force` and clean_up_npm_packages in npm-packages.sh.
+clean_up_python_packages() {
     command -v python3 &>/dev/null || return 0
 
     step "Checking for undeclared Python packages"

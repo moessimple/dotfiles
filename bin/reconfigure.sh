@@ -5,34 +5,34 @@ set -e
 source ~/.dotfiles/support/setup/output.sh
 source ~/.dotfiles/support/setup/machine-profile.sh
 source ~/.dotfiles/support/setup/services.sh
-source ~/.dotfiles/support/setup/herd-onboarding.sh
-source ~/.dotfiles/support/setup/herd-debug-ini.sh
-source ~/.dotfiles/support/setup/tinkerbench/tinkerbench.sh
-source ~/.dotfiles/support/setup/clean-state.sh
-source ~/.dotfiles/support/setup/symlink-dotfiles.sh
+source ~/.dotfiles/support/setup/herd/herd-onboarding.sh
+source ~/.dotfiles/support/setup/herd/herd-xdebug.sh
+source ~/.dotfiles/support/setup/tinkerbench.sh
+source ~/.dotfiles/support/setup/home-directories.sh
+source ~/.dotfiles/support/setup/dotfile-links.sh
 source ~/.dotfiles/support/setup/codex/codex-skills.sh
 
 # Validate the saved profile before changing machine configuration.
-machine_profile_load
+load_machine_profile
 
-clean_state_apply
+prepare_home_directories
 
-symlink_dotfiles_apply
+link_dotfiles
 
 # Reapply the reviewed shared-skill links without reinstalling the skills.
-codex_skills_link
+link_codex_skills
 
 # Herd onboarding: reconfigure does not install Herd, but it completes
 # onboarding when an existing installation has not been initialized. The
 # following steps need Herd's CLI binaries.
-herd_onboarding_wait
+wait_for_herd_onboarding
 
 # Install Xdebug configuration before any Herd project uses coverage or debug.
-herd_debug_ini_install
+install_herd_xdebug
 
 # tinkerbench (tinkerbench.test)
-tinkerbench_setup
+set_up_tinkerbench
 
-services_start
+start_services
 
 finish "Configuration applied"

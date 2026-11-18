@@ -19,7 +19,7 @@ teardown() {
     printf 'http_addr = "0.0.0.0:7700"\n' >"$fixture/var/config.toml"
 
     # Act
-    run call_setup_function "$dotfiles_dir/support/setup/services.sh" services_start
+    run call_setup_function "$dotfiles_dir/support/setup/services.sh" start_services
 
     # Assert
     assert_success

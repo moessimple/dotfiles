@@ -48,7 +48,7 @@ source_codex_skills_setup() {
 
 run_codex_skills_setup() {
     CODEX_SKILLS_SOURCE="$source_dir" CODEX_SKILLS_TARGET="$skills_dir" \
-        CLAUDE_PLUGIN_CACHE="$plugin_cache" CLAUDE_INSTALLED_PLUGINS="$installed_plugins" call_setup_function "$target" codex_skills_link
+        CLAUDE_PLUGIN_CACHE="$plugin_cache" CLAUDE_INSTALLED_PLUGINS="$installed_plugins" call_setup_function "$target" link_codex_skills
 }
 
 @test "sourcing codex-skills.sh only defines its functions and links nothing" {
@@ -92,7 +92,7 @@ exec /bin/ln "$@"'
         /bin/bash -ec '
             source "$1/support/setup/output.sh"
             source "$1/support/setup/codex/codex-skills.sh"
-            codex_skills_link
+            link_codex_skills
             finish "Configuration applied"
         ' bash "$dotfiles_dir"
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-services_start() {
+start_services() {
     step "Starting background services"
     brew services start mailpit || warn "Could not start mailpit"
 

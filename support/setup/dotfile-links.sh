@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Needed before anything that relies on ~/.aliases, ~/.zshrc etc. existing.
-symlink_dotfiles_apply() {
+link_dotfiles() {
     step "Creating symlinks"
     ln -sf ~/.dotfiles/home/.aliases ~/.aliases
     ln -sf ~/.dotfiles/home/.exports ~/.exports

@@ -39,7 +39,7 @@ SCRIPT
 
 # Stands in for every external tool a full update.sh run drives (Homebrew, Composer, npm,
 # pip via python3, agent-browser, the `skills` CLI via npx, Claude Code, and Ollama), each reporting an empty installed
-# set so every *_cleanup function reports a clean state instead of touching real package managers.
+# set so every clean_up_* function reports a clean state instead of touching real package managers.
 given_every_external_tool_update_touches_is_faked() {
     write_fake_binary brew
     write_fake_binary npx

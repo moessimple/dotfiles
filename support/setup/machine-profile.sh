@@ -1,6 +1,6 @@
 #!/bin/bash
 
-machine_profile_load() {
+load_machine_profile() {
     # Existing machines remain private until install explicitly saves a profile.
     DOTFILES_PROFILE=private
     if [[ -f "$HOME/.config/dotfiles/profile" ]]; then

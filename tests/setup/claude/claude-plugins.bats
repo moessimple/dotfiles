@@ -45,7 +45,7 @@ list_plugin_marketplaces_missing_from_settings() {
   Args: -y chrome-devtools-mcp@latest --isolated"
 
     # Act
-    run call_setup_function "$target" claude_plugins_install
+    run call_setup_function "$target" install_claude_plugins
 
     # Assert
     assert_success
@@ -61,7 +61,7 @@ list_plugin_marketplaces_missing_from_settings() {
   Args: -y chrome-devtools-mcp@1.12.0 --isolated"
 
     # Act
-    run call_setup_function "$target" claude_plugins_install
+    run call_setup_function "$target" install_claude_plugins
 
     # Assert
     assert_success
@@ -74,7 +74,7 @@ list_plugin_marketplaces_missing_from_settings() {
     given_fake_claude '[]' ""
 
     # Act
-    run call_setup_function "$target" claude_plugins_install
+    run call_setup_function "$target" install_claude_plugins
 
     # Assert
     assert_success
@@ -87,7 +87,7 @@ list_plugin_marketplaces_missing_from_settings() {
     given_fake_claude '[]' ""
 
     # Act
-    run call_setup_function "$target" claude_plugins_install
+    run call_setup_function "$target" install_claude_plugins
 
     # Assert
     assert_success
@@ -104,7 +104,7 @@ list_plugin_marketplaces_missing_from_settings() {
     given_claude_knows_marketplaces https://github.com/anthropics/claude-plugins-official.git
 
     # Act
-    run call_setup_function "$target" claude_plugins_install
+    run call_setup_function "$target" install_claude_plugins
 
     # Assert
     assert_success
@@ -118,7 +118,7 @@ list_plugin_marketplaces_missing_from_settings() {
     given_settings_linked_from_repository_with_marketplace https://github.com/pbakaus/impeccable.git
 
     # Act
-    run call_setup_function "$target" claude_plugins_install
+    run call_setup_function "$target" install_claude_plugins
 
     # Assert
     assert_success
@@ -132,7 +132,7 @@ list_plugin_marketplaces_missing_from_settings() {
     given_claude_failing_to_list_marketplaces
 
     # Act
-    run call_setup_function "$target" claude_plugins_install
+    run call_setup_function "$target" install_claude_plugins
 
     # Assert
     assert_success
@@ -167,7 +167,7 @@ list_plugin_marketplaces_missing_from_settings() {
     given_fake_claude '[]' ""
 
     # Act
-    run call_setup_function "$target" claude_plugins_install
+    run call_setup_function "$target" install_claude_plugins
 
     # Assert
     assert_success
@@ -179,7 +179,7 @@ list_plugin_marketplaces_missing_from_settings() {
     given_fake_claude '[{"id":"agent-skills@addy-agent-skills","scope":"user"}]' ""
 
     # Act
-    run call_setup_function "$target" claude_plugins_install
+    run call_setup_function "$target" install_claude_plugins
 
     # Assert
     assert_success
@@ -193,7 +193,7 @@ list_plugin_marketplaces_missing_from_settings() {
     given_claude_failing_to_install_plugins
 
     # Act
-    run call_setup_function "$target" claude_plugins_install
+    run call_setup_function "$target" install_claude_plugins
 
     # Assert
     assert_success
@@ -205,7 +205,7 @@ list_plugin_marketplaces_missing_from_settings() {
     given_fake_claude_failing_to_report_plugins_and_mcp_servers
 
     # Act
-    run call_setup_function "$target" claude_plugins_install
+    run call_setup_function "$target" install_claude_plugins
 
     # Assert
     assert_success
@@ -221,7 +221,7 @@ list_plugin_marketplaces_missing_from_settings() {
         ""
 
     # Act
-    run call_cleanup_function "$target" claude_plugins_cleanup
+    run call_cleanup_function "$target" clean_up_claude_plugins
 
     # Assert
     assert_success
@@ -236,7 +236,7 @@ list_plugin_marketplaces_missing_from_settings() {
         ""
 
     # Act
-    run call_cleanup_function "$target" claude_plugins_cleanup
+    run call_cleanup_function "$target" clean_up_claude_plugins
 
     # Assert
     assert_success
@@ -251,7 +251,7 @@ list_plugin_marketplaces_missing_from_settings() {
         ""
 
     # Act
-    run call_cleanup_function "$target" claude_plugins_cleanup
+    run call_cleanup_function "$target" clean_up_claude_plugins
 
     # Assert
     assert_success
@@ -263,7 +263,7 @@ list_plugin_marketplaces_missing_from_settings() {
     given_fake_claude '[{"id":"foo@bar","scope":"project"}]' ""
 
     # Act
-    run call_cleanup_function "$target" claude_plugins_cleanup
+    run call_cleanup_function "$target" clean_up_claude_plugins
 
     # Assert
     assert_success
@@ -280,7 +280,7 @@ undeclared-server: some-mcp-command" \
         undeclared-server "Scope: User config"
 
     # Act
-    run call_cleanup_function "$target" claude_plugins_cleanup
+    run call_cleanup_function "$target" clean_up_claude_plugins
 
     # Assert
     assert_success
@@ -295,7 +295,7 @@ undeclared-server: some-mcp-command" \
         project-server "Scope: Project config (.mcp.json)"
 
     # Act
-    run call_cleanup_function "$target" claude_plugins_cleanup
+    run call_cleanup_function "$target" clean_up_claude_plugins
 
     # Assert
     assert_success
@@ -311,7 +311,7 @@ undeclared-server: some-mcp-command" \
   Args: -y chrome-devtools-mcp@1.12.0 --isolated"
 
     # Act
-    run call_cleanup_function "$target" claude_plugins_cleanup
+    run call_cleanup_function "$target" clean_up_claude_plugins
 
     # Assert
     assert_success
@@ -325,7 +325,7 @@ undeclared-server: some-mcp-command" \
     given_fake_claude_failing_to_report_plugins_and_mcp_servers
 
     # Act
-    run call_cleanup_function "$target" claude_plugins_cleanup
+    run call_cleanup_function "$target" clean_up_claude_plugins
 
     # Assert
     assert_success
@@ -337,7 +337,7 @@ undeclared-server: some-mcp-command" \
 
 @test "cleanup is skipped entirely when the claude CLI is not installed" {
     # Act
-    PATH="/usr/bin:/bin" run call_cleanup_function "$target" claude_plugins_cleanup
+    PATH="/usr/bin:/bin" run call_cleanup_function "$target" clean_up_claude_plugins
 
     # Assert
     assert_success
@@ -352,7 +352,7 @@ undeclared-server: some-mcp-command" \
     given_fake_claude '[]' ""
     given_settings_linked_from_repository_with_marketplace https://example.invalid/custom.git
 
-    run call_setup_function "$target" claude_plugins_install
+    run call_setup_function "$target" install_claude_plugins
 
     assert_success
     assert_binary_called_with claude "plugin marketplace add https://example.invalid/custom"
@@ -363,7 +363,7 @@ undeclared-server: some-mcp-command" \
     given_fake_claude '[]' ""
     printf '%s\n' '[{"name":"laravel"},{"name":"stray"}]' >"$fake_bin/known-marketplaces.json"
 
-    run call_cleanup_function "$target" claude_plugins_cleanup
+    run call_cleanup_function "$target" clean_up_claude_plugins
 
     assert_success
     assert_binary_called_with claude "plugin marketplace remove stray"
@@ -376,7 +376,7 @@ undeclared-server: some-mcp-command" \
     printf '%s\n' '[{"name":"stray"}]' >"$fake_bin/known-marketplaces.json"
     printf 'invalid json\n' >"$test_home/.claude/settings.json"
 
-    run call_setup_function "$target" claude_plugins_install claude_plugins_cleanup
+    run call_setup_function "$target" install_claude_plugins clean_up_claude_plugins
 
     assert_success
     assert_output_contains "Could not read declared plugin marketplaces"
@@ -389,7 +389,7 @@ undeclared-server: some-mcp-command" \
     given_fake_claude '[]' ""
     given_claude_failing_to_list_marketplaces
 
-    run call_cleanup_function "$target" claude_plugins_cleanup
+    run call_cleanup_function "$target" clean_up_claude_plugins
 
     assert_success
     assert_output_contains "Could not read configured plugin marketplaces"
@@ -402,7 +402,7 @@ undeclared-server: some-mcp-command" \
     printf '%s\n' '[{"name":"stray"}]' >"$fake_bin/known-marketplaces.json"
     printf 'null\n' >"$test_home/.claude/settings.json"
 
-    run call_cleanup_function "$target" claude_plugins_cleanup
+    run call_cleanup_function "$target" clean_up_claude_plugins
 
     assert_success
     assert_output_contains "Could not read declared plugin marketplaces"
@@ -413,7 +413,7 @@ undeclared-server: some-mcp-command" \
     given_fake_claude '[]' ""
     printf '%s\n' '[{"name":"stray"},{}]' >"$fake_bin/known-marketplaces.json"
 
-    run call_cleanup_function "$target" claude_plugins_cleanup
+    run call_cleanup_function "$target" clean_up_claude_plugins
 
     assert_success
     assert_output_contains "Could not read configured plugin marketplaces"
@@ -426,7 +426,7 @@ undeclared-server: some-mcp-command" \
     local settings
     for settings in '' '{"extraKnownMarketplaces":false}' '{} {}' '{"extraKnownMarketplaces":[]}'; do
         printf '%s\n' "$settings" >"$test_home/.claude/settings.json"
-        run call_cleanup_function "$target" claude_plugins_cleanup
+        run call_cleanup_function "$target" clean_up_claude_plugins
         assert_success
         assert_output_contains "Could not read declared plugin marketplaces"
         assert_binary_not_called_with_substring claude "plugin marketplace remove"
@@ -437,7 +437,7 @@ undeclared-server: some-mcp-command" \
     given_fake_claude '[{"id":"project-plugin@stray","scope":"project"},{"id":"local-plugin@other","scope":"local"}]' ""
     printf '%s\n' '[{"name":"stray"},{"name":"other"}]' >"$fake_bin/known-marketplaces.json"
 
-    run call_cleanup_function "$target" claude_plugins_cleanup
+    run call_cleanup_function "$target" clean_up_claude_plugins
 
     assert_success
     assert_binary_not_called_with_substring claude "plugin marketplace remove"
@@ -450,7 +450,7 @@ undeclared-server: some-mcp-command" \
     touch "$fake_bin/plugin-list-fails"
     printf '%s\n' '[{"name":"stray"}]' >"$fake_bin/known-marketplaces.json"
 
-    run call_cleanup_function "$target" claude_plugins_cleanup
+    run call_cleanup_function "$target" clean_up_claude_plugins
 
     assert_success
     assert_output_contains "Could not read installed Claude Code plugins"
@@ -469,7 +469,7 @@ fi
 SCRIPT
     cleanup_in_project() (
         cd "$fixture/project"
-        call_cleanup_function "$target" claude_plugins_cleanup
+        call_cleanup_function "$target" clean_up_claude_plugins
     )
 
     run cleanup_in_project

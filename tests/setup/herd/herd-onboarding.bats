@@ -8,7 +8,7 @@ setup() {
     given_fake_bin_on_path
     test_home="$fixture/home"
     mkdir -p "$test_home"
-    target="$dotfiles_dir/support/setup/herd-onboarding.sh"
+    target="$dotfiles_dir/support/setup/herd/herd-onboarding.sh"
 }
 
 teardown() {
@@ -29,7 +29,7 @@ given_herd_cli_appears_during_the_wait() {
     given_herd_cli_appears_during_the_wait
 
     # Act
-    run list_variables_left_by_setup_function "$target" herd_onboarding_wait
+    run list_variables_left_by_setup_function "$target" wait_for_herd_onboarding
 
     # Assert
     assert_success

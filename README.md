@@ -30,7 +30,7 @@ The complete list of Homebrew formulae, applications, fonts, Quick Look plugins,
 > The installer replaces existing files with symlinks and does not back them up. It also clears five Claude Code
 > directories under `~/.claude/` (`agents`, `commands`, `hooks`, `rules`, `skills`) before linking them, and so does
 > `bin/reconfigure.sh`, including when called by `bin/update.sh`. Review
-> [`support/setup/clean-state.sh`](support/setup/clean-state.sh) and save anything you
+> [`support/setup/home-directories.sh`](support/setup/home-directories.sh) and save anything you
 > need there first.
 
 The macOS setup enables FileVault and the application firewall, disables hibernation on Macs without a battery,

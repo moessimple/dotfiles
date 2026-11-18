@@ -19,21 +19,21 @@ teardown() {
 }
 
 @test "sourcing Herd onboarding does not change PATH or start onboarding" {
-    run env HOME="$test_home" /bin/bash -ec 'source "$1/support/setup/output.sh"; previous_path="$PATH"; source "$1/support/setup/herd-onboarding.sh"; [[ "$PATH" == "$previous_path" ]]' bash "$dotfiles_dir"
+    run env HOME="$test_home" /bin/bash -ec 'source "$1/support/setup/output.sh"; previous_path="$PATH"; source "$1/support/setup/herd/herd-onboarding.sh"; [[ "$PATH" == "$previous_path" ]]' bash "$dotfiles_dir"
     assert_success
     [ -z "$output" ]
     assert_binary_not_called herd
 }
 
 @test "sourcing Herd debug ini setup does not configure PHP" {
-    run run_setup_script "$dotfiles_dir/support/setup/herd-debug-ini.sh"
+    run run_setup_script "$dotfiles_dir/support/setup/herd/herd-xdebug.sh"
     assert_success
     [ -z "$output" ]
     assert_binary_not_called herd
 }
 
 @test "sourcing tinkerbench setup does not clone or configure a project" {
-    run run_setup_script "$dotfiles_dir/support/setup/tinkerbench/tinkerbench.sh"
+    run run_setup_script "$dotfiles_dir/support/setup/tinkerbench.sh"
     assert_success
     [ -z "$output" ]
     assert_binary_not_called git

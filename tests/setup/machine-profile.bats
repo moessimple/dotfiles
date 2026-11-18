@@ -138,7 +138,7 @@ configure_profile() (
 }
 
 @test "no saved profile reads as private without questions or writes" {
-    run /bin/bash -ec 'source "$1/support/setup/output.sh"; source "$1/support/setup/machine-profile.sh"; machine_profile_load; printf "%s" "$DOTFILES_PROFILE"' bash "$dotfiles_dir"
+    run /bin/bash -ec 'source "$1/support/setup/output.sh"; source "$1/support/setup/machine-profile.sh"; load_machine_profile; printf "%s" "$DOTFILES_PROFILE"' bash "$dotfiles_dir"
     assert_success
     [ "$output" = private ]
     [ ! -e "$profile_file" ]
@@ -180,7 +180,7 @@ configure_profile() (
 @test "reconfigure and update accept a saved work profile without identity checks or prompts" {
     mkdir -p "$(dirname "$profile_file")"
     echo work >"$profile_file"
-    printf 'clean_state_apply() { exit 73; }\n' >"$HOME/.dotfiles/support/setup/clean-state.sh"
+    printf 'prepare_home_directories() { exit 73; }\n' >"$HOME/.dotfiles/support/setup/home-directories.sh"
     run /bin/bash "$dotfiles_dir/bin/reconfigure.sh" </dev/null
     [ "$status" -eq 73 ]
     run /bin/bash "$dotfiles_dir/bin/update.sh" </dev/null

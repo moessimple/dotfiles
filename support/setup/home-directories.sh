@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Creates the directories later steps write into and the machine-specific ~/.extra that .zshrc
-# sources, and removes the five ~/.claude/ directories symlink_dotfiles_apply links next.
-clean_state_apply() {
-    step "Prepare clean state"
+# sources, and removes the five ~/.claude/ directories link_dotfiles links next.
+prepare_home_directories() {
+    step "Preparing home directories"
     mkdir -p ~/Screenshots
     mkdir -p ~/Temp
     mkdir -p ~/Code
@@ -20,5 +20,5 @@ clean_state_apply() {
     rm -rf ~/.claude/hooks
     rm -rf ~/.claude/rules
     rm -rf ~/.claude/skills
-    success "Clean state prepared"
+    success "Home directories prepared"
 }

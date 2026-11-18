@@ -4,7 +4,7 @@
 # default PHP version, privileged background services and its CLI binaries.
 # Later setup needs those binaries, so a fresh machine waits here until
 # onboarding finishes.
-herd_onboarding_wait() {
+wait_for_herd_onboarding() {
     step "Waiting for Herd to finish onboarding"
 
     export PATH="$HOME/Library/Application Support/Herd/bin:$PATH"

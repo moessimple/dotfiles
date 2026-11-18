@@ -11,7 +11,7 @@ UPDATE_COOLDOWN_FIRST_SEEN="${XDG_CONFIG_HOME:-$HOME/.config}/claude-update-cool
 
 # Succeeds when upstream <state> of <id> has been seen unchanged for the cooldown. A state not seen
 # before is recorded as first seen now, replacing the previous one, so the cooldown starts again.
-cooled_down() {
+has_cooled_down() {
     local id="$1" state="$2" now seen
     now=$(date +%s)
     seen=$(awk -F '\t' -v id="$id" -v state="$state" '$1 == id && $2 == state { print $3 }' \
@@ -34,7 +34,7 @@ cooled_down() {
 # folder plus its marketplace entry, which can define hooks and servers itself. A source object
 # naming the marketplace's own repository is its root. Fails when the plugin is not listed or its
 # source is another repository, whose changes this checkout cannot see.
-plugin_state() {
+print_plugin_state() {
     local name="$1" checkout="$2" url="$3" entry source folder slug="" tree
     entry=$(git -C "$checkout" show HEAD:.claude-plugin/marketplace.json 2>/dev/null \
         | jq -ce --arg name "$name" 'first(.plugins[] | select(.name == $name))') || return 1
@@ -91,12 +91,12 @@ update_plugins_after_cooldown() {
         # cooldown. Every state is still checked, so each one's first sighting is recorded.
         for plugin in "${CLAUDE_PLUGINS[@]}"; do
             [[ "${plugin#*@}" == "$name" ]] || continue
-            if ! state=$(plugin_state "${plugin%@*}" "$checkout" "$url"); then
+            if ! state=$(print_plugin_state "${plugin%@*}" "$checkout" "$url"); then
                 warn "Could not check $plugin in the $name marketplace, not updated"
                 all_cooled_down=0
                 continue
             fi
-            cooled_down "$plugin" "$state" || all_cooled_down=0
+            has_cooled_down "$plugin" "$state" || all_cooled_down=0
             plugins+=("$plugin")
         done
         rm -rf "$checkout"
@@ -116,7 +116,7 @@ update_plugins_after_cooldown() {
 # Prints the tree the skills CLI recorded for an installed skill, resolved in <checkout>. The lock
 # file holds a tree hash for a skill in a subdirectory and a commit hash for one at the repository
 # root; ^{tree} turns both into the tree that upstream is compared against.
-installed_skill_tree() {
+print_installed_skill_tree() {
     local name="$1" checkout="$2" hash
     hash=$(jq -r --arg name "$name" '.skills[$name].skillFolderHash // empty' "$SKILL_LOCK_FILE" 2>/dev/null) || return 1
     [[ -n "$hash" ]] || return 1
@@ -144,7 +144,7 @@ update_skills_after_cooldown() {
         if ! git clone --quiet --filter=blob:none --no-checkout "$url" "$checkout" 2>/dev/null \
             || ! upstream=$(git -C "$checkout" rev-parse --verify --quiet "HEAD:$skill_dir"); then
             warn "Could not check $name, not updated"
-        elif [[ "$upstream" != "$(installed_skill_tree "$name" "$checkout")" ]] && cooled_down "$name" "$upstream"; then
+        elif [[ "$upstream" != "$(print_installed_skill_tree "$name" "$checkout")" ]] && has_cooled_down "$name" "$upstream"; then
             skills_cli update "$name" -g || warn "Could not update $name"
         fi
         rm -rf "$checkout"

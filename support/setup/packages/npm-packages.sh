@@ -8,7 +8,7 @@ NPM_PACKAGES=(
     typescript
 )
 # npm and corepack are managed as part of the Node toolchain rather than by this
-# file, so npm_packages_cleanup keeps them even though they aren't declared in
+# file, so clean_up_npm_packages keeps them even though they aren't declared in
 # NPM_PACKAGES.
 NPM_PACKAGES_KEEP=(
     npm
@@ -25,7 +25,7 @@ global_npm() {
 # `agent-browser install` downloads every new Chrome for Testing release (~360 MB each) next
 # to the previous ones and never removes them. It always launches the newest version, so
 # every older one is dead weight.
-agent_browser_prune_chrome() {
+prune_agent_browser_chrome() {
     local browsers="$HOME/.agent-browser/browsers"
     [[ -d "$browsers" ]] || return 0
 
@@ -40,7 +40,7 @@ agent_browser_prune_chrome() {
     done
 }
 
-npm_packages_install() {
+install_npm_packages() {
     step "Installing global npm packages"
     # A 3-day cooldown in the user config (~/.npmrc), the same window as Composer: install and update
     # skip releases younger than that, which keeps out hijacked releases that are found and pulled
@@ -52,11 +52,11 @@ npm_packages_install() {
         global_npm install -g "$package" || warn "Could not install $package"
     done
     agent-browser install 2>/dev/null || warn "agent-browser setup skipped"
-    agent_browser_prune_chrome
+    prune_agent_browser_chrome
     success "npm packages processed"
 }
 
-npm_packages_update() {
+update_npm_packages() {
     step "Updating global npm packages"
     if global_npm update -g --force; then
         success "npm packages updated"
@@ -69,8 +69,8 @@ npm_packages_update() {
 }
 
 # Removes any globally installed npm package that isn't in NPM_PACKAGES or NPM_PACKAGES_KEEP.
-# Same idea as `brew bundle cleanup --force` and claude_skills_cleanup in claude-skills.sh.
-npm_packages_cleanup() {
+# Same idea as `brew bundle cleanup --force` and clean_up_claude_skills in claude-skills.sh.
+clean_up_npm_packages() {
     [[ -x "${HOMEBREW_PREFIX:-/opt/homebrew}/bin/npm" ]] || return 0
 
     step "Checking for undeclared global npm packages"
@@ -132,7 +132,7 @@ raise_npm_pin() {
     note "Raised $package from $current to $newest in ${file#"$HOME/"}. Release notes: https://www.npmjs.com/package/$package/v/$newest. Commit the change before the next update."
 }
 
-npm_packages_raise_pins() {
+raise_npm_pins() {
     step "Checking pinned npm packages"
     raise_npm_pin chrome-devtools-mcp ~/.dotfiles/support/setup/claude/claude-plugins.sh CHROME_DEVTOOLS_MCP_VERSION
     raise_npm_pin skills ~/.dotfiles/support/setup/claude/claude-skills.sh SKILLS_CLI_VERSION
