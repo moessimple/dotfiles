@@ -2,6 +2,9 @@
 
 # Output helpers for the entry points in bin/.
 # The other setup scripts do not source this file: their tests stub these helpers first.
+# The entry points source this file and machine-profile.sh relative to their own path, not
+# through ~/.dotfiles like every other setup script: update.sh reports a missing or unusable
+# ~/.dotfiles checkout with these helpers, so they cannot come from that checkout.
 
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
