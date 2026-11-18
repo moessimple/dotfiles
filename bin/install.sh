@@ -38,52 +38,7 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-email=""
-if [[ -f "$HOME/.config/dotfiles/profile" ]]; then
-    email="$(git config --file "$HOME/.gitconfig-local" --get user.email 2>/dev/null || true)"
-else
-    echo "What kind of machine is this?"
-    echo "1) Private"
-    echo "2) Work"
-    while true; do
-        read -r -p "Choose [1/2]: " choice || error "No machine profile selected."
-        case "$choice" in
-            1)
-                DOTFILES_PROFILE=private
-                break
-                ;;
-            2)
-                DOTFILES_PROFILE=work
-                break
-                ;;
-            *) echo "Please choose 1 or 2." ;;
-        esac
-    done
-fi
-
-if [[ -z "${email//[[:space:]]/}" ]]; then
-    email_default=""
-    if [[ "$DOTFILES_PROFILE" == "private" ]]; then
-        email_default="$(git config --global --includes --get user.email 2>/dev/null || true)"
-    fi
-    while true; do
-        read -r -p "Git email for this $DOTFILES_PROFILE machine${email_default:+ [$email_default]}: " email \
-            || error "No Git email entered."
-        email="${email:-$email_default}"
-        if [[ -n "${email//[[:space:]]/}" ]]; then
-            break
-        fi
-        echo "Please enter your Git email."
-    done
-    (
-        umask 077
-        git config --file "$HOME/.gitconfig-local" user.email "$email"
-    ) \
-        || error "Could not save the Git email in ~/.gitconfig-local."
-
-    mkdir -p "$HOME/.config/dotfiles"
-    printf '%s\n' "$DOTFILES_PROFILE" >"$HOME/.config/dotfiles/profile"
-fi
+set_up_machine_profile
 
 echo ""
 sudo -v

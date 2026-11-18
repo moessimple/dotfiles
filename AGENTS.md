@@ -143,7 +143,8 @@ Private setup offers the existing global email as a default. Only `user.email` i
 `~/.gitconfig-local`, which `home/.gitconfig` includes last; the name stays shared. `home/.gitconfig` has no email
 fallback and sets `user.useConfigOnly = true`, so Git refuses commits without a configured email.
 Later installs reuse the profile and ask only for the email if the local setting is missing or blank.
-All profile selection and email setup logic lives directly in `bin/install.sh`. Reconfigure and update never
+All profile selection and email setup logic lives in `set_up_machine_profile` in
+`support/setup/machine-profile.sh`, which only `bin/install.sh` calls. Reconfigure and update never
 prompt for profile or email and default to private without a saved profile. `support/config/Brewfile`
 reads the same profile and excludes AusweisApp, Discord, OneCast and WhatsApp on work machines, including from the desired state
 used by update's cleanup. Other packages and sudo steps are shared.
