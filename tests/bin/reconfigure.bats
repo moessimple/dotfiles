@@ -104,7 +104,7 @@ teardown() {
 }
 
 @test "a symlink failure stops reconfigure before dependent setup" {
-    write_fake_binary ln 'if [[ "$3" == "$HOME/.exports" ]]; then exit 73; fi
+    write_fake_binary ln 'if [[ "${!#}" == "$HOME/.exports" ]]; then exit 73; fi
 exec /bin/ln "$@"'
 
     run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/reconfigure.sh"

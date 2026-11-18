@@ -76,7 +76,8 @@ in `support/setup/claude/claude-skills.sh` means adding it to the ignore list in
 
 CI (`.github/workflows/tests.yml`) runs `bin/test.sh` on `macos-latest`, matching the interpreter and userland
 (`/bin/bash` 3.2, BSD tools) the target machine actually has, with `bats-core`, `php`, `patchutils`, and
-`rush-parallel` installed via Homebrew. `.github/workflows/lint.yml` runs `bin/format.sh --check` with Homebrew's
+`rush-parallel` installed via Homebrew. The Python 3 that the `bin/test.sh` signal tests use comes preinstalled with the
+runner image. `.github/workflows/lint.yml` runs `bin/format.sh --check` with Homebrew's
 `shfmt` as its own workflow, so a formatting failure never hides a test result. Each workflow file, its `name`, and
 its single job share one name (`tests`, `lint`). The `main` ruleset requires both checks by job name; renaming a
 job means updating the ruleset in the same change.

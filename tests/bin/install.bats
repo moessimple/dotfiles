@@ -38,44 +38,75 @@ packages/ollama-models.sh install_ollama_models
 STEPS
     printf '#!/bin/bash\nprintf "macos-defaults\\n" >> "$INSTALL_STEPS_FILE"\n' >"$repository/bin/macos-defaults.sh"
     chmod +x "$repository/bin/macos-defaults.sh"
+
+    # Every recorded step of one complete installation, in byte order (LC_ALL=C sort).
+    every_install_step='install_claude_plugins
+install_claude_skills
+install_composer_packages
+install_herd_xdebug
+install_homebrew
+install_homebrew_packages
+install_npm_packages
+install_oh_my_zsh
+install_ollama_models
+install_python_packages
+link_codex_skills
+macos-defaults
+set_up_tinkerbench
+start_services
+sudo
+wait_for_herd_onboarding'
 }
 
 teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "installation applies configuration and runs dependent setup in order on repeated runs" {
+@test "installation applies configuration, keeps local settings, and runs every setup step once" {
     printf 'local settings' >"$test_home/.extra"
-    local attempt
-    for attempt in 1 2; do
-        : >"$INSTALL_STEPS_FILE"
 
-        run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/install.sh" <<<'y'
+    run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/install.sh" <<<'y'
 
-        assert_success
-        assert_managed_dotfiles_are_linked
-        assert_file_content "$test_home/.extra" "local settings"
-        assert_file_content "$test_home/.config/dotfiles/profile" "work"
-        assert_output_contains "Installation complete!"
-        local step_name
-        for step_name in sudo install_oh_my_zsh install_homebrew install_homebrew_packages \
-            install_composer_packages install_npm_packages install_python_packages \
-            wait_for_herd_onboarding install_herd_xdebug set_up_tinkerbench \
-            install_claude_skills install_claude_plugins link_codex_skills \
-            start_services install_ollama_models macos-defaults; do
-            [ "$(grep -cxF "$step_name" "$INSTALL_STEPS_FILE")" -eq 1 ]
-        done
-        output="$(cat "$INSTALL_STEPS_FILE")"
-        assert_output_contains_before install_homebrew install_homebrew_packages
-        assert_output_contains_before install_homebrew_packages install_python_packages
-        assert_output_contains_before install_homebrew_packages wait_for_herd_onboarding
-        assert_output_contains_before wait_for_herd_onboarding install_herd_xdebug
-        assert_output_contains_before install_herd_xdebug set_up_tinkerbench
-        assert_output_contains_before install_claude_skills link_codex_skills
-        assert_output_contains_before install_claude_plugins link_codex_skills
-        assert_output_contains_before start_services install_ollama_models
-        [ "$(tail -n 1 "$INSTALL_STEPS_FILE")" = macos-defaults ]
-    done
+    assert_success
+    assert_output_contains "Installation complete!"
+    assert_managed_dotfiles_are_linked
+    assert_file_content "$test_home/.extra" "local settings"
+    assert_file_content "$test_home/.config/dotfiles/profile" "work"
+    LC_ALL=C sort "$INSTALL_STEPS_FILE" >"$fixture/completed-steps"
+    assert_file_content "$fixture/completed-steps" "$every_install_step"
+}
+
+@test "installation runs dependent setup steps after their prerequisites and macOS defaults last" {
+    run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/install.sh" <<<'y'
+    assert_success
+
+    run cat "$INSTALL_STEPS_FILE"
+
+    assert_output_contains_before install_homebrew install_homebrew_packages
+    assert_output_contains_before install_homebrew_packages install_python_packages
+    assert_output_contains_before install_homebrew_packages wait_for_herd_onboarding
+    assert_output_contains_before wait_for_herd_onboarding install_herd_xdebug
+    assert_output_contains_before install_herd_xdebug set_up_tinkerbench
+    assert_output_contains_before install_claude_skills link_codex_skills
+    assert_output_contains_before install_claude_plugins link_codex_skills
+    assert_output_contains_before start_services install_ollama_models
+    [ "${lines[${#lines[@]} - 1]}" = macos-defaults ]
+}
+
+@test "a repeated installation keeps links and local settings and runs every setup step once again" {
+    printf 'local settings' >"$test_home/.extra"
+    run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/install.sh" <<<'y'
+    assert_success
+    : >"$INSTALL_STEPS_FILE"
+
+    run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/install.sh" <<<'y'
+
+    assert_success
+    assert_output_contains "Installation complete!"
+    assert_managed_dotfiles_are_linked
+    assert_file_content "$test_home/.extra" "local settings"
+    LC_ALL=C sort "$INSTALL_STEPS_FILE" >"$fixture/completed-steps"
+    assert_file_content "$fixture/completed-steps" "$every_install_step"
 }
 
 @test "installation continues after a setup warning and reports failure at the end" {
@@ -89,7 +120,7 @@ teardown() {
 }
 
 @test "installation stops before package setup when a managed link cannot be created" {
-    write_fake_binary ln 'if [[ "$3" == "$HOME/.exports" ]]; then exit 73; fi
+    write_fake_binary ln 'if [[ "${!#}" == "$HOME/.exports" ]]; then exit 73; fi
 exec /bin/ln "$@"'
 
     run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/install.sh" <<<'y'

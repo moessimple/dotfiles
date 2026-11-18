@@ -42,7 +42,7 @@ start_test_runner() {
 import os, signal, sys
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 os.execv(sys.argv[1], sys.argv[1:])
-' "$dotfiles_dir/bin/test.sh" >"$fixture/runner-output" 2>&1 &
+' "$dotfiles_dir/bin/test.sh" >"$fixture/runner-output" 2>&1 3>&- &
     runner_pid="$!"
     set +m
     local attempt

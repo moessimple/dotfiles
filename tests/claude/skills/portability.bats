@@ -90,6 +90,24 @@ setup() {
     grep -Fq '`Capabilities`' "$skills_dir/raise-quality-gate/references/record-format.md"
 }
 
+@test "document-product and characterize-behavior count area changes with the same git log command" {
+    # Arrange
+    changes_command='git log --since="12 months ago" --format=%H -- {paths} | sort -u | wc -l'
+
+    # Assert
+    grep -Fq "$changes_command" "$skills_dir/document-product/references/document-format.md"
+    grep -Fq "$changes_command" "$skills_dir/characterize-behavior/references/characterization-format.md"
+}
+
+@test "document-product and characterize-behavior choose the next area by the same risk weights" {
+    # Arrange
+    weights='weight 3 for high, 2 for medium, and 1 for low risk; on a tie, the higher risk goes first'
+
+    # Assert
+    grep -Fq "$weights" "$skills_dir/document-product/references/document-format.md"
+    grep -Fq "$weights" "$skills_dir/characterize-behavior/references/characterization-format.md"
+}
+
 @test "plain YAML skill descriptions do not contain unquoted colon-space separators" {
     # Assert
     for skill in "${shared_skills[@]}"; do
