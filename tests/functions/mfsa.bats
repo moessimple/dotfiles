@@ -10,9 +10,6 @@ setup() {
     given_fake_bin_on_path
     given_herd_forwarding_php_and_composer
     write_fake_binary mysql
-    write_fake_binary getconf "printf '1\n'"
-    given_env_file DB_DATABASE=maindb
-    printf '<php><env name="DB_DATABASE" value="testdb"/></php>\n' >"$working_directory/phpunit.xml"
 }
 
 teardown() {
@@ -20,7 +17,10 @@ teardown() {
 }
 
 @test "mfsa migrates the main and test databases before seeding once" {
-    # Arrange
+    # Arrange: one CPU, a main database, and a separate PHPUnit database.
+    write_fake_binary getconf "printf '1\n'"
+    given_env_file DB_DATABASE=maindb
+    printf '<php><env name="DB_DATABASE" value="testdb"/></php>\n' >"$working_directory/phpunit.xml"
     write_fake_binary php
 
     # Act
@@ -32,7 +32,11 @@ teardown() {
 }
 
 @test "mfsa attempts the test databases after the main migration fails and does not seed" {
-    # Arrange: the main database fails while both test databases can migrate.
+    # Arrange: one CPU, a main database, and a separate PHPUnit database.
+    write_fake_binary getconf "printf '1\n'"
+    given_env_file DB_DATABASE=maindb
+    printf '<php><env name="DB_DATABASE" value="testdb"/></php>\n' >"$working_directory/phpunit.xml"
+    # The main migration fails; both test database migrations succeed.
     write_fake_binary php "printf '%s\n' \"\$DB_DATABASE\" >> \"$fixture/attempted-migrations\"
 [ \"\$DB_DATABASE\" != maindb ]"
 

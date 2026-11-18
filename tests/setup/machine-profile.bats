@@ -57,12 +57,17 @@ configure_profile() (
 }
 
 @test "a missing local email prevents commits instead of using a private default" {
+    # A repository without a machine-local email cannot commit.
     git init -q "$fixture/repository"
     run git -C "$fixture/repository" -c commit.gpgsign=false commit --allow-empty -m test
     assert_failure
+
+    # Configuring the machine-local email permits the same commit.
     git config --file "$HOME/.gitconfig-local" user.email developer@example.invalid
     run git -C "$fixture/repository" -c commit.gpgsign=false commit --allow-empty -m test
     assert_success
+
+    # Removing the local identity prevents subsequent commits again.
     rm "$HOME/.gitconfig-local"
     run git -C "$fixture/repository" -c commit.gpgsign=false commit --allow-empty -m test
     assert_failure
@@ -127,14 +132,21 @@ configure_profile() (
     [ "$(git config --global --includes user.email)" = developer@example.invalid ]
 }
 
-@test "aborted input does not save a profile" {
+@test "closing input before selecting a profile saves neither a profile nor an email" {
     run configure_profile </dev/null
+
     assert_failure
-    [ ! -e "$profile_file" ]
+    assert_path_does_not_exist "$profile_file"
+    assert_path_does_not_exist "$HOME/.gitconfig-local"
+}
+
+@test "closing input after selecting work but before entering an email saves neither setting" {
+    # Choose Work, then close input at the email prompt.
     run configure_profile <<<'2'
+
     assert_failure
-    [ ! -e "$profile_file" ]
-    [ ! -e "$HOME/.gitconfig-local" ]
+    assert_path_does_not_exist "$profile_file"
+    assert_path_does_not_exist "$HOME/.gitconfig-local"
 }
 
 @test "no saved profile reads as private without questions or writes" {
@@ -177,16 +189,30 @@ configure_profile() (
     [ ! -e "$profile_file" ]
 }
 
-@test "reconfigure and update accept a saved work profile without identity checks or prompts" {
+@test "reconfigure accepts a saved work profile without an email and reaches directory preparation" {
     mkdir -p "$(dirname "$profile_file")"
     echo work >"$profile_file"
+    rm -f "$HOME/.gitconfig-local"
+    # Stop at directory preparation so no machine configuration is applied.
     printf 'prepare_home_directories() { exit 73; }\n' >"$HOME/.dotfiles/support/setup/home-directories.sh"
+
     run /bin/bash "$dotfiles_dir/bin/reconfigure.sh" </dev/null
-    [ "$status" -eq 73 ]
+
+    assert_status 73
+    assert_path_does_not_exist "$HOME/.gitconfig-local"
+}
+
+@test "update accepts a saved work profile without an email and reaches repository validation" {
+    mkdir -p "$(dirname "$profile_file")"
+    echo work >"$profile_file"
+    rm -f "$HOME/.gitconfig-local"
+    # The fixture checkout is deliberately not a Git repository.
+
     run /bin/bash "$dotfiles_dir/bin/update.sh" </dev/null
-    assert_failure
+
+    assert_status 1
     assert_output_contains '~/.dotfiles is not a Git repository.'
-    [ ! -e "$HOME/.gitconfig-local" ]
+    assert_path_does_not_exist "$HOME/.gitconfig-local"
 }
 
 @test "update rejects an invalid profile before repository or package operations" {
