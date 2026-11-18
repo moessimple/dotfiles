@@ -253,6 +253,19 @@ teardown() {
     assert_record_exit_is_success "$record"
 }
 
+@test "a project path with a double quote is recorded as valid JSON" {
+    # Arrange
+    given_project_named_with_tools 'quote"d' composer pint
+
+    # Act
+    run run_gate fast
+
+    # Assert
+    assert_success
+    record="$config_home/claude-quality/runs$project.json"
+    assert_record_value "$record" root "$project"
+}
+
 @test "a failed check records the failure" {
     # Arrange
     given_project_with_tools composer pint phpstan rector pest phpunit

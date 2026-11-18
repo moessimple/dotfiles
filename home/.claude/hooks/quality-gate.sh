@@ -231,8 +231,9 @@ if [[ "$mode" != "file" ]]; then
     [[ -n "$(git status --porcelain 2>/dev/null)" ]] && tree="dirty"
     now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-    printf '{"root":"%s","mode":"%s","sha":"%s","tree":"%s","exit":%d,"started":"%s"}\n' \
-        "$root" "$mode" "$sha" "$tree" "$status" "$now" > "$record"
+    jq -nc --arg root "$root" --arg mode "$mode" --arg sha "$sha" --arg tree "$tree" \
+        --argjson exit "$status" --arg started "$now" \
+        '{root: $root, mode: $mode, sha: $sha, tree: $tree, exit: $exit, started: $started}' > "$record"
 
     (( status == 0 )) && rm -f "$marker"
 fi

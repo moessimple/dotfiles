@@ -73,6 +73,16 @@ given_project_with_tools() {
     done
 }
 
+# Like given_project_with_tools, in a repository directory named <name>.
+given_project_named_with_tools() {
+    local name="$1"
+    shift
+    given_project_with_tools "$@"
+    mv "$git_root" "$fixture/$name"
+    git_root="$fixture/$name"
+    project="$git_root"
+}
+
 # A Composer project nested below the Git root (e.g. a Laravel app's own
 # packages/* package), distinct from a repository-root project.
 new_nested_project() {
