@@ -370,8 +370,9 @@ Usage:
 HELP
             ;;
         *)
+            source "$HOME/.claude/hooks/support/exit-codes.sh"
             echo "Unknown quality mode: $1" >&2
-            return 64
+            return "$exit_usage"
             ;;
     esac
 }

@@ -153,7 +153,7 @@ for the current Claude Code session.
 | [`require-evidence.sh`](require-evidence.sh)             | Runs `fast` for dirty projects and blocks on failure               |
 | [`quality-gate.sh`](quality-gate.sh)                     | Resolves modes, detects tools, runs checks, and records results    |
 | [`support/exit-codes.sh`](support/exit-codes.sh)         | Names the exit codes the dispatcher returns and its callers check  |
-| [`support/project-root.sh`](support/project-root.sh)     | Resolves the nearest Composer project inside a Git repository      |
+| [`support/project-root.sh`](support/project-root.sh)     | Resolves the nearest Composer project and a file's physical path   |
 | [`support/quality-runs.sh`](support/quality-runs.sh)     | Names the directory holding each project's run record and marker   |
 | [`tests/claude/hooks/`](../../../tests/claude/hooks/)    | Bats coverage for each hook, the dispatcher, and their integration |
 

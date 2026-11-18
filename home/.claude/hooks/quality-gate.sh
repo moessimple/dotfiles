@@ -9,9 +9,10 @@
 # see README.md for usage.
 #
 # Tools are detected per project and run with the project's own configuration.
-# Only installed vendor binaries and `artisan` are executed, the trust boundary
-# `composer install` already crossed, plus the global Composer for validation
-# and, in full mode, auditing.
+# Only vendor binaries and `artisan` are executed, plus the global Composer for
+# validation and, in full mode, auditing. `artisan`, and `vendor/bin` when a
+# repository commits it, run without any `composer install`, so the trust
+# boundary is Claude Code's workspace trust for the repository.
 
 set -u
 
@@ -118,10 +119,7 @@ if [[ "$mode" == "file" ]]; then
         exit "$exit_usage"
     fi
 
-    canonical="$(
-        cd "$(dirname -- "$file")" >/dev/null 2>&1 \
-            && printf '%s/%s' "$(pwd -P)" "$(basename -- "$file")"
-    )" || exit "$exit_usage"
+    canonical="$(canonical_file_path "$file")" || exit "$exit_usage"
 
     # A repository can nest several Composer projects, so the file's own
     # directory decides which one is gated, not the shell's current directory.

@@ -4,6 +4,16 @@
 # project within a Git repository, including projects nested below a tool-less
 # repository root, so every caller uses the same project boundary.
 
+# Prints $1 with its directory resolved to the physical path, the form
+# resolve_project_root compares against. Returns non-zero when the directory
+# cannot be entered.
+canonical_file_path() {
+    (
+        cd "$(dirname -- "$1")" &>/dev/null \
+            && printf '%s/%s' "$(pwd -P)" "$(basename -- "$1")"
+    )
+}
+
 # Sets $2 to the Git toplevel and $3 to the nearest directory at or above $1
 # containing composer.json, without searching above the Git root. Returns
 # non-zero and leaves both outputs untouched when either root cannot be found;

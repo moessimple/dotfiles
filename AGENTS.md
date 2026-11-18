@@ -185,7 +185,8 @@ against whatever Laravel/PHP project Claude Code is currently editing, using eac
 - `support/project-root.sh` resolves the nearest `composer.json` at or above a path without crossing above the Git
   toplevel, so a monorepo with a nested Composer project (e.g. a Laravel app with its own `packages/*` package) is
   handled correctly. `post-edit.sh`, `quality-gate.sh`, and the `quality` function source it rather
-  than re-implementing project resolution.
+  than re-implementing project resolution. Its `canonical_file_path` resolves an edited file's directory to the
+  physical path for both hooks.
 - `post-edit.sh` is the `PostToolUse` hook for every `Write`/`Edit` of a `*.php` file or any `composer.json`: it
   runs the `file`-mode check, writes the project's "dirty" marker under
   `${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality/runs`, and reports a failure without blocking the edit.
