@@ -8,12 +8,12 @@ tinkerbench_setup() {
     # on the next run.
     step "Setting up tinkerbench.test"
 
-    TINKERBENCH_TARGET="$HOME/Code/tinkerbench"
+    local target="$HOME/Code/tinkerbench"
 
-    if [[ ! -d "$TINKERBENCH_TARGET" ]] \
-        && ! git clone git@github.com:moessimple/tinkerbench.git "$TINKERBENCH_TARGET"; then
+    if [[ ! -d "$target" ]] \
+        && ! git clone git@github.com:moessimple/tinkerbench.git "$target"; then
         warn "Could not clone tinkerbench"
-    elif [[ ! -f "$TINKERBENCH_TARGET/.env" ]] && ! (cd "$TINKERBENCH_TARGET" && composer setup); then
+    elif [[ ! -f "$target/.env" ]] && ! (cd "$target" && composer setup); then
         warn "Could not set up tinkerbench"
     else
         success "tinkerbench.test ready"

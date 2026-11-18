@@ -124,8 +124,6 @@ claude_plugins_cleanup() {
     local name found_undeclared=0 read_failed=0
 
     # Only user-scope plugins are ours to manage, same reasoning as for the MCP servers below.
-    # pipefail and a separate `local`, so a failing claude or a missing jq is reported
-    # instead of reading as an empty list.
     local installed_plugins plugin_listing
     if ! plugin_listing=$(
         set -o pipefail
@@ -210,7 +208,6 @@ claude_plugins_cleanup() {
 
     # The cleanup goes on with whichever half it could read, so read_failed keeps a partial
     # read from being reported as clean.
-    # An `if`, not `&&`, which would return 1 after a removal and trip `set -e` in bin/update.sh
     if ((found_undeclared == 0)) && ((read_failed == 0)); then
         success "No undeclared Claude Code plugins or MCP servers found"
     fi

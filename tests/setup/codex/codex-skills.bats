@@ -70,6 +70,30 @@ run_codex_skills_setup() {
     [ -L "$skills_dir/starter-kit-upgrade" ]
 }
 
+@test "a failed skill symlink is reported in the final summary while other skills are linked" {
+    given_fake_bin_on_path
+    write_fake_binary ln 'if [[ "$2" == */pr ]]; then
+    exit 1
+fi
+exec /bin/ln "$@"'
+
+    run env CODEX_SKILLS_SOURCE="$source_dir" CODEX_SKILLS_TARGET="$skills_dir" \
+        CLAUDE_PLUGIN_CACHE="$plugin_cache" CLAUDE_INSTALLED_PLUGINS="$installed_plugins" \
+        /bin/bash -ec '
+            source "$1/support/setup/output.sh"
+            source "$1/support/setup/codex/codex-skills.sh"
+            codex_skills_link
+            finish "Configuration applied"
+        ' bash "$dotfiles_dir"
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "Could not link pr"
+    assert_output_contains "Finished with 1 problem(s):"
+    assert_output_does_not_contain "Configuration applied"
+    [ ! -L "$skills_dir/pr" ]
+    [ -L "$skills_dir/document-product" ]
+}
+
 @test "the Claude-activated plugin version is used" {
     # Arrange
     inactive_skill="$plugin_cache/agent-browser/agent-browser/2.0.0/skills/agent-browser"

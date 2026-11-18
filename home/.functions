@@ -713,7 +713,7 @@ opendb() {
     done
 
     # Only the characters that end the URL's userinfo early (and % itself) are percent-encoded.
-    # Every other character stays as it is, as it did before, in case a client does not decode.
+    # Other characters stay literal because some clients do not decode them.
     local encode='gsub("%"; "%25") | gsub("@"; "%40") | gsub(":"; "%3A") | gsub("/"; "%2F")
         | gsub("\\?"; "%3F") | gsub("#"; "%23") | gsub(" "; "%20")'
     local username password

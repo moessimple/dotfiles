@@ -12,7 +12,7 @@ herd_onboarding_wait() {
     if ! command -v herd &>/dev/null; then
         open -a Herd
         note "Herd needs a one-time setup: complete its onboarding in the app (it will ask for your admin password), this continues automatically once it's done"
-        attempt=0
+        local attempt=0
         until command -v herd &>/dev/null; do
             attempt=$((attempt + 1))
             if (((attempt % 12) == 0)); then

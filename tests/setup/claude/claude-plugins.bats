@@ -17,6 +17,14 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
+# Prints each marketplace named after the @ of a CLAUDE_PLUGINS entry in <plugins file> that has no
+# extraKnownMarketplaces entry in <settings file>.
+list_plugin_marketplaces_missing_from_settings() {
+    local plugins_file="$1" settings_file="$2"
+    bash -c 'source "$1"; printf "%s\n" "${CLAUDE_PLUGINS[@]#*@}"' bash "$plugins_file" \
+        | grep -vxF -f <(jq -r '.extraKnownMarketplaces | keys[]' "$settings_file") || true
+}
+
 @test "sourcing claude-plugins.sh only defines its functions and runs no claude command" {
     # Arrange
     given_fake_claude '[]' ""
@@ -139,6 +147,15 @@ teardown() {
 
     # Act
     run jq -r '.extraKnownMarketplaces | to_entries[] | select(.value.autoUpdate != false) | .key' "$settings"
+
+    # Assert
+    assert_success
+    assert_output_equals ""
+}
+
+@test "every declared plugin comes from a marketplace declared in settings.json" {
+    # Act
+    run list_plugin_marketplaces_missing_from_settings "$target" "$dotfiles_dir/home/.claude/settings.json"
 
     # Assert
     assert_success

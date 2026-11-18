@@ -168,3 +168,18 @@ teardown() {
     assert_output_contains "WARN: Could not install the always-loaded Xdebug ini for PHP 8.4"
     assert_output_does_not_contain "SUCCESS:"
 }
+
+@test "installing the Xdebug ini files leaves no variables behind in the calling shell" {
+    # Arrange
+    given_herd_reports_installed_php_versions 8.4
+    given_herd_ships_xdebug_build_for 84
+    given_herd_debug_template_is_present
+    export HERD_RESOURCES_DIR="$herd_resources"
+
+    # Act
+    run list_variables_left_by_setup_function "$target" herd_debug_ini_install
+
+    # Assert
+    assert_success
+    assert_output_equals ""
+}

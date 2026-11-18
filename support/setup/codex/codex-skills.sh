@@ -43,7 +43,10 @@ link_codex_skill() {
         return 1
     fi
 
-    ln -sfn "$source_path" "$target_path"
+    if ! ln -sfn "$source_path" "$target_path"; then
+        warn "Could not link $skill to $target_path"
+        return 1
+    fi
 }
 
 codex_skills_link() {

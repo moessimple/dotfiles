@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# Git invokes this helper through /bin/sh, so its syntax stays POSIX.
 # Print the current repository's default branch name.
 #
 # Priority, most authoritative first:

@@ -44,8 +44,6 @@ composer_packages_cleanup() {
 
     step "Checking for undeclared global Composer packages"
 
-    # pipefail and a separate `local`, so a failing composer or a missing jq is reported
-    # instead of reading as an empty list.
     local installed
     if ! installed=$(
         set -o pipefail
@@ -65,7 +63,6 @@ composer_packages_cleanup() {
         composer global remove "$name" || warn "Could not remove $name, remove it manually"
     done <<<"$installed"
 
-    # An `if`, not `&&`, which would return 1 after a removal and trip `set -e` in bin/update.sh
     if ((found_undeclared == 0)); then
         success "No undeclared global Composer packages found"
     fi

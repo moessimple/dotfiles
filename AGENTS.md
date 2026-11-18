@@ -175,8 +175,8 @@ Mac App Store apps (the Brewfile's `mas` entries) via `brew bundle cleanup --for
 `support/setup/packages/homebrew-packages.sh`, the others via a
 `*_cleanup` function in the declaring file, while `codex-skills.sh`
 prunes its own stale links on every run. When adding a package or skill, add it to the declaration; do not
-install it out of band, or the next `update.sh` run removes it. `claude-skills.sh` documents a manual vetting checklist
-to run before adding any third-party skill. Add a source to `CODEX_COMPATIBLE_SKILLS` or
+install it out of band, or the next `update.sh` run removes it. Run the third-party skill review below before
+adding a skill to `support/setup/claude/claude-skills.sh`. Add a source to `CODEX_COMPATIBLE_SKILLS` or
 `CODEX_COMPATIBLE_CLAUDE_PLUGIN_SKILLS` only after confirming that its full directory is harness-neutral and does not
 duplicate a Codex skill.
 
@@ -188,6 +188,30 @@ style, thresholds) from the project instead of bringing its own, and tells the m
 know. Otherwise it belongs to the project (its `.claude/skills`, Laravel Boost, or a Composer package). The
 deliberate exceptions are `document-product`, `characterize-behavior`, and `raise-quality-gate`: they bring their own
 standards on purpose, to develop legacy projects safely, and run only when invoked by name.
+
+### Third-party skill review
+
+Before adding an entry to `support/setup/claude/claude-skills.sh`, follow this manual checklist:
+
+1. Read every file in the skill, including referenced Markdown and scripts, rather than only its description.
+2. Search for network calls (`curl`, `fetch`, `requests`, `urllib`) and confirm every destination is expected.
+3. Search for credential, cookie, or Keychain access (`security find-generic-password`, browser profiles,
+   `~/.ssh`, `~/.aws`) and confirm a legitimate reason for it.
+4. Check for hardcoded API keys, tokens, or passwords.
+5. Look for instructions to ignore safety rules, hide actions, or behave differently for specific inputs.
+6. List every shell command and tool the skill asks the agent to invoke. Assess the combined risk when file
+   reads and network access appear together.
+7. Check that referenced external URLs point to the expected domains.
+8. Treat High or Critical findings from the CLI's Gen/Socket/Snyk audit as a reason to inspect carefully, not as
+   a substitute for this review or a reliable signal by themselves. Those audits can be wrong or miss risks.
+
+Adapted from [Anthropic's review checklist](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/enterprise#review-checklist).
+
+TODO: Automate a pre-install scan for network calls, credential/Keychain/cookie access, and hardcoded secrets
+before `skills_cli add`, so review does not depend on remembering this checklist.
+
+Add each new `THIRD_PARTY_SKILLS` entry from `support/setup/claude/claude-skills.sh` to the third-party ignore
+list in `.editorconfig`, so `bin/format.sh` leaves its scripts as upstream wrote them.
 
 **`support/setup/clean-state.sh` prepares directories and clears paths for symlinks.** Its `clean_state_apply`
 creates `~/Screenshots`, `~/Temp`, `~/Code`, `~/.config/ghostty`, `~/.config/git`, `~/.claude`, and `~/.codex`.
@@ -247,7 +271,7 @@ place that logic lives; callers never re-derive it. Its priority order is covere
 - `tests/git/*.bats`: the helpers from `support/git/`
 - `tests/setup/claude/*.bats`, `tests/setup/codex/*.bats`, `tests/setup/packages/*.bats`: the setup/cleanup
   declarations in `support/setup/claude/`, `support/setup/codex/`, and `support/setup/packages/`
-- `tests/setup/herd/*.bats`: `support/setup/herd-debug-ini.sh`
+- `tests/setup/herd/*.bats`: `support/setup/herd-debug-ini.sh` and `support/setup/herd-onboarding.sh`
 - `tests/bin/macos-defaults.bats`: `bin/macos-defaults.sh`
 - `tests/bin/update.bats`: a full `bin/update.sh` run across all package cleanups
 - `tests/bin/reconfigure.bats`: configuration application without macOS defaults or an unconditional sudo request
@@ -256,6 +280,45 @@ place that logic lives; callers never re-derive it. Its priority order is covere
 `tests/support/test_helper.bash` provides shared fixtures (`new_dotfiles_fixture`, `call_dotfiles_function`,
 `call_dotfiles_function_in`, `call_dotfiles_alias`) for building throwaway Git repos/projects under
 `$BATS_TEST_TMPDIR`; most suites also load their own `tests/support/<name>_helper.bash` for suite-specific fixtures.
+
+## Shell conventions
+
+These conventions apply to the repository's own shell code, excluding third-party skills:
+
+- Use `#!/bin/bash` for Bash scripts and `#!/usr/bin/env zsh` for zsh helpers to keep interpreters predictable.
+- Setup entry points use `set -e`; hooks in `home/.claude/hooks/` use `set -u` and check statuses explicitly;
+  standalone helpers and skill scripts use `set -euo pipefail`, matching how they handle failure.
+- Use `[[ … ]]` for strings/files and `(( … ))` only as integer conditions, so a zero-valued arithmetic
+  statement cannot accidentally trigger `errexit`.
+- Define functions as `name() {` without `function`, keeping one definition style.
+- Use snake_case; reserve uppercase for constants, declaration lists, and required environment names.
+  Private function prefixes belong to interactive zsh helpers, where they keep completion and names tidy.
+- Group unassigned locals and separate declarations from command substitutions to preserve exit statuses.
+- Write `value=$(command)` without outer quotes in assignments; quote expansions in arguments to prevent splitting.
+- Suppress both output streams with `&>/dev/null` and redirect errors with `>&2`, using one spelling each.
+- Setup reports through `support/setup/output.sh`; other errors go to stderr with a failing return or exit,
+  so callers can distinguish diagnostics from normal output.
+- Use explicit `if` blocks for argument checks, making each error and return visible.
+- Check `-h`/`--help` before argument validation, print usage to stdout, and return 0 so help does no work.
+- Setup files define variables/functions; entry points call `<file>_<verb>` functions explicitly, keeping
+  sourcing free of machine changes.
+- Keep only contract or constraint comments under `home/.claude/rules/code-comments.md`; shared rationale
+  belongs here to avoid repetition.
+- Do not use en or em dashes as punctuation, including output strings, matching the writing rules.
+- The function doing a step prints its own `step` and result; entry points print their own frame and
+  `finish`, keeping reporting with the work it describes.
+
+Exceptions: `home/.config/git/default-branch` is deliberately POSIX `sh`. Preserve Herd's injected blocks in
+`home/.zshrc` as written by Herd. `support/git/support/pickaxe-diff.sh` adds `-E` so its ERR trap is inherited.
+The `_rpr_*` locals in `home/.claude/hooks/support/project-root.sh` prevent output-parameter names from shadowing
+caller variables; their prefix is a collision guard.
+
+Separate `local` declarations from command substitutions because `local` otherwise masks the command's exit
+status. Capture pipelines with `pipefail` in a subshell and check the result before iterating, so a failed
+package-manager query cannot become an apparently empty installed set.
+
+A cleanup function's final success message belongs in an explicit `if`, rather than `condition && success`:
+a false condition would return 1 and stop `bin/update.sh` under `set -e`, even though no step failed.
 
 ## Conventions specific to this repo
 

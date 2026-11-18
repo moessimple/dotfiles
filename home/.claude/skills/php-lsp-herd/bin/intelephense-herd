@@ -12,8 +12,9 @@ if [[ -x "$php_bin" ]]; then
     # cleanup trap, so a fresh mktemp dir per launch would leak one directory
     # every time the language server restarts.
     shim_dir="${TMPDIR:-/tmp}/intelephense-herd-shim"
-    mkdir -p "$shim_dir"
-    ln -sfn "$php_bin" "$shim_dir/php"
-    PATH="$shim_dir:$PATH"
+    # Without the shim Intelephense still starts, with the PHP already on PATH.
+    if mkdir -p "$shim_dir" && ln -sfn "$php_bin" "$shim_dir/php"; then
+        PATH="$shim_dir:$PATH"
+    fi
 fi
 exec intelephense "$@"

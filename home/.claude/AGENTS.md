@@ -32,6 +32,20 @@ The language of instructions, skills, examples, and templates does not determine
 Never use em dashes (—) or en dashes (–) as punctuation. Rephrase with periods, commas, or parentheses.
 Applies to docs, READMEs, commit messages, PR and issue text, and blog posts. Hyphens in compound words are fine.
 
+Write code comments, documentation (README, CLAUDE.md, AGENTS.md, and similar), commit messages, and PR and issue
+text for a reader who has the repository but not the conversation that produced it. Every term, name, decision,
+and reference must be understandable from the repository itself.
+
+- Don't refer to the session: no "as discussed", "the new approach", "after several attempts", or names and
+  abbreviations that were only coined in the conversation.
+- Comments and documentation describe the current state, not how it changed ("now", "no longer", "instead of
+  the old X"). Describing the change belongs in commit messages and PRs.
+- Don't reference files that are not committed, such as planning artifacts (SPEC*.md, spec/, docs/ideas/,
+  docs/specs/, tasks/plan.md, tasks/todo.md, or similar), and don't carry over identifiers that only exist in
+  them (task or requirement numbers such as R1 or T3). Those files are gitignored, so any reference is dead on
+  arrival. If their rationale matters long-term, state it where it applies or fold it into the project's
+  CLAUDE.md or AGENTS.md.
+
 ## Code
 
 Use the agent-browser skill for browser automation.
@@ -49,9 +63,13 @@ Keep PR descriptions terse and focused on the main things. No generic "Test plan
 scenarios that actually ran are fine. When writing one without the `pr` skill, read `~/.claude/skills/pr/SKILL.md` and
 follow its workflow from gathering context through writing the description, including the independent review.
 
-Don't reference planning artifacts (SPEC*.md, spec/, docs/ideas/, docs/specs/, tasks/plan.md, tasks/todo.md, or
-similar) in PR descriptions. They are gitignored and never committed, so any link to them is dead on arrival. If
-their rationale matters long-term, fold it into the project's CLAUDE.md or AGENTS.md instead.
+## Commit attribution
+
+- Never add Amp, Claude Code, or any other AI tool as a co-author: no `Co-authored-by` trailers naming them, such
+  as `Co-authored-by: Amp <amp@ampcode.com>` or `Co-authored-by: Claude <noreply@anthropic.com>`.
+- Never put their names anywhere in commit attribution: not as the commit author or committer, and not in trailers
+  or footers such as `Amp-Thread-ID` or "Generated with Claude Code". Commits are attributed to the person who
+  makes them.
 
 ## Engineering mindset
 

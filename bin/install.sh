@@ -1,15 +1,13 @@
 #!/bin/bash
 
-set -e # Exit on unhandled command failures
+set -e
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/output.sh"
 
-# Read the saved machine profile; only install asks when none exists.
 source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/machine-profile.sh"
 machine_profile_load
 
 echo ""
-# Entry point; nothing below runs until this is confirmed.
 step "Install Dotfiles"
 echo ""
 note "This will install/update your terminal setup"
@@ -24,7 +22,6 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-# Remember private/work once and configure the local Git email before system setup.
 email=""
 if [[ -f "$HOME/.config/dotfiles/profile" ]]; then
     email=$(git config --file "$HOME/.gitconfig-local" --get user.email 2>/dev/null || true)
@@ -92,7 +89,6 @@ source ~/.dotfiles/support/setup/codex/codex-skills.sh
 
 clean_state_apply
 
-# Oh My Zsh: guarded so a re-run doesn't reinstall over an existing checkout.
 step "Installing Oh My Zsh"
 # The directory check also catches a failed download, which leaves sh with empty input and
 # a zero exit status.
@@ -105,8 +101,7 @@ else
     warn "Oh My Zsh installation failed"
 fi
 
-# Homebrew: put on PATH for the rest of this run; later shells get it from the symlinked
-# home/.zprofile.
+# Installer shells do not read home/.zprofile, so a new Homebrew installation needs shellenv here.
 step "Installing Homebrew"
 if ! command -v brew &>/dev/null; then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -130,7 +125,6 @@ herd_onboarding_wait
 # Install Xdebug configuration before any Herd project uses coverage or debug.
 herd_debug_ini_install
 
-# tinkerbench (tinkerbench.test)
 tinkerbench_setup
 
 npm_packages_install
@@ -142,7 +136,6 @@ claude_skills_install
 
 claude_plugins_install
 
-# Share reviewed standalone and plugin-provided skills with Codex after Claude installs them.
 codex_skills_link
 
 services_start
@@ -150,7 +143,6 @@ services_start
 # Ollama models: after services.sh, which starts the Ollama service the pulls talk to.
 ollama_models_install
 
-# Create local config files if they don't exist
 touch ~/.extra
 
 # macOS defaults: run last because they quit the affected apps, Terminal among them.
@@ -163,6 +155,5 @@ echo ""
 echo "Optional:"
 echo "  • Discover more agent skills: https://skills.sh"
 
-# Last, so the result is the final thing on screen.
 finish "Installation complete!"
 echo ""

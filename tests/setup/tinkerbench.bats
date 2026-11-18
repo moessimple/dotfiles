@@ -55,3 +55,15 @@ teardown() {
     assert_binary_called_with composer "setup"
     assert_output_contains "SUCCESS: tinkerbench.test ready"
 }
+
+@test "setting up tinkerbench leaves no variables behind in the calling shell" {
+    # Arrange
+    write_fake_binary git 'exit 128'
+
+    # Act
+    run list_variables_left_by_setup_function "$target" tinkerbench_setup
+
+    # Assert
+    assert_success
+    assert_output_equals ""
+}

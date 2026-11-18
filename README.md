@@ -96,7 +96,8 @@ arguments print their usage with `--help`.
 ### Git and GitHub
 
 - `commit [message]` stages and commits everything. Without a message, Claude writes one, falling back to Codex and
-  then an interactive prompt.
+  then an interactive prompt. `git add --all` in [`home/.functions`](home/.functions) stages all non-ignored
+  changes, and automatic message generation sends the staged diff to Claude or Codex.
 - `switch <branch>` switches or creates a branch and asks whether uncommitted changes come along or stay behind,
   like GitHub Desktop.
 - `review [base]` and `compare [base]` browse the branch's changes against a base branch with fzf.

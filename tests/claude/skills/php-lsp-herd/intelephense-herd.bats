@@ -24,6 +24,11 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
+given_tmpdir_is_a_file() {
+    export TMPDIR="$fixture/tmp-file"
+    : >"$TMPDIR"
+}
+
 @test "intelephense is exec'd with php on PATH resolved to the Herd binary" {
     # Act
     run "$script" --stdio
@@ -52,6 +57,20 @@ teardown() {
 
     run "$script" --stdio
 
+    assert_success
+    assert_output_contains "args:--stdio"
+    assert_output_contains "existing-php"
+}
+
+@test "a shim directory that cannot be created falls back to PHP already on PATH" {
+    # Arrange
+    write_fake_binary php 'echo existing-php'
+    given_tmpdir_is_a_file
+
+    # Act
+    run "$script" --stdio
+
+    # Assert
     assert_success
     assert_output_contains "args:--stdio"
     assert_output_contains "existing-php"

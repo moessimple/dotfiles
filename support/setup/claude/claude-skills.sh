@@ -3,38 +3,7 @@
 # Third-party Claude Code skills installed via the `skills` CLI, one "owner/repo:skill" pair
 # per entry (Bash 3.2, the /bin/bash shipped on macOS, has no associative arrays).
 #
-# Before adding a new entry below, review the skill first (adapted from
-# Anthropic's own vetting checklist for Agent Skills):
-#   1. Read every file in the skill (SKILL.md, referenced markdown, scripts),
-#      not just the description.
-#   2. Search for network calls (curl, fetch, requests, urllib) and confirm
-#      any destination is expected.
-#   3. Search for credential, cookie, or keychain access (security
-#      find-generic-password, browser profile paths, ~/.ssh, ~/.aws) and
-#      confirm there is a legitimate reason for it.
-#   4. Check for hardcoded API keys, tokens, or passwords in the skill's
-#      files.
-#   5. Look for instructions that tell Claude to ignore safety rules, hide
-#      actions from the user, or behave differently based on specific
-#      inputs.
-#   6. List every bash command and tool the skill instructs Claude to
-#      invoke, and weigh the combined risk when file reads and network
-#      access show up together.
-#   7. If the skill references external URLs, confirm they point to the
-#      expected domain.
-#   8. Treat a High or Critical rating from the CLI's own Gen/Socket/Snyk
-#      audit as a prompt to do this review carefully, not as a substitute
-#      for it or a reliable signal by itself; it has been both wrong and
-#      silent on real risk in practice.
-# Source: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/enterprise#review-checklist
-#
-# TODO: this checklist is manual today and depends on remembering to run it.
-# Investigate automating it, e.g. a pre-install check that scans a skill's
-# source for network calls, credential/keychain/cookie access, and hardcoded
-# secrets before `skills_cli add` runs, so review does not rely on memory.
-#
-# Also add each skill to the third-party ignore list in .editorconfig, so
-# bin/format.sh leaves its scripts as upstream wrote them.
+# Review additions with the third-party skill checklist in AGENTS.md.
 THIRD_PARTY_SKILLS=(
     "addyosmani/clarity:clarity"
     "anthropics/skills:pdf"
@@ -133,7 +102,6 @@ claude_skills_cleanup() {
         skills_cli remove "$name" --global -y 2>/dev/null || warn "Could not remove $name, remove it manually"
     done <<<"$installed"
 
-    # An `if`, not `&&`, which would return 1 after a removal and trip `set -e` in bin/update.sh
     if ((found_undeclared == 0)); then
         success "No undeclared Claude Code skills found"
     fi

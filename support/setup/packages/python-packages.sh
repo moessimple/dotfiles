@@ -50,8 +50,6 @@ python_packages_cleanup() {
     # --not-required lists only packages no other installed package depends on, so the
     # dependencies of declared packages are never candidates. shortcut: the dependencies of a
     # removed package become candidates only on the following run, which removes them then.
-    # pipefail and a separate `local`, so a failing pip or a missing jq is reported instead
-    # of reading as an empty list.
     local installed
     if ! installed=$(
         set -o pipefail
@@ -73,7 +71,6 @@ python_packages_cleanup() {
         python_pip uninstall --yes --quiet "$name" || warn "Could not remove $name, remove it manually"
     done <<<"$installed"
 
-    # An `if`, not `&&`, which would return 1 after a removal and trip `set -e` in bin/update.sh
     if ((found_undeclared == 0)); then
         success "No undeclared Python packages found"
     fi

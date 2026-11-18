@@ -294,3 +294,21 @@ given_setup_script_pinned() {
     sed "s/^$variable=\".*\"$/$variable=\"$version\"/" "$target" >"$copy"
     target="$copy"
 }
+
+# Sources one support/setup/**/*.sh file with the output helpers silenced, calls <function>, and
+# prints every shell variable the call created. The entry points in bin/ source all setup files
+# into one shell, so a variable one step leaves behind is visible to every later step.
+list_variables_left_by_setup_function() {
+    local file="$1" function_name="$2"
+    HOME="${test_home:-$HOME}" HOMEBREW_PREFIX="$fixture" bash -c '
+        step() { :; }
+        warn() { :; }
+        note() { :; }
+        success() { :; }
+        error() { exit 1; }
+        source "$1"
+        variables_before=$(compgen -v)
+        "$2" &>/dev/null
+        compgen -v | grep -vxF -e variables_before -f <(printf "%s\n" "$variables_before") || true
+    ' bash "$file" "$function_name"
+}
