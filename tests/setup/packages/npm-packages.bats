@@ -169,7 +169,7 @@ teardown() {
 
 @test "npm cleanup reports a failed removal of stale-one and continues with stale-two" {
     given_fake_npm_reporting_installed '{"dependencies":{"stale-one":{},"stale-two":{},"typescript":{}}}'
-    printf '\nif [[ "$*" == "uninstall -g stale-one" ]]; then exit 17; fi\n' >>"$fake_bin/npm"
+    given_command_fails_when_called_with npm "uninstall -g stale-one"
 
     run call_cleanup_function "$target" clean_up_npm_packages
 

@@ -123,6 +123,13 @@ EOF
     chmod +x "$fake_bin/python3"
 }
 
+# Makes an existing fake command exit with status 17 for a call whose arguments start with the
+# given text, while every other call keeps the fake's normal behavior.
+given_command_fails_when_called_with() {
+    local name="$1" arguments="$2"
+    printf '\ncase "$*" in %q*) exit 17 ;; esac\n' "$arguments" >>"$fake_bin/$name"
+}
+
 given_skill_lock_file() {
     mkdir -p "$test_home/.agents"
     printf '%s' "$1" >"$test_home/.agents/.skill-lock.json"

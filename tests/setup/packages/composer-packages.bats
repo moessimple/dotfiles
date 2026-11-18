@@ -105,7 +105,7 @@ teardown() {
 
 @test "Composer cleanup reports a failed removal of stale/one and continues with stale/two" {
     given_fake_composer_reporting_installed '{"installed":[{"name":"stale/one"},{"name":"stale/two"},{"name":"laravel/pint"}]}'
-    printf '\nif [[ "$*" == "global remove stale/one" ]]; then exit 17; fi\n' >>"$fake_bin/composer"
+    given_command_fails_when_called_with composer "global remove stale/one"
 
     run call_cleanup_function "$target" clean_up_composer_packages
 

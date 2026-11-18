@@ -122,7 +122,7 @@ teardown() {
 
 @test "Python cleanup reports a failed removal of stale-one and continues with stale-two" {
     given_fake_python_reporting_installed '[{"name":"stale-one"},{"name":"stale-two"},{"name":"pypdf"}]'
-    printf '\ncase "$*" in "-m pip uninstall --yes --quiet stale-one "*) exit 17 ;; esac\n' >>"$fake_bin/python3"
+    given_command_fails_when_called_with python3 "-m pip uninstall --yes --quiet stale-one "
 
     run call_cleanup_function "$target" clean_up_python_packages
 

@@ -14,6 +14,18 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
+# Runs start_services with the real warning output, then the final summary that the setup entry
+# points print, so warnings decide the exit status as they do in bin/install.sh.
+start_services_then_finish_with() {
+    local success_message="$1"
+    HOMEBREW_PREFIX="$fixture" /bin/bash -ec '
+        source "$1/support/setup/output.sh"
+        source "$1/support/setup/services.sh"
+        start_services
+        finish "$2"
+    ' bash "$dotfiles_dir" "$success_message"
+}
+
 @test "service setup enables Meilisearch database upgrades before starting Meilisearch" {
     # Arrange
     write_fake_binary brew 'if [[ "$*" == "services start meilisearch" ]]; then
@@ -43,14 +55,9 @@ fi'
 }
 
 @test "a failed Mailpit start does not prevent Meilisearch or Ollama and fails the final summary" {
-    write_fake_binary brew 'if [[ "$3" == mailpit ]]; then exit 17; fi'
+    given_command_fails_when_called_with brew "services start mailpit"
 
-    run env HOMEBREW_PREFIX="$fixture" /bin/bash -ec '
-        source "$1/support/setup/output.sh"
-        source "$1/support/setup/services.sh"
-        start_services
-        finish "Setup complete"
-    ' bash "$dotfiles_dir"
+    run start_services_then_finish_with "Setup complete"
 
     assert_status 1
     assert_binary_called_with_args brew services start meilisearch
@@ -61,14 +68,10 @@ fi'
 }
 
 @test "an unwritable Meilisearch config is reported without preventing service startup" {
+    # A directory at the config path cannot be written as a file.
     mkdir "$fixture/var/config.toml"
 
-    run env HOMEBREW_PREFIX="$fixture" /bin/bash -ec '
-        source "$1/support/setup/output.sh"
-        source "$1/support/setup/services.sh"
-        start_services
-        finish "Setup complete"
-    ' bash "$dotfiles_dir"
+    run start_services_then_finish_with "Setup complete"
 
     assert_status 1
     assert_binary_called_with_args brew services start meilisearch

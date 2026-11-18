@@ -27,7 +27,12 @@ teardown() {
 }
 
 @test "a missing Oh My Zsh installation runs the downloaded installer unattended" {
-    write_fake_binary curl 'printf '\''[ "$*" = "--unattended" ] || exit 1; mkdir -p "$HOME/.oh-my-zsh"'\'''
+    # The downloaded installer creates Oh My Zsh only when it is started with --unattended.
+    cat >"$fixture/installer.sh" <<'INSTALLER'
+[ "$*" = "--unattended" ] || exit 1
+mkdir -p "$HOME/.oh-my-zsh"
+INSTALLER
+    write_fake_binary curl "cat \"$fixture/installer.sh\""
 
     run call_setup_function "$target" install_oh_my_zsh
 

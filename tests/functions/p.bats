@@ -16,7 +16,7 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "p runs Pest with testdox when Pest is installed" {
+@test "p runs Pest with testdox through Herd so the project's PHP version applies" {
     # Arrange
     given_pest_installed
 
@@ -38,7 +38,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with php "-d memory_limit=2G ./vendor/bin/phpunit --testdox"
+    assert_binary_called_with_args php -d memory_limit=2G ./vendor/bin/phpunit --testdox
 }
 
 @test "p forwards extra arguments to the test runner" {

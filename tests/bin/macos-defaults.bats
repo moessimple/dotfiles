@@ -15,7 +15,7 @@ teardown() {
 
 @test "macOS setup asks for confirmation and exits successfully when the user declines" {
     # Act
-    run run_standalone_answering n "$dotfiles_dir/bin/macos-defaults.sh"
+    run run_standalone_answering n "$target"
 
     # Assert
     assert_success
@@ -23,10 +23,11 @@ teardown() {
     assert_output_contains "Cancelled."
 }
 
-@test "confirmed macOS setup configures the firewall and screen lock without disabling battery hibernation" {
+@test "confirmed macOS setup on a laptop with FileVault on configures firewall, screen lock, screenshots, and Finder and leaves FileVault and hibernation unchanged" {
     given_fake_macos_commands
+    finder_preferences="$restricted_home/Library/Preferences/com.apple.finder.plist"
 
-    run run_standalone_answering y "$target"
+    TEST_FILEVAULT_STATUS="FileVault is On." TEST_BATTERY_STATUS="InternalBattery" run run_standalone_answering y "$target"
 
     assert_success
     assert_binary_called_with_args sudo -v
@@ -35,11 +36,12 @@ teardown() {
     assert_binary_called_with_args defaults write com.apple.screencapture location "$restricted_home/Screenshots"
     assert_binary_not_called_with_substring sudo "fdesetup enable"
     assert_binary_not_called_with_substring sudo "hibernatemode"
-    [ "$(/usr/libexec/PlistBuddy -c 'Print :DesktopViewSettings:IconViewSettings:arrangeBy' "$restricted_home/Library/Preferences/com.apple.finder.plist")" = grid ]
+    desktop_icon_arrangement="$(/usr/libexec/PlistBuddy -c 'Print :DesktopViewSettings:IconViewSettings:arrangeBy' "$finder_preferences")"
+    [ "$desktop_icon_arrangement" = grid ]
     assert_output_contains "macOS defaults configured!"
 }
 
-@test "confirmed macOS setup enables FileVault and disables hibernation without a battery" {
+@test "confirmed macOS setup enables FileVault when it is off and disables hibernation without a battery" {
     given_fake_macos_commands
 
     TEST_FILEVAULT_STATUS="FileVault is Off." TEST_BATTERY_STATUS="AC Power" run run_standalone_answering y "$target"

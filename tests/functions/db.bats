@@ -195,7 +195,7 @@ teardown() {
     assert_binary_not_called mysql
 }
 
-@test "db list reports a failed database query" {
+@test "db list fails with the MySQL client's exit status when the query fails" {
     write_fake_binary mysql 'exit 42'
 
     run call_db list

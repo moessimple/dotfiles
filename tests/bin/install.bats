@@ -3,6 +3,20 @@
 load ../support/test_helper
 load ../support/configuration_helper
 
+# Replaces a setup file in the fixture checkout with one function that appends its name to
+# $INSTALL_STEPS_FILE and warns when INSTALL_WARN_STEP names it.
+stub_setup_step() {
+    local script="$1" function_name="$2"
+    cat >"$repository/support/setup/$script" <<SCRIPT
+$function_name() {
+    printf '%s\\n' "$function_name" >>"\$INSTALL_STEPS_FILE"
+    if [[ "\${INSTALL_WARN_STEP:-}" == "$function_name" ]]; then
+        warn "Failed $function_name"
+    fi
+}
+SCRIPT
+}
+
 setup() {
     new_dotfiles_fixture
     test_home="$fixture/home"
@@ -15,28 +29,24 @@ setup() {
     export INSTALL_STEPS_FILE="$fixture/steps"
     write_fake_binary sudo 'printf "sudo\n" >> "$INSTALL_STEPS_FILE"'
 
-    local script function_name
-    while read -r script function_name; do
-        printf '%s() {\n    printf "%%s\\n" "%s" >> "$INSTALL_STEPS_FILE"\n    if [[ "${INSTALL_WARN_STEP:-}" == "%s" ]]; then warn "Failed %s"; fi\n}\n' \
-            "$function_name" "$function_name" "$function_name" "$function_name" \
-            >"$repository/support/setup/$script"
-    done <<'STEPS'
-oh-my-zsh.sh install_oh_my_zsh
-homebrew.sh install_homebrew
-packages/homebrew-packages.sh install_homebrew_packages
-packages/composer-packages.sh install_composer_packages
-packages/npm-packages.sh install_npm_packages
-packages/python-packages.sh install_python_packages
-herd/herd-onboarding.sh wait_for_herd_onboarding
-herd/herd-xdebug.sh install_herd_xdebug
-tinkerbench.sh set_up_tinkerbench
-claude/claude-skills.sh install_claude_skills
-claude/claude-plugins.sh install_claude_plugins
-codex/codex-skills.sh link_codex_skills
-services.sh start_services
-packages/ollama-models.sh install_ollama_models
-STEPS
-    printf '#!/bin/bash\nprintf "macos-defaults\\n" >> "$INSTALL_STEPS_FILE"\n' >"$repository/bin/macos-defaults.sh"
+    stub_setup_step oh-my-zsh.sh install_oh_my_zsh
+    stub_setup_step homebrew.sh install_homebrew
+    stub_setup_step packages/homebrew-packages.sh install_homebrew_packages
+    stub_setup_step packages/composer-packages.sh install_composer_packages
+    stub_setup_step packages/npm-packages.sh install_npm_packages
+    stub_setup_step packages/python-packages.sh install_python_packages
+    stub_setup_step herd/herd-onboarding.sh wait_for_herd_onboarding
+    stub_setup_step herd/herd-xdebug.sh install_herd_xdebug
+    stub_setup_step tinkerbench.sh set_up_tinkerbench
+    stub_setup_step claude/claude-skills.sh install_claude_skills
+    stub_setup_step claude/claude-plugins.sh install_claude_plugins
+    stub_setup_step codex/codex-skills.sh link_codex_skills
+    stub_setup_step services.sh start_services
+    stub_setup_step packages/ollama-models.sh install_ollama_models
+    cat >"$repository/bin/macos-defaults.sh" <<'SCRIPT'
+#!/bin/bash
+printf 'macos-defaults\n' >>"$INSTALL_STEPS_FILE"
+SCRIPT
     chmod +x "$repository/bin/macos-defaults.sh"
 
     # Every recorded step of one complete installation, in byte order (LC_ALL=C sort).

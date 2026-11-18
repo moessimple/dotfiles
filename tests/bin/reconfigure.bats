@@ -60,7 +60,8 @@ teardown() {
     assert_output_contains_before "Creating symlinks" "Symlinks created"
 }
 
-@test "reconfigure replaces managed drift and preserves local data on repeated runs" {
+@test "reconfigure replaces drifted managed paths and preserves local and unmanaged data" {
+    # Arrange: real directories, a local file, and wrong or broken links where managed links belong.
     local directory
     for directory in agents commands hooks rules skills; do
         mkdir -p "$test_home/.claude/$directory"
@@ -70,25 +71,40 @@ teardown() {
     printf 'local aliases' >"$test_home/.aliases"
     ln -s "$fixture/missing" "$test_home/.paths"
     ln -s "$fixture/wrong-instructions" "$test_home/.codex/AGENTS.md"
+    # Machine-local and unmanaged files that reconfigure must keep.
     printf 'local settings' >"$test_home/.extra"
     printf 'local identity' >"$test_home/.gitconfig-local"
     printf 'unmanaged data' >"$test_home/unmanaged"
-    printf 'repository skill' >"$repository/home/.claude/skills/source-sentinel"
 
-    local attempt
-    for attempt in 1 2; do
-        run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/reconfigure.sh"
+    # Act
+    run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/reconfigure.sh"
 
-        assert_success
-        assert_managed_dotfiles_are_linked
-        assert_file_content "$test_home/.extra" "local settings"
-        assert_file_content "$test_home/.gitconfig-local" "local identity"
-        assert_file_content "$test_home/unmanaged" "unmanaged data"
-        assert_file_content "$repository/home/.claude/skills/source-sentinel" "repository skill"
-        for directory in agents commands hooks rules skills; do
-            assert_path_does_not_exist "$test_home/.claude/$directory/local-copy"
-        done
+    # Assert
+    assert_success
+    assert_managed_dotfiles_are_linked
+    for directory in agents commands hooks rules skills; do
+        assert_path_does_not_exist "$test_home/.claude/$directory/local-copy"
     done
+    assert_file_content "$test_home/.extra" "local settings"
+    assert_file_content "$test_home/.gitconfig-local" "local identity"
+    assert_file_content "$test_home/unmanaged" "unmanaged data"
+}
+
+@test "a repeated reconfigure replaces its own links without deleting repository files through them" {
+    # Arrange: after the first run, ~/.claude/skills is a link into the repository.
+    printf 'repository skill' >"$repository/home/.claude/skills/source-sentinel"
+    printf 'local settings' >"$test_home/.extra"
+    run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/reconfigure.sh"
+    assert_success
+
+    # Act
+    run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/reconfigure.sh"
+
+    # Assert
+    assert_success
+    assert_managed_dotfiles_are_linked
+    assert_file_content "$repository/home/.claude/skills/source-sentinel" "repository skill"
+    assert_file_content "$test_home/.extra" "local settings"
 }
 
 @test "a directory preparation failure stops reconfigure before links or dependent setup" {

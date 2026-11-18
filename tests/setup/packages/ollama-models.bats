@@ -104,7 +104,7 @@ teardown() {
 
 @test "Ollama cleanup reports a failed removal of stale-one and continues with stale-two" {
     given_fake_ollama_listing $'stale-one\nstale-two\nembeddinggemma:latest'
-    printf '\nif [[ "$*" == "rm stale-one" ]]; then exit 17; fi\n' >>"$fake_bin/ollama"
+    given_command_fails_when_called_with ollama "rm stale-one"
 
     run call_cleanup_function "$target" clean_up_ollama_models
 
