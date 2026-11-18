@@ -21,7 +21,7 @@ teardown() {
     assert_success
 }
 
-@test "a final check runs all available project checks" {
+@test "a final check runs all available project checks and clears the dirty project" {
     # Arrange
     given_dirty_project_after_php_edit_with_tools composer pint phpstan rector pest phpunit
 
@@ -66,7 +66,7 @@ teardown() {
     assert_tool_ran pest
 }
 
-@test "a failed final check keeps the project dirty" {
+@test "a failed final check blocks the response and keeps the project dirty" {
     # Arrange
     given_dirty_project_after_php_edit_with_tools composer pint phpstan rector pest phpunit
     failing_tool=phpstan

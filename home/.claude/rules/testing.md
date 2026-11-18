@@ -84,30 +84,39 @@ technical boundary.
     Treat a flaky test as a defect. Do not rerun a failing test until it happens to pass; identify and remove the
     source of nondeterminism instead.
 
-18. Write expected values as literals derived from the requirement, next to the inputs that produce them. Never copy
-    the output the code currently produces into an assertion: a pasted actual value turns a bug into the
-    specification. The only exception is a characterization test that records current behavior before a change and
-    says so in its name.
+18. In an example-based test, write expected values as literals derived from the requirement, next to the inputs
+    that produce them. A property-based test asserts an invariant instead, also derived from the requirement and not
+    from the implementation. Do not paste the output the code currently produces into an assertion without checking
+    it against the requirement: an unchecked actual value turns a bug into the specification. A characterization
+    test that deliberately records current behavior before a change says so in its name.
 
 19. Treat a failing assertion as evidence. Do not delete, weaken, skip, or rewrite it to get the suite green until it
-    is clear whether the code or the expectation is wrong. Change an existing expectation only because a requirement
-    changed, and name that requirement in the commit message.
+    is clear whether the code or the expectation is wrong. Change an existing expectation only when the requirement
+    changed or the expectation itself was wrong, and say which in the commit message.
 
-20. See every new or changed test fail for the expected reason before relying on it. For a test of existing
-    behavior, temporarily invert the condition it protects in the production code, run the test, and restore the
-    production code. A test that stays green under that change protects nothing.
+20. See every new test, and every test whose assertions changed, fail for the expected reason before relying on it.
+    For a test written after the code, break the behavior it protects (invert a condition, remove a guard) and run
+    the test. Prefer the project's mutation testing tool, limited to the changed code (for example Pest's `--mutate`,
+    Infection, Stryker, or PIT), because it applies the change without writing to the source files. Without one,
+    make the change in a separate copy or worktree, never in the working tree. A test that stays green under that
+    change protects nothing.
 
 21. Make a failure explain itself: it shows the expected value, the actual value, and the relevant inputs. Assert on
     the value itself with the most precise assertion available, not on a boolean or a count derived from it.
 
-22. Do not mock types you do not own. Wrap a third-party API in a thin adapter the project owns, replace the adapter
-    in unit tests, and test the adapter against the real dependency. Take the format a fake reproduces from the real
-    tool's output or documentation, never from memory. Verify only the interactions and arguments that form the
-    contract, not every call.
+22. Do not hand-mock third-party types or modules, such as an SDK or HTTP client mocked with a mocking library: their
+    behavior is not the project's to specify, and the mock drifts from the real library unnoticed. Replace a
+    boundary with the fakes the framework provides for it (for example Laravel's `Http::fake()` or
+    `Storage::fake()`) or with a fake at the process or network boundary, such as a stub executable. When code uses
+    a third-party API in several places or through a wide interface, wrap it in a thin adapter the project owns,
+    replace the adapter in unit tests, and test the adapter against the real dependency. Take the format a fake
+    reproduces from the real tool's output or documentation, never from memory. Verify only the interactions and
+    arguments that form the contract, not every call.
 
 23. Never regenerate snapshots wholesale to get a suite green. Read the diff of each failing snapshot, fix the code
     on a regression, and regenerate only the snapshot whose change is intended. Keep snapshots small and
-    deterministic by masking timestamps, IDs, and tokens, and assert the values that matter explicitly as well.
+    deterministic by masking timestamps, IDs, and tokens, and assert the values that matter explicitly as well. In
+    CI, a missing snapshot fails the test instead of being written.
 
 24. Check the flags and behavior of a test tool or framework in the installed version's documentation, `--help`, or
     source before a test or fake depends on them. When a script rewrites many tests at once, compare each changed
