@@ -653,7 +653,15 @@ opendb() {
         [[ -z "${(P)var}" ]] && { echo "$var not found in .env file." >&2; return 1; }
     done
 
-    open "${DB_CONNECTION}://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
+    # Only the characters that end the URL's userinfo early (and % itself) are percent-encoded.
+    # Every other character stays as it is, as it did before, in case a client does not decode.
+    local encode='gsub("%"; "%25") | gsub("@"; "%40") | gsub(":"; "%3A") | gsub("/"; "%2F")
+        | gsub("\\?"; "%3F") | gsub("#"; "%23") | gsub(" "; "%20")'
+    local username password
+    username=$(jq -rn --arg value "$DB_USERNAME" "\$value | $encode") || return
+    password=$(jq -rn --arg value "$DB_PASSWORD" "\$value | $encode") || return
+
+    open "${DB_CONNECTION}://${username}:${password}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
 }
 
 # === macOS ===

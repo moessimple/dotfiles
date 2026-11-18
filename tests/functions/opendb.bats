@@ -77,3 +77,31 @@ teardown() {
     assert_success
     assert_binary_called_with open "mysql://root:secret@127.0.0.1:3306/mydb"
 }
+
+@test "opendb percent-encodes URL characters in the username and password" {
+    # Arrange
+    given_env_file \
+        DB_CONNECTION=mysql DB_HOST=127.0.0.1 DB_PORT=3306 \
+        DB_DATABASE=mydb DB_USERNAME=root DB_PASSWORD='p@ss:w/rd'
+
+    # Act
+    run call_opendb
+
+    # Assert
+    assert_success
+    assert_binary_called_with open "mysql://root:p%40ss%3Aw%2Frd@127.0.0.1:3306/mydb"
+}
+
+@test "opendb keeps password characters that are valid in a URL as they are" {
+    # Arrange
+    given_env_file \
+        DB_CONNECTION=mysql DB_HOST=127.0.0.1 DB_PORT=3306 \
+        DB_DATABASE=mydb DB_USERNAME=root DB_PASSWORD='s3cr$t!+='
+
+    # Act
+    run call_opendb
+
+    # Assert
+    assert_success
+    assert_binary_called_with open 'mysql://root:s3cr$t!+=@127.0.0.1:3306/mydb'
+}
