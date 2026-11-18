@@ -103,7 +103,7 @@ case "$mode" in
     file | fast | full) ;;
     *)
         echo "Usage: quality-gate.sh <file|fast|full> [path]" >&2
-        exit "$exit_usage"
+        exit "$EXIT_USAGE"
         ;;
 esac
 
@@ -112,14 +112,14 @@ canonical=""
 if [[ "$mode" == "file" ]]; then
     if [[ -z "$file" ]]; then
         echo "The file mode requires a path." >&2
-        exit "$exit_usage"
+        exit "$EXIT_USAGE"
     fi
     if [[ ! -f "$file" ]]; then
         echo "Not a regular file: $file" >&2
-        exit "$exit_usage"
+        exit "$EXIT_USAGE"
     fi
 
-    canonical=$(canonical_file_path "$file") || exit "$exit_usage"
+    canonical=$(canonical_file_path "$file") || exit "$EXIT_USAGE"
 
     # A repository can nest several Composer projects, so the file's own
     # directory decides which one is gated, not the shell's current directory.
@@ -130,7 +130,7 @@ fi
 
 resolve_project_root "$start_dir" git_root root || {
     echo "QUALITY_NO_PROJECT: no Composer project (composer.json) found for $start_dir" >&2
-    exit "$exit_nothing_to_check"
+    exit "$EXIT_NOTHING_TO_CHECK"
 }
 
 if [[ "$mode" == "file" ]]; then
@@ -139,7 +139,7 @@ if [[ "$mode" == "file" ]]; then
     fi
 fi
 
-cd "$root" || exit "$exit_internal"
+cd "$root" || exit "$EXIT_INTERNAL"
 
 # vendor/bin/* shebangs and the php calls below find `php` on PATH, never the
 # interactive `php='herd php'` alias. A project isolated to another Herd PHP
@@ -183,11 +183,12 @@ if ! $has_pint && ! $has_phpstan && ! $has_rector && ! $has_pest && ! $has_phpun
     echo "QUALITY_NO_TOOLING: no Pint, PHPStan, Rector, Pest, PHPUnit, Artisan or composer found in $root" >&2
     # Without tooling there is nothing left to prove clean, so fast and full
     # clear the dirty marker here, as they would after a passing run.
-    [[ "$mode" != "file" ]] && rm -f "$quality_runs_dir$root.dirty"
-    exit "$exit_nothing_to_check"
+    [[ "$mode" != "file" ]] && rm -f "$QUALITY_RUNS_DIR$root.dirty"
+    exit "$EXIT_NOTHING_TO_CHECK"
 fi
 
 status=0
+started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
 # PHP's default 128M is too little for PHPStan or a test run, and PHP does not
 # read PHP_MEMORY_LIMIT on its own, so the limit is passed explicitly to
@@ -228,17 +229,16 @@ case "$mode" in
 esac
 
 if [[ "$mode" != "file" ]]; then
-    record="$quality_runs_dir$root.json"
-    marker="$quality_runs_dir$root.dirty"
+    record="$QUALITY_RUNS_DIR$root.json"
+    marker="$QUALITY_RUNS_DIR$root.dirty"
     mkdir -p "$(dirname -- "$record")"
 
     sha=$(git rev-parse --short HEAD 2>/dev/null || echo none)
     tree="clean"
     [[ -n "$(git status --porcelain 2>/dev/null)" ]] && tree="dirty"
-    now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
     jq -nc --arg root "$root" --arg mode "$mode" --arg sha "$sha" --arg tree "$tree" \
-        --argjson exit "$status" --arg started "$now" \
+        --argjson exit "$status" --arg started "$started" \
         '{root: $root, mode: $mode, sha: $sha, tree: $tree, exit: $exit, started: $started}' >"$record"
 
     ((status == 0)) && rm -f "$marker"

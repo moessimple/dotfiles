@@ -32,12 +32,12 @@ git_root=$(cd "$git_root" && pwd -P) || exit 0
 
 dirty_projects=()
 while IFS= read -r marker; do
-    project="${marker#"$quality_runs_dir"}"
+    project="${marker#"$QUALITY_RUNS_DIR"}"
     project="${project%.dirty}"
     case "$project" in
         "$git_root" | "$git_root"/*) dirty_projects+=("$project") ;;
     esac
-done < <(find "$quality_runs_dir" -name '*.dirty' 2>/dev/null)
+done < <(find "$QUALITY_RUNS_DIR" -name '*.dirty' 2>/dev/null)
 
 ((${#dirty_projects[@]} == 0)) && exit 0
 
@@ -51,7 +51,7 @@ for project in "${dirty_projects[@]}"; do
 
     # A dispatcher run with nothing to check (QUALITY_NO_PROJECT /
     # QUALITY_NO_TOOLING) is a pass for this marker, not a failure.
-    [[ "$status" == 0 || "$status" == "$exit_nothing_to_check" ]] && continue
+    [[ "$status" == 0 || "$status" == "$EXIT_NOTHING_TO_CHECK" ]] && continue
 
     still_dirty+=("$project")
     printf '%s\n' "$output" >&2

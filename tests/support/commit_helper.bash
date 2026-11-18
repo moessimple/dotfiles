@@ -14,7 +14,7 @@ call_commit_with_input() {
 
 # Runs commit, then reports whether its spinner and Ctrl-C internals stayed in the shell.
 call_commit_then_report_leaked_state() {
-    zsh -c 'source "$1"; cd "$2"; commit >/dev/null 2>&1;
+    zsh -c 'source "$1"; cd "$2"; commit &>/dev/null;
         printf "spinner_pid=[%s] interrupted=[%s] int_trap=[" "${spinner_pid-<unset>}" "${interrupted-<unset>}"
         trap | grep INT; printf "]"' \
         zsh "$functions_file" "$working_directory"

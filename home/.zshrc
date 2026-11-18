@@ -55,8 +55,8 @@ if command -v zoxide &>/dev/null; then
 fi
 
 # Enable autosuggestions (installed via brew)
-if [[ -f "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
-    source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+if [[ -f "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+    source "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
 fi
 
 # Herd injected PHP binary.
@@ -71,8 +71,6 @@ export NVM_DIR="$HOME/Library/Application Support/Herd/config/nvm"
 
 # Herd injected PHP binary.
 export PATH="$HOME/Library/Application Support/Herd/bin/:$PATH"
-
-export PATH=~/.local/bin:$PATH
 
 
 # Herd injected PHP 8.4 configuration.

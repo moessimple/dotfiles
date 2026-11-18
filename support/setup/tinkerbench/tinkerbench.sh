@@ -1,11 +1,11 @@
 #!/bin/bash
 
+# tinkerbench (https://github.com/moessimple/tinkerbench) is a separate project
+# bootstrapped by both install and reconfigure. Existing checkouts are left
+# untouched and updated like any other project. Clone and setup are guarded
+# separately: composer setup creates `.env`, so an interrupted setup is retried
+# on the next run.
 tinkerbench_setup() {
-    # tinkerbench (https://github.com/moessimple/tinkerbench) is a separate project
-    # bootstrapped by both install and reconfigure. Existing checkouts are left
-    # untouched and updated like any other project. Clone and setup are guarded
-    # separately: composer setup creates `.env`, so an interrupted setup is retried
-    # on the next run.
     step "Setting up tinkerbench.test"
 
     local target="$HOME/Code/tinkerbench"

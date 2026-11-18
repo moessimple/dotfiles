@@ -31,6 +31,16 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
+# Replaces PATH with a directory holding only the named <command>s, so any other command is missing.
+given_path_with_only() {
+    local restricted_bin="$fixture/restricted-bin" command_name
+    mkdir -p "$restricted_bin"
+    for command_name in "$@"; do
+        ln -s "$(command -v "$command_name")" "$restricted_bin/$command_name"
+    done
+    export PATH="$restricted_bin"
+}
+
 source_codex_skills_setup() {
     CODEX_SKILLS_SOURCE="$source_dir" CODEX_SKILLS_TARGET="$skills_dir" \
         CLAUDE_PLUGIN_CACHE="$plugin_cache" CLAUDE_INSTALLED_PLUGINS="$installed_plugins" run_setup_script "$target"
@@ -136,6 +146,20 @@ exec /bin/ln "$@"'
     [ -L "$skills_dir/plugin-workflow" ]
     [ "$(readlink "$skills_dir/plugin-workflow")" = "$plugin_cache/addy-agent-skills/agent-skills/1.0.0/skills/plugin-workflow" ]
     assert_output_contains "WARN: Skipping Claude plugin skills, installed_plugins.json is unavailable"
+}
+
+@test "without jq, plugin skills are skipped with that reason and standalone skills are still linked" {
+    # Arrange
+    given_path_with_only bash basename readlink ln mkdir rm
+
+    # Act
+    run run_codex_skills_setup
+
+    # Assert
+    assert_success
+    assert_output_contains "WARN: Skipping Claude plugin skills, jq is not installed"
+    [ -L "$skills_dir/explain-changes" ]
+    assert_path_does_not_exist "$skills_dir/plugin-workflow"
 }
 
 @test "Claude-specific and duplicate skills are not linked for Codex" {

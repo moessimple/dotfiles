@@ -35,9 +35,9 @@ resolve_project_root "$(dirname -- "$canonical")" git_root root || exit 0
 output=$("$HOME/.claude/hooks/quality-gate.sh" file "$file" 2>&1)
 status=$?
 
-[[ "$status" == "$exit_nothing_to_check" ]] && exit 0
+[[ "$status" == "$EXIT_NOTHING_TO_CHECK" ]] && exit 0
 
-marker="$quality_runs_dir$root.dirty"
+marker="$QUALITY_RUNS_DIR$root.dirty"
 mkdir -p "$(dirname -- "$marker")" && : >"$marker"
 
 if [[ "$status" != 0 ]]; then

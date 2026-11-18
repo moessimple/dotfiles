@@ -21,6 +21,19 @@ teardown() {
     assert_output_contains "No hits."
 }
 
+@test "a repository without a commit is refused instead of reported as having no hits" {
+    # Arrange
+    given_project_without_commits
+
+    # Act
+    run_self_check
+
+    # Assert
+    assert_failure
+    assert_output_contains "needs a commit to compare against"
+    assert_output_does_not_contain "No hits."
+}
+
 @test "a new acceptance test without a lock entry is a hit" {
     # Arrange
     write_project_file tests/Feature/InvoiceRulesTest.php "<?php\n\npest()->group('acceptance');\n\nit('RULE-002: numbers invoices per year', function () {\n    expect(1)->toBe(1);\n});\n"

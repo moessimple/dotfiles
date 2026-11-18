@@ -17,6 +17,7 @@ fif() {
         --style full \
         --color "hl:-1:underline,hl+:-1:underline:reverse" \
         --disabled --query "${*:-}" \
+        --bind "start:reload:$rg_cmd {q} || true" \
         --bind "change:reload:sleep 0.1; $rg_cmd {q} || true" \
         --bind "alt-enter:unbind(change,alt-enter)+change-prompt(2. fzf> )+enable-search+clear-query" \
         --bind 'enter:become(code -g {1}:{2})' \
@@ -141,7 +142,7 @@ commit() {
 
     git add --all || return
 
-    if [[ "$commit_message" == "" ]]; then
+    if [[ -z "$commit_message" ]]; then
         {
             spinner="⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
             while true; do
@@ -374,7 +375,7 @@ HELP
         *)
             source "$HOME/.claude/hooks/support/exit-codes.sh"
             echo "Unknown quality mode: $1" >&2
-            return "$exit_usage"
+            return "$EXIT_USAGE"
             ;;
     esac
 }
@@ -387,9 +388,9 @@ _quality_status() {
 
     resolve_project_root "$PWD" git_root root || {
         echo "No Composer project (composer.json) found for $PWD." >&2
-        return "$exit_nothing_to_check"
+        return "$EXIT_NOTHING_TO_CHECK"
     }
-    record="$quality_runs_dir$root.json"
+    record="$QUALITY_RUNS_DIR$root.json"
 
     if [[ ! -f "$record" ]]; then
         echo "No recorded gate run for $root."
@@ -521,7 +522,11 @@ importdump() {
         return 0
     fi
 
-    local db="${1:?database name required}"
+    if [[ -z "$1" ]]; then
+        echo "importdump: database name required" >&2
+        return 1
+    fi
+    local db="$1"
     shift
     if (($# == 0)); then
         echo "No SQL files provided." >&2
@@ -563,13 +568,10 @@ _require_local_database() {
 }
 
 _mysql_cmd() {
-    local host
+    local host port user pass
     host=$(_env_val DB_HOST)
-    local port
     port=$(_env_val DB_PORT)
-    local user
     user=$(_env_val DB_USERNAME)
-    local pass
     pass=$(_env_val DB_PASSWORD)
     # For localhost the mysql client connects over the Unix socket and ignores -P,
     # which would reach whichever server owns the socket instead of DB_PORT.
@@ -626,8 +628,7 @@ db() {
 # Drop and recreate each given database, then run skeema or Laravel migrations
 _migrate_databases() {
     _require_local_database || return
-    local failed=0
-    local db
+    local failed=0 db
     for db in "$@"; do
         _mysql_cmd -e "DROP DATABASE IF EXISTS \`$db\`; CREATE DATABASE \`$db\`;" || return
         if [[ -d "database/skeema" ]]; then
@@ -641,18 +642,16 @@ _migrate_databases() {
 
 # Resolve all databases (main + test + parallel shards) from .env and phpunit.xml
 _all_databases() {
-    local main_db
+    local main_db test_db phpunit_config="phpunit.xml"
     main_db=$(_env_val DB_DATABASE)
-    local phpunit_config="phpunit.xml"
     [[ -f "$phpunit_config" ]] || phpunit_config="phpunit.xml.dist"
-    local test_db
     test_db=$(grep -o 'name="DB_DATABASE" value="[^"]*' "$phpunit_config" 2>/dev/null | sed 's/.*value="//' | tail -n1)
 
     local databases=("$main_db")
     if [[ -n "$test_db" ]]; then
         databases+=("$test_db")
         local i
-        for ((i = 1; i <= $(nproc); i++)); do
+        for ((i = 1; i <= $(getconf _NPROCESSORS_ONLN); i++)); do
             databases+=("${test_db}_test_$i")
         done
     fi

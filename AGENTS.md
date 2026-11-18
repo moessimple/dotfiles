@@ -214,11 +214,12 @@ Add each new `THIRD_PARTY_SKILLS` entry from `support/setup/claude/claude-skills
 list in `.editorconfig`, so `bin/format.sh` leaves its scripts as upstream wrote them.
 
 **`support/setup/clean-state.sh` prepares directories and clears paths for symlinks.** Its `clean_state_apply`
-creates `~/Screenshots`, `~/Temp`, `~/Code`, `~/.config/ghostty`, `~/.config/git`, `~/.claude`, and `~/.codex`.
+creates `~/Screenshots`, `~/Temp`, `~/Code`, `~/.config/ghostty`, `~/.config/git`, `~/.claude`, and `~/.codex`,
+and an empty `~/.extra` when none exists.
 `support/setup/symlink-dotfiles.sh` defines `symlink_dotfiles_apply`, which uses `ln -sf`/`ln -sfn` for every
 managed path. Those commands already replace an existing file or symlink, but cannot replace a real directory,
 so `clean_state_apply` clears the five `~/.claude/` paths (`agents`, `commands`, `hooks`, `rules`, `skills`)
-before symlinking. Files it does not know about (e.g. `~/.extra`) are left untouched. Both files only define
+before symlinking. The content of an existing `~/.extra` and files it does not know about are left untouched. Both files only define
 functions when sourced; install and reconfigure call them explicitly, and each function reports its own step
 and result.
 
@@ -311,7 +312,10 @@ These conventions apply to the repository's own shell code, excluding third-part
 Exceptions: `home/.config/git/default-branch` is deliberately POSIX `sh`. Preserve Herd's injected blocks in
 `home/.zshrc` as written by Herd. `support/git/support/pickaxe-diff.sh` adds `-E` so its ERR trap is inherited.
 The `_rpr_*` locals in `home/.claude/hooks/support/project-root.sh` prevent output-parameter names from shadowing
-caller variables; their prefix is a collision guard.
+caller variables; their prefix is a collision guard. `home/.claude/statusline.sh` runs without strict mode, so
+input it cannot parse still prints a status line instead of an empty one. Bats tests use `[ … ]` for assertions:
+under the macOS `/bin/bash` 3.2, a failing `[[ … ]]` or `(( … ))` that is not the last command does not fail
+the test.
 
 Separate `local` declarations from command substitutions because `local` otherwise masks the command's exit
 status. Capture pipelines with `pipefail` in a subshell and check the result before iterating, so a failed

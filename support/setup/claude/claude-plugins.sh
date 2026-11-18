@@ -111,7 +111,7 @@ claude_plugins_install() {
 claude_plugins_update() {
     step "Updating Claude Code plugins"
     update_plugins_after_cooldown
-    success "Claude Code plugins updated"
+    success "Claude Code plugin updates processed"
 }
 
 # Removes any installed plugin or configured MCP server that isn't declared above. Same
@@ -134,7 +134,7 @@ claude_plugins_cleanup() {
     ); then
         read_failed=1
         plugin_listing=""
-        warn "Could not read installed Claude Code plugins, skipping their cleanup"
+        warn "Could not read installed Claude Code plugins, skipping their cleanup and the marketplace cleanup"
     else
         installed_plugins=$(printf '%s\n' "$plugin_listing" | jq -r '.[] | select(.scope == "user") | .id')
         while IFS= read -r name; do
@@ -149,7 +149,7 @@ claude_plugins_cleanup() {
 
     local declared_marketplaces known_marketplaces
     if [[ -z "$plugin_listing" ]]; then
-        warn "Could not verify plugin scopes, skipping marketplace cleanup"
+        : # Removing a marketplace uninstalls its plugins in every scope, which only the listing shows.
     elif ! declared_marketplaces=$(
         set -o pipefail
         claude_marketplaces_read | jq -r 'keys[]'

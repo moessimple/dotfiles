@@ -65,7 +65,7 @@ claude_skills_update() {
     step "Updating Claude Code skills"
     update_skills_after_cooldown
     claude_skills_trim_clarity || warn "Could not trim Clarity's repository extras"
-    success "Claude Code skills updated"
+    success "Claude Code skill updates processed"
 }
 
 # Removes any globally installed skill that isn't in THIRD_PARTY_SKILLS, the Claude Code
@@ -82,8 +82,6 @@ claude_skills_cleanup() {
         declared_names+=("${entry#*:}")
     done
 
-    # A separate `local`, so a missing jq or an unreadable lock file is reported instead of
-    # reading as an empty list.
     local installed
     if ! installed=$(jq -r '.skills // {} | keys[]' "$SKILL_LOCK_FILE" 2>/dev/null); then
         warn "Could not read $SKILL_LOCK_FILE, skipping cleanup"

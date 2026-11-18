@@ -13,6 +13,13 @@ if ! git rev-parse --is-inside-work-tree &>/dev/null; then
     exit 1
 fi
 
+# Every check compares against HEAD. Without it each git call fails, and the empty results would read
+# as "No hits."
+if ! git rev-parse --verify --quiet HEAD &>/dev/null; then
+    echo "The self-check needs a commit to compare against. Commit the project first." >&2
+    exit 1
+fi
+
 hits=0
 
 # Prints a heading and the given lines when there are any, and counts them as a hit.

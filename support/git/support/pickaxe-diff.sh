@@ -31,10 +31,10 @@ color_func=$(git config --get-color color.diff.func '')
 color_meta=$(git config --get-color color.diff.meta 'normal bold')
 color_new=$(git config --get-color color.diff.new green)
 color_old=$(git config --get-color color.diff.old red)
-color_none=$(tput sgr 0 2>/dev/null || :)
+color_none=$(tput sgr 0 2>/dev/null || true)
 
 only_match_flag=""
-if { grepdiff -h 2>&1 || :; } | \grep -q -e '--only-match'; then
+if { grepdiff -h 2>&1 || true; } | grep -q -e '--only-match'; then
     only_match_flag="--only-match=mod"
 fi
 
@@ -68,15 +68,15 @@ if [[ "$safe_regex" == -* ]]; then
     safe_regex="[-]${safe_regex:1}"
 fi
 
-diff_output=$(git diff --no-color --no-ext-diff -p --src-prefix=a/ --dst-prefix=b/ "$old_file" "$new_file" || :)
+diff_output=$(git diff --no-color --no-ext-diff -p --src-prefix=a/ --dst-prefix=b/ "$old_file" "$new_file" || true)
 
 filtered_diff=$({ echo "$diff_output" \
     | { grepdiff -E "$safe_regex" --output-matching=hunk ${only_match_flag} || true; } \
-    | \grep -v -e '^--- a/' -e '^+++ b/' \
-    | \grep -v -e '^--- /dev/null' -e '^+++ /dev/null' \
-    | \grep -v -e '^diff --git' -e '^index ' \
+    | grep -v -e '^--- a/' -e '^+++ b/' \
+    | grep -v -e '^--- /dev/null' -e '^+++ /dev/null' \
+    | grep -v -e '^diff --git' -e '^index ' \
     | sed -e "s/\(@@ .* @@\)\(.*\)/${color_frag}\1${color_none}${color_func}\2${color_none}/" \
-    | GREP_COLOR=7 GREP_COLORS="ms=7" \grep --color=always -E "$safe_regex|$" \
+    | GREP_COLOR=7 GREP_COLORS="ms=7" grep --color=always -E "$safe_regex|$" \
     | sed -e $'s/\x1b\[m\x1b\[K/\x1b\[27m/g' -e $'s/\x1b\[K//g' \
     | sed -e "s/^\(+.*\)/${color_new}\1${color_none}/" \
     | sed -e "s/^\(-.*\)/${color_old}\1${color_none}/"; } || true)

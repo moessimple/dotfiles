@@ -1,18 +1,18 @@
 #!/bin/bash
 
+# Herd normally creates a PHP version's debug.ini through its GUI Xdebug toggle.
+# Unattended setup instead copies Herd's template for every installed PHP
+# version. The configuration is shared by all Herd projects using that version,
+# so it must not depend on one project's setup order.
+# Both ini files are managed here and rewritten on every run to correct drift.
+#
+# It also drops an always-loaded xdebug.ini in each version's ini scan dir with
+# xdebug.mode=off: Xdebug is then present in every PHP process (including the
+# children Composer spawns for pest), at near-zero cost, and any command that
+# exports XDEBUG_MODE (a project's `composer test` sets XDEBUG_MODE=coverage)
+# activates it for that run only. This is what Pest's coverage-driver detection
+# expects and mirrors CI; the debug.ini above stays for `herd debug`.
 herd_debug_ini_install() {
-    # Herd normally creates a PHP version's debug.ini through its GUI Xdebug toggle.
-    # Unattended setup instead copies Herd's template for every installed PHP
-    # version. The configuration is shared by all Herd projects using that version,
-    # so it must not depend on one project's setup order.
-    # Both ini files are managed here and rewritten on every run to correct drift.
-    #
-    # It also drops an always-loaded xdebug.ini in each version's ini scan dir with
-    # xdebug.mode=off: Xdebug is then present in every PHP process (including the
-    # children Composer spawns for pest), at near-zero cost, and any command that
-    # exports XDEBUG_MODE (a project's `composer test` sets XDEBUG_MODE=coverage)
-    # activates it for that run only. This is what Pest's coverage-driver detection
-    # expects and mirrors CI; the debug.ini above stays for `herd debug`.
     step "Installing Herd's Xdebug ini files for installed PHP versions"
 
     local installed_versions version version_slug debug_dir debug_ini xdebug_extension always_ini write_failed

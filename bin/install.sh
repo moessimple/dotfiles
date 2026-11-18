@@ -77,6 +77,7 @@ source ~/.dotfiles/support/setup/herd-onboarding.sh
 source ~/.dotfiles/support/setup/herd-debug-ini.sh
 source ~/.dotfiles/support/setup/tinkerbench/tinkerbench.sh
 source ~/.dotfiles/support/setup/clean-state.sh
+source ~/.dotfiles/support/setup/oh-my-zsh.sh
 source ~/.dotfiles/support/setup/symlink-dotfiles.sh
 source ~/.dotfiles/support/setup/packages/homebrew-packages.sh
 source ~/.dotfiles/support/setup/packages/composer-packages.sh
@@ -89,17 +90,7 @@ source ~/.dotfiles/support/setup/codex/codex-skills.sh
 
 clean_state_apply
 
-step "Installing Oh My Zsh"
-# The directory check also catches a failed download, which leaves sh with empty input and
-# a zero exit status.
-if [[ -d ~/.oh-my-zsh ]]; then
-    success "Oh My Zsh already installed"
-elif curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh -s -- --unattended \
-    && [[ -d ~/.oh-my-zsh ]]; then
-    success "Oh My Zsh installed"
-else
-    warn "Oh My Zsh installation failed"
-fi
+oh_my_zsh_install
 
 # Installer shells do not read home/.zprofile, so a new Homebrew installation needs shellenv here.
 step "Installing Homebrew"
@@ -142,8 +133,6 @@ services_start
 
 # Ollama models: after services.sh, which starts the Ollama service the pulls talk to.
 ollama_models_install
-
-touch ~/.extra
 
 # macOS defaults: run last because they quit the affected apps, Terminal among them.
 step "Applying macOS defaults"

@@ -10,7 +10,7 @@ setup() {
     given_fake_bin_on_path
     given_herd_forwarding_php_and_composer
     write_fake_binary mysql
-    write_fake_binary nproc "printf '1\n'"
+    write_fake_binary getconf "printf '1\n'"
     given_env_file DB_DATABASE=maindb
     printf '<php><env name="DB_DATABASE" value="testdb"/></php>\n' >"$working_directory/phpunit.xml"
 }

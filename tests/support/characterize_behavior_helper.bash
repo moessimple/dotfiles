@@ -23,6 +23,12 @@ given_project_with_committed_acceptance_test() {
     git -C "$project" commit -qm initial
 }
 
+given_project_without_commits() {
+    project="$fixture/uncommitted-project"
+    mkdir -p "$project/tests"
+    git init -q -b main "$project"
+}
+
 write_project_file() {
     local path="$1" content="$2"
     mkdir -p "$(dirname "$project/$path")"

@@ -253,6 +253,22 @@ teardown() {
     assert_record_exit_is_success "$record"
 }
 
+@test "the recorded start time is taken before the checks run" {
+    # Arrange
+    given_project_with_tools composer pint pest
+    given_pint_recording_its_start_in "$fixture/pint-started"
+
+    # Act
+    run run_gate fast
+
+    # Assert
+    assert_success
+    record="$config_home/claude-quality/runs$project.json"
+    recorded_start=$(jq -r .started "$record")
+    pint_start=$(cat "$fixture/pint-started")
+    [ "$recorded_start" \< "$pint_start" ] || [ "$recorded_start" = "$pint_start" ]
+}
+
 @test "a project path with a double quote is recorded as valid JSON" {
     # Arrange
     given_project_named_with_tools 'quote"d' composer pint

@@ -39,7 +39,7 @@ call_switch_choosing_leave_and_confirming_overwrite_with() {
 
 call_switch_choosing_leave_confirming_overwrite_with_stash_that_does_nothing() {
     zsh -c '
-        function git() {
+        git() {
             if [[ "$1" == "stash" && "$2" == "push" ]]; then
                 echo "No local changes to save"
                 return 0
@@ -61,7 +61,7 @@ call_switch_choosing_leave_confirming_overwrite_with_stash_that_does_nothing() {
 
 call_switch_with_stash_that_does_nothing() {
     zsh -c '
-        function git() {
+        git() {
             if [[ "$1" == "stash" && "$2" == "push" ]]; then
                 echo "No local changes to save"
                 return 0
@@ -76,7 +76,7 @@ call_switch_with_stash_that_does_nothing() {
 
 call_switch_with_failing_stash() {
     zsh -c '
-        function git() {
+        git() {
             if [[ "$1" == "stash" && "$2" == "push" ]]; then
                 echo "simulated stash failure" >&2
                 return 42

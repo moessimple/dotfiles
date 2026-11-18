@@ -2,7 +2,7 @@ source "$(cd "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/test_helper.bash"
 
 new_quality_fixture() {
     new_dotfiles_fixture
-    fixture="$(cd "$fixture" && pwd -P)"
+    fixture=$(cd "$fixture" && pwd -P)
 
     hooks_dir="$dotfiles_dir/home/.claude/hooks"
     gate="$hooks_dir/quality-gate.sh"
@@ -19,7 +19,7 @@ new_quality_fixture() {
 #!/usr/bin/env bash
 set -u
 
-tool="$(basename -- "$0")"
+tool=$(basename -- "$0")
 printf '%s\n' "$tool" >> "$QUALITY_TEST_LOG"
 printf '%s %s\n' "$tool" "$*" >> "$QUALITY_TEST_LOG.args"
 [[ "$tool" == "${QUALITY_FAIL_TOOL:-}" ]] && exit 1
@@ -155,6 +155,15 @@ install_tool() {
     esac
 }
 
+# Replaces the project's Pint with one that writes its start time (UTC, ISO 8601, whole seconds) to
+# <file> and then takes a second, so a time taken after the checks is later than that start.
+given_pint_recording_its_start_in() {
+    local file="$1"
+    rm -f "$project/vendor/bin/pint"
+    printf '#!/bin/bash\ndate -u +%%Y-%%m-%%dT%%H:%%M:%%SZ >"%s"\nsleep 1\n' "$file" >"$project/vendor/bin/pint"
+    chmod +x "$project/vendor/bin/pint"
+}
+
 run_gate() {
     PATH="${GATE_PATH:-$fake_bin:$PATH}" \
         HOME="${GATE_HOME:-$HOME}" \
@@ -255,7 +264,7 @@ path_without_composer() {
 # so the fake records that directory for assert_herd_resolved_php_in.
 given_herd_resolving_to_system_php() {
     local system_php
-    system_php="$(command -v php)"
+    system_php=$(command -v php)
     herd_which_php_directory_log="$fixture/herd-which-php-directory"
 
     cat >"$fake_bin/herd" <<HERD
@@ -278,7 +287,7 @@ HERD
 # GATE_PATH="$(path_without_composer)" and GATE_HOME="$test_home".
 given_herd_only_at_its_default_install_path() {
     local real_php herd_home
-    real_php="$(command -v php)"
+    real_php=$(command -v php)
     herd_home="$test_home/Library/Application Support/Herd/bin"
     mkdir -p "$herd_home"
 

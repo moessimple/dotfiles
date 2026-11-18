@@ -56,7 +56,10 @@ codex_skills_link() {
     step "Linking Codex-compatible skills"
     mkdir -p "$CODEX_SKILLS_TARGET"
 
-    if ! jq -e '.plugins | type == "object"' "$CLAUDE_INSTALLED_PLUGINS" &>/dev/null; then
+    if ! command -v jq &>/dev/null; then
+        warn "Skipping Claude plugin skills, jq is not installed"
+        plugin_skills_available=0
+    elif ! jq -e '.plugins | type == "object"' "$CLAUDE_INSTALLED_PLUGINS" &>/dev/null; then
         warn "Skipping Claude plugin skills, installed_plugins.json is unavailable"
         plugin_skills_available=0
     fi

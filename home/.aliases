@@ -67,7 +67,9 @@ if command -v eza &>/dev/null; then
     alias ls="eza -Ahlo --icons --color --group-directories-first"
 fi
 
-alias du="ncdu --color dark -rr -x --exclude .git --exclude node_modules --exclude vendor"
+if command -v ncdu &>/dev/null; then
+    alias du="ncdu --color dark -rr -x --exclude .git --exclude node_modules --exclude vendor"
+fi
 
 if command -v prettyping &>/dev/null; then
     alias ping='prettyping --nolegend'

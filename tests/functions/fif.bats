@@ -22,6 +22,15 @@ teardown() {
     assert_binary_called_with_substring fzf "--disabled --query TODO"
 }
 
+@test "fif loads ripgrep results for the given search term on start" {
+    # Act
+    run call_fif "TODO"
+
+    # Assert (without a start binding, fzf would list file names until the query changes)
+    assert_failure
+    assert_binary_called_with_substring fzf "--bind start:reload:rg "
+}
+
 @test "fif starts with an empty query when no search term is given" {
     # Act
     run call_fif

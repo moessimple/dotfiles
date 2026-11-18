@@ -31,7 +31,7 @@ sync() {
     stashed=$_git_stash_guard_active
 
     local branch exit_code=0
-    for branch in "${long_lived_branches[@]}"; do
+    for branch in "${LONG_LIVED_BRANCHES[@]}"; do
         git show-ref --verify --quiet "refs/remotes/upstream/$branch" || continue
 
         if git show-ref --verify --quiet "refs/heads/$branch"; then

@@ -174,7 +174,7 @@ esac"
 # <days>, so the test's own run starts that far into the cooldown.
 given_update_ran_days_ago() {
     local days="$1"
-    call_update >/dev/null 2>&1 || true
+    call_update &>/dev/null || true
     given_first_sightings_aged_by_days "$days"
     rm -f "$fake_bin"/*.calls
 }

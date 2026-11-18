@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e # Exit on unhandled command failures
+set -e
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/output.sh"
 
@@ -22,9 +22,6 @@ symlink_dotfiles_apply
 
 # Reapply the reviewed shared-skill links without reinstalling the skills.
 codex_skills_link
-
-# Create local config files if they don't exist
-touch ~/.extra
 
 # Herd onboarding: reconfigure does not install Herd, but it completes
 # onboarding when an existing installation has not been initialized. The

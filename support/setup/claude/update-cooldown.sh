@@ -27,10 +27,7 @@ cooled_down() {
             return 1
             ;;
     esac
-    if ((now - seen >= UPDATE_COOLDOWN_DAYS * 86400)); then
-        return 0
-    fi
-    return 1
+    ((now - seen >= UPDATE_COOLDOWN_DAYS * 86400))
 }
 
 # Prints the upstream state of plugin <name> in the marketplace <checkout> of <url>: the tree of its

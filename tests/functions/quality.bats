@@ -63,7 +63,7 @@ teardown() {
     # Arrange
     given_composer_project_repository
     local resolved_repository
-    resolved_repository="$(cd "$repository" && pwd -P)"
+    resolved_repository=$(cd "$repository" && pwd -P)
 
     # Act
     run call_quality_in "$repository" status

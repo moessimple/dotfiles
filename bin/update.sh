@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e # Exit on unhandled command failures
+set -e
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/output.sh"
 

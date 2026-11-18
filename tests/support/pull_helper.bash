@@ -11,7 +11,7 @@ given_origin_commit_missing_from_local_branch() {
     git -C "$repository" push -qu origin feature
 
     local previous_commit
-    previous_commit="$(git -C "$repository" rev-parse HEAD)"
+    previous_commit=$(git -C "$repository" rev-parse HEAD)
     printf '%s\n' "$new_content" >"$repository/$changed_file"
     git -C "$repository" add "$changed_file"
     git -C "$repository" commit -qm "change on origin"

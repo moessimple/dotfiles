@@ -53,6 +53,7 @@ teardown() {
     for directory in Screenshots Temp Code .config/ghostty .config/git .claude .codex; do
         [ -d "$test_home/$directory" ]
     done
+    assert_file_exists "$test_home/.extra"
     [[ "$output" == *"Prepare clean state"*"Clean state prepared"*"Creating symlinks"*"Symlinks created"* ]]
 }
 

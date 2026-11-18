@@ -1,10 +1,10 @@
 #!/bin/bash
 
+# Homebrew installs only the Herd app bundle. Herd's one-time onboarding adds a
+# default PHP version, privileged background services and its CLI binaries.
+# Later setup needs those binaries, so a fresh machine waits here until
+# onboarding finishes.
 herd_onboarding_wait() {
-    # Homebrew installs only the Herd app bundle. Herd's one-time onboarding adds a
-    # default PHP version, privileged background services and its CLI binaries.
-    # Later setup needs those binaries, so a fresh machine waits here until
-    # onboarding finishes.
     step "Waiting for Herd to finish onboarding"
 
     export PATH="$HOME/Library/Application Support/Herd/bin:$PATH"
@@ -15,7 +15,7 @@ herd_onboarding_wait() {
         local attempt=0
         until command -v herd &>/dev/null; do
             attempt=$((attempt + 1))
-            if (((attempt % 12) == 0)); then
+            if ((attempt % 12 == 0)); then
                 note "Still waiting for Herd's onboarding to finish..."
             fi
             sleep 5

@@ -45,7 +45,7 @@ teardown() {
     given_env_file DB_DATABASE=maindb
     printf '<php><env name="DB_DATABASE" value="testdb"/></php>\n' >"$working_directory/phpunit.xml"
     write_fake_binary mysql
-    write_fake_binary nproc "printf '2\n'"
+    write_fake_binary getconf "printf '2\n'"
 
     # Act
     run call_dropdbs
@@ -61,7 +61,7 @@ teardown() {
     printf '<php><env name="DB_DATABASE" value="local_test"/></php>\n' >"$working_directory/phpunit.xml"
     printf '<php><env name="DB_DATABASE" value="template_test"/></php>\n' >"$working_directory/phpunit.xml.dist"
     write_fake_binary mysql
-    write_fake_binary nproc "printf '1\n'"
+    write_fake_binary getconf "printf '1\n'"
 
     run call_dropdbs
 
@@ -75,7 +75,7 @@ teardown() {
     # Arrange
     given_env_file DB_DATABASE=maindb
     printf '<php><env name="DB_DATABASE" value="testdb"/></php>\n' >"$working_directory/phpunit.xml"
-    write_fake_binary nproc "printf '1\n'"
+    write_fake_binary getconf "printf '1\n'"
     write_fake_binary mysql "case \"\$*\" in
     *maindb*) exit 1 ;;
 esac"
