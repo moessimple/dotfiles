@@ -3,7 +3,7 @@
 # Third-party Claude Code skills installed via the `skills` CLI, one "owner/repo:skill" pair
 # per entry (Bash 3.2, the /bin/bash shipped on macOS, has no associative arrays).
 #
-# Review additions with the third-party skill checklist in AGENTS.md.
+# Review additions with the checklist in .claude/skills/review-third-party-skill/SKILL.md.
 THIRD_PARTY_SKILLS=(
     "addyosmani/clarity:clarity"
     "anthropics/skills:pdf"

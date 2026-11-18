@@ -107,7 +107,8 @@ Mac App Store apps (the Brewfile's `mas` entries) via `brew bundle cleanup --for
 `support/setup/packages/homebrew-packages.sh`, the others via a
 `clean_up_*` function in the declaring file, while `codex-skills.sh`
 prunes its own stale links on every run. When adding a package or skill, add it to the declaration; do not
-install it out of band, or the next `update.sh` run removes it. Run the third-party skill review below before
+install it out of band, or the next `update.sh` run removes it. Follow the review checklist in
+[`.claude/skills/review-third-party-skill/SKILL.md`](.claude/skills/review-third-party-skill/SKILL.md) before
 adding a skill to `support/setup/claude/claude-skills.sh`. Add a source to `CODEX_COMPATIBLE_SKILLS` or
 `CODEX_COMPATIBLE_CLAUDE_PLUGIN_SKILLS` only after confirming that its full directory is harness-neutral and does not
 duplicate a Codex skill.
@@ -121,110 +122,13 @@ know. Otherwise it belongs to the project (its `.claude/skills`, Laravel Boost, 
 deliberate exceptions are `document-product`, `characterize-behavior`, and `raise-quality-gate`: they bring their own
 standards on purpose, to develop legacy projects safely, and run only when invoked by name.
 
-### Third-party skill review
+## Shell and test conventions
 
-Before adding an entry to `support/setup/claude/claude-skills.sh`, follow this manual checklist:
-
-1. Read every file in the skill, including referenced Markdown and scripts, rather than only its description.
-2. Search for network calls (`curl`, `fetch`, `requests`, `urllib`) and confirm every destination is expected.
-3. Search for credential, cookie, or Keychain access (`security find-generic-password`, browser profiles,
-   `~/.ssh`, `~/.aws`) and confirm a legitimate reason for it.
-4. Check for hardcoded API keys, tokens, or passwords.
-5. Look for instructions to ignore safety rules, hide actions, or behave differently for specific inputs.
-6. List every shell command and tool the skill asks the agent to invoke. Assess the combined risk when file
-   reads and network access appear together.
-7. Check that referenced external URLs point to the expected domains.
-8. Treat High or Critical findings from the CLI's Gen/Socket/Snyk audit as a reason to inspect carefully, not as
-   a substitute for this review or a reliable signal by themselves. Those audits can be wrong or miss risks.
-
-Adapted from [Anthropic's review checklist](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/enterprise#review-checklist).
-
-TODO: Automate a pre-install scan for network calls, credential/Keychain/cookie access, and hardcoded secrets
-before `skills_cli add`, so review does not depend on remembering this checklist.
-
-Add each new `THIRD_PARTY_SKILLS` entry from `support/setup/claude/claude-skills.sh` to the third-party ignore
-list in `.editorconfig`, so `bin/format.sh` leaves its scripts as upstream wrote them.
-
-## Test conventions
-
-Tests assert observable files, Git state, output, exit status, and public command contracts. Do not assert source
-spelling, private helper names, arbitrary step ordering, or prose formulations. Static checks are appropriate for
-declarative configuration and shared document formats consumed by other tools or skills. At external boundaries
-that cannot safely run in tests, check command arguments and failure handling; use real tools with isolated data
-when practical. `tests/bin/macos-defaults.bats` records privileged calls without executing them and confines real
-PlistBuddy writes to its fixture HOME. These tests do not prove that macOS accepts every declared preference or
-that a fresh machine can install every external package.
-
-Read tests as behavior documentation. Each `@test` name identifies the command or process, the relevant condition,
-and the expected outcome. A reader must be able to understand the preparation, action, and expectations without
-reading the production implementation or tracing fixture internals. Arrange the scenario-specific state in the
-test; use `setup` for a clearly visible shared baseline and helpers for mechanical fixture construction. Helpers
-must not hide the values or conditions that explain the scenario. Assertions state the expected values and effects
-explicitly. A call count alone does not prove which database was migrated or which file was imported.
-
-Every test body starts with a section comment and marks its sections with `# Arrange`, `# Act`, and `# Assert`,
-omitting a section that has no code (a static check over repository files has only `# Assert`). A marker may add a
-short description after a colon, such as `# Arrange: one CPU and a separate PHPUnit database.` A lifecycle test
-repeats `# Act:` and `# Assert:` for each transition and names the transition in the description. Markers stay at
-the test's top level, never inside a loop: run several cases in one `# Act` section and assert the collected result,
-or give each case its own test.
-
-Give distinct conditions and failure modes separately named tests. When a test covers a lifecycle, make each state
-transition and its expectations clear. Put single-command scenarios in that command's test file and source-only
-checks in `tests/setup/sourcing.bats`. Keep cross-component scenarios together with the behavior they document,
-such as the edit-to-stop lifecycle or the machine profile shared by the setup entry points.
-
-Before finishing test changes, read the changed scenarios as documentation. Verify that each name matches the
-actual preparation and assertions, that the important conditions and expected results are explicit, and that the
-test is located with the behavior it protects. Passing tests alone do not satisfy this review.
-
-## Shell conventions
-
-These conventions apply to the repository's own shell code, excluding third-party skills:
-
-- Use `#!/bin/bash` for Bash scripts and `#!/usr/bin/env zsh` for zsh helpers to keep interpreters predictable.
-- Setup entry points use `set -e`; hooks in `home/.claude/hooks/` use `set -u` and check statuses explicitly;
-  standalone helpers and skill scripts use `set -euo pipefail`, matching how they handle failure.
-- Use `[[ … ]]` for strings/files and `(( … ))` only as integer conditions, so a zero-valued arithmetic
-  statement cannot accidentally trigger `errexit`.
-- Define functions as `name() {` without `function`, keeping one definition style.
-- Use snake_case; reserve uppercase for constants, declaration lists, and required environment names.
-  Private function prefixes belong to interactive zsh helpers, where they keep completion and names tidy.
-- Group unassigned locals and separate declarations from command substitutions to preserve exit statuses.
-- Quote every expansion, assignments included (`value="$(command)"`, `path="$dir/file"`), as Google's Shell Style
-  Guide does. Bash and zsh do not split or glob assignment values, so the quotes change nothing there; one rule
-  without that exception stays correct when a value is moved into an argument or an array.
-- Suppress both output streams with `&>/dev/null` and redirect errors with `>&2`, using one spelling each.
-- Setup reports through `support/setup/output.sh`; other errors go to stderr with a failing return or exit,
-  so callers can distinguish diagnostics from normal output.
-- Use explicit `if` blocks for argument checks, making each error and return visible.
-- Check `-h`/`--help` before argument validation, print usage to stdout, and return 0 so help does no work.
-- Setup files define variables/functions; entry points call them explicitly, keeping
-  sourcing free of machine changes.
-- Name functions verb first, after the action and its subject (`install_npm_packages`, `wait_for_herd_onboarding`),
-  so an entry point reads as the sequence of steps it runs. Predicates start with `is_` or `has_`, functions that
-  print a value with `print_` or `read_`, and a wrapper around one command keeps that command's name (`global_npm`,
-  `skills_cli`).
-- Keep only contract or constraint comments under `home/.claude/rules/code-comments.md`; shared rationale
-  belongs here to avoid repetition.
-- Do not use en or em dashes as punctuation, including output strings, matching the writing rules.
-- The function doing a step prints its own `step` and result; entry points print their own frame and
-  `finish`, keeping reporting with the work it describes.
-
-Exceptions: `home/.config/git/default-branch` is deliberately POSIX `sh`. Preserve Herd's injected blocks in
-`home/.zshrc` as written by Herd. `support/git/support/pickaxe-diff.sh` adds `-E` so its ERR trap is inherited.
-The `_rpr_*` locals in `home/.claude/hooks/support/project-root.sh` prevent output-parameter names from shadowing
-caller variables; their prefix is a collision guard. `home/.claude/statusline.sh` runs without strict mode, so
-input it cannot parse still prints a status line instead of an empty one. Bats tests use `[ … ]` for assertions:
-under the macOS `/bin/bash` 3.2, a failing `[[ … ]]` or `(( … ))` that is not the last command does not fail
-the test.
-
-Separate `local` declarations from command substitutions because `local` otherwise masks the command's exit
-status. Capture pipelines with `pipefail` in a subshell and check the result before iterating, so a failed
-package-manager query cannot become an apparently empty installed set.
-
-A cleanup function's final success message belongs in an explicit `if`, rather than `condition && success`:
-a false condition would return 1 and stop `bin/update.sh` under `set -e`, even though no step failed.
+The repository's shell conventions live in [`.claude/rules/shell.md`](.claude/rules/shell.md) and its test
+conventions in [`.claude/rules/tests.md`](.claude/rules/tests.md). Before writing or changing a file, read every
+rule in `.claude/rules/` whose `paths:` frontmatter matches it. Claude Code also loads a matching rule on its own
+when it reads or edits the file; Codex does not. These project rules apply only to this repository and are not
+linked into `$HOME`; `home/.claude/rules/` holds the global rules for every project.
 
 ## Conventions specific to this repo
 
@@ -252,10 +156,13 @@ does, what to check before installing, how to install, update, and adapt it, and
 `AGENTS.md` holds the working rules and reading map, `ARCHITECTURE.md` explains the system and its decisions
 for contributors and agents, `home/.claude/hooks/README.md` documents the quality gate, and
 `home/.claude/AGENTS.md` holds the global instructions for every project, including the skills and tools they name.
-Some facts appear in more than one of these documents on purpose, so a change can make several of them wrong at once.
+The project rules in `.claude/rules/` and the project skills in `.claude/skills/` hold conventions and procedures
+for this repository. Some facts appear in more than one of these documents on purpose, so a change can make several
+of them wrong at once.
 
-- After changing a file, search all five documents for its repository path (and, for a file under `home/`, also
-  its `~/` path) and check every match against the new behavior. Update them in the same change.
+- After changing a file, search these five documents, `.claude/rules/`, and `.claude/skills/` for its repository
+  path (and, for a file under `home/`, also its `~/` path) and check every match against the new behavior. Update
+  them in the same change.
 - When adding something a user runs or invokes (a script under `bin/`, an alias, a function, a Git helper, a skill
   in a Codex allowlist, a declared package), decide whether `README.md` should mention it.
 - When a sentence in one of these documents describes what a specific file does, name or link that file, so the

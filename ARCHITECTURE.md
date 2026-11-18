@@ -1,7 +1,8 @@
 # Architecture
 
 This document describes the dotfiles setup, update processes, development tools, and their constraints.
-Working rules and required checks live in [AGENTS.md](AGENTS.md); installation and daily usage are documented
+Working rules and required checks live in [AGENTS.md](AGENTS.md) and the project rules in
+[`.claude/rules/`](.claude/rules/); installation and daily usage are documented
 in [README.md](README.md). Read the sections relevant to the subsystem being changed.
 
 The documentation separates a concise agent entry point from detailed reference material, following the
