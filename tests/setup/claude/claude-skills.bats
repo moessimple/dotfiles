@@ -86,6 +86,14 @@ teardown() {
     assert_file_exists "$test_home/.claude/skills/clarity/site/keep"
 }
 
+@test "the formatter skips exactly the third-party skills that claude-skills.sh declares" {
+    # Assert
+    declared="$(print_declared_third_party_skill_names)"
+    ignored="$(print_skills_ignored_by_editorconfig)"
+    [ -n "$declared" ]
+    diff -u <(printf '%s\n' "$declared") <(printf '%s\n' "$ignored")
+}
+
 @test "skills are installed through the pinned skills CLI with a release-age cooldown" {
     # Act
     run call_setup_function "$target" install_claude_skills

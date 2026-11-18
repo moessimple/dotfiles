@@ -140,6 +140,18 @@ given_unreadable_skill_lock_file() {
     printf 'not valid json' >"$test_home/.agents/.skill-lock.json"
 }
 
+print_declared_third_party_skill_names() {
+    (
+        set -o pipefail
+        HOME="$test_home" bash -ec 'source "$1"; for entry in "${THIRD_PARTY_SKILLS[@]}"; do echo "${entry##*:}"; done' \
+            bash "$dotfiles_dir/support/setup/claude/claude-skills.sh" | sort
+    )
+}
+
+print_skills_ignored_by_editorconfig() {
+    sed -n 's|^\[home/\.claude/skills/{\(.*\)}/\*\*\]$|\1|p' "$dotfiles_dir/.editorconfig" | tr ',' '\n' | sort
+}
+
 # $1: JSON array for `claude plugin list --json`
 # $2: newline-separated `name: ...` lines for `claude mcp list`
 # Remaining args: pairs of "<name> <scope-line>" for what `claude mcp get <name>` reports,
