@@ -67,8 +67,9 @@ The architecture is shared reference documentation for contributors and agents; 
 | Adding or changing tests (`tests/`) | [Test layout and fixtures](ARCHITECTURE.md#test-layout-and-fixtures) |
 | Test runner, formatter, CI, or `.editorconfig` | [Verification tooling](ARCHITECTURE.md#verification-tooling) |
 
-Tests mirror the source layout under `tests/`; check the test map before creating a test file. Setup files define
-functions without running setup when sourced. Calling those functions with the real `HOME` and `PATH` changes
+Tests mirror the source layout under `tests/`; check the
+[test map](ARCHITECTURE.md#test-layout-and-fixtures) before creating a test file. Setup files define functions
+without running setup when sourced. Calling those functions with the real `HOME` and `PATH` changes
 the machine: inspect their source or use fixture `HOME` and `given_fake_bin_on_path` to explore behavior.
 
 ## Shared configuration
