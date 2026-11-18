@@ -32,16 +32,16 @@ list_mas_apps() {
 }
 
 @test "explicit private profile preserves the default cask list" {
-    list_casks > "$fixture/default"
-    echo private > "$HOME/.config/dotfiles/profile"
-    list_casks > "$fixture/private"
+    list_casks >"$fixture/default"
+    echo private >"$HOME/.config/dotfiles/profile"
+    list_casks >"$fixture/private"
     cmp "$fixture/default" "$fixture/private"
 }
 
 @test "work profile excludes only Discord, OneCast and WhatsApp" {
-    list_casks | LC_ALL=C sort > "$fixture/private"
-    echo work > "$HOME/.config/dotfiles/profile"
-    list_casks | LC_ALL=C sort > "$fixture/work"
+    list_casks | LC_ALL=C sort >"$fixture/private"
+    echo work >"$HOME/.config/dotfiles/profile"
+    list_casks | LC_ALL=C sort >"$fixture/work"
     run comm -23 "$fixture/private" "$fixture/work"
     assert_success
     [ "$output" = $'discord\nonecast\nwhatsapp' ]
@@ -51,9 +51,9 @@ list_mas_apps() {
 }
 
 @test "work profile excludes only AusweisApp from the Mac App Store apps" {
-    list_mas_apps | LC_ALL=C sort > "$fixture/private"
-    echo work > "$HOME/.config/dotfiles/profile"
-    list_mas_apps | LC_ALL=C sort > "$fixture/work"
+    list_mas_apps | LC_ALL=C sort >"$fixture/private"
+    echo work >"$HOME/.config/dotfiles/profile"
+    list_mas_apps | LC_ALL=C sort >"$fixture/work"
     run comm -23 "$fixture/private" "$fixture/work"
     assert_success
     [ "$output" = "AusweisApp" ]

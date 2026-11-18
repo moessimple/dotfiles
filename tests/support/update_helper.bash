@@ -25,7 +25,7 @@ assert_update_side_effect_was_not_reached() {
 given_repository_with_real_setup_scripts() {
     cp -R "$dotfiles_dir/support" "$repository/support"
     mkdir -p "$repository/bin"
-    cat > "$repository/bin/reconfigure.sh" <<'SCRIPT'
+    cat >"$repository/bin/reconfigure.sh" <<'SCRIPT'
 #!/bin/bash
 touch "$HOME/reconfigured"
 echo 'Configuration applied'
@@ -124,8 +124,8 @@ given_laravel_marketplace() {
     git init -q -b main "$work"
     configure_test_repository "$work"
     mkdir -p "$work/.claude-plugin" "$work/laravel/skills"
-    printf '%s\n' '{"plugins":[{"name":"laravel","source":"./laravel"}]}' > "$work/.claude-plugin/marketplace.json"
-    echo "first" > "$work/laravel/skills/SKILL.md"
+    printf '%s\n' '{"plugins":[{"name":"laravel","source":"./laravel"}]}' >"$work/.claude-plugin/marketplace.json"
+    echo "first" >"$work/laravel/skills/SKILL.md"
     git -C "$work" add .
     git -C "$work" commit -q -m first
     git -C "$work" push -q "$upstream" main
@@ -151,10 +151,10 @@ given_official_marketplace() {
     mkdir -p "$work/.claude-plugin"
     printf '%s\n' '{"plugins":[
         {"name":"claude-md-management","source":"./plugins/claude-md-management"},
-        {"name":"typescript-lsp","source":"./plugins/typescript-lsp"}]}' > "$work/.claude-plugin/marketplace.json"
+        {"name":"typescript-lsp","source":"./plugins/typescript-lsp"}]}' >"$work/.claude-plugin/marketplace.json"
     for name in plugins/claude-md-management plugins/typescript-lsp; do
         mkdir -p "$work/$name/skills"
-        echo "first" > "$work/$name/skills/SKILL.md"
+        echo "first" >"$work/$name/skills/SKILL.md"
     done
     git -C "$work" add .
     git -C "$work" commit -q -m first
@@ -173,7 +173,7 @@ esac"
 # <days>, so the test's own run starts that far into the cooldown.
 given_update_ran_days_ago() {
     local days="$1"
-    call_update > /dev/null 2>&1 || true
+    call_update >/dev/null 2>&1 || true
     given_first_sightings_aged_by_days "$days"
     rm -f "$fake_bin"/*.calls
 }

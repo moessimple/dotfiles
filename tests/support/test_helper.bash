@@ -86,7 +86,7 @@ esac'
 
 write_fake_binary() {
     local name="$1" body="${2:-}"
-    cat > "$fake_bin/$name" <<SCRIPT
+    cat >"$fake_bin/$name" <<SCRIPT
 #!/usr/bin/env bash
 printf '%s\n' "\$*" >> "$fake_bin/$name.calls"
 $body
@@ -103,7 +103,7 @@ assert_binary_called_with_substring() {
 }
 
 assert_binary_call_count() {
-    [ "$(wc -l < "$fake_bin/$1.calls" | tr -d ' ')" -eq "$2" ]
+    [ "$(wc -l <"$fake_bin/$1.calls" | tr -d ' ')" -eq "$2" ]
 }
 
 assert_binary_not_called() {
@@ -125,7 +125,7 @@ create_test_repository() {
     mkdir -p "$repository"
     git init -q -b main "$repository"
     configure_test_repository "$repository"
-    printf 'original\n' > "$repository/tracked.txt"
+    printf 'original\n' >"$repository/tracked.txt"
     git -C "$repository" add tracked.txt
     git -C "$repository" commit -qm initial
 }
@@ -142,8 +142,8 @@ given_repository_on_feature_branch() {
 }
 
 given_tracked_and_untracked_changes() {
-    printf 'changed\n' > "$repository/tracked.txt"
-    printf 'untracked\n' > "$repository/untracked.txt"
+    printf 'changed\n' >"$repository/tracked.txt"
+    printf 'untracked\n' >"$repository/untracked.txt"
 }
 
 assert_local_changes_are_present() {
@@ -163,7 +163,7 @@ given_unreachable_origin_remote() {
 
 given_committed_file_change() {
     local path="$1"
-    printf 'change on %s\n' "$path" > "$repository/$path"
+    printf 'change on %s\n' "$path" >"$repository/$path"
     git -C "$repository" add "$path"
     git -C "$repository" commit -qm "change $path"
 }
@@ -279,7 +279,7 @@ assert_stash_contains() {
 }
 
 strip_ansi_colors() {
-    sed -E $'s/\x1b\\[[0-9;]*m//g' <<< "$1"
+    sed -E $'s/\x1b\\[[0-9;]*m//g' <<<"$1"
 }
 
 assert_colorless_output_contains() {

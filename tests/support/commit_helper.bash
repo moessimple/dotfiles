@@ -1,6 +1,6 @@
 given_repository_with_modified_tracked_file() {
     create_test_repository
-    printf 'changed\n' > "$repository/tracked.txt"
+    printf 'changed\n' >"$repository/tracked.txt"
 }
 
 call_commit() {
@@ -9,7 +9,7 @@ call_commit() {
 }
 
 call_commit_with_input() {
-    call_commit <<< "$1"
+    call_commit <<<"$1"
 }
 
 # Runs commit, then reports whether its spinner and Ctrl-C internals stayed in the shell.
@@ -36,22 +36,24 @@ exit 1'
 write_successful_claude() {
     local message="$1"
 
-    write_fake_binary claude "$(cat <<EOF
+    write_fake_binary claude "$(
+        cat <<EOF
 cat > "\$PROVIDER_INPUT"
 printf '%s\n' '{"type":"result","is_error":false,"result":"$message"}'
 EOF
-)"
+    )"
 }
 
 write_successful_codex() {
     local message="$1"
 
-    write_fake_binary codex "$(cat <<EOF
+    write_fake_binary codex "$(
+        cat <<EOF
 cat > "\$PROVIDER_INPUT"
 printf '%s\n' '{"type":"item.completed","item":{"type":"agent_message","text":"$message"}}'
 printf '%s\n' '{"type":"turn.completed"}'
 EOF
-)"
+    )"
 }
 
 write_failing_provider() {
@@ -77,13 +79,13 @@ create_large_change() {
     local beginning="$2"
     local end="$3"
 
-    printf '%s\n' "$beginning" > "$path"
-    head -c 60000 /dev/zero | tr '\0' x >> "$path"
-    printf '\n%s\n' "$end" >> "$path"
+    printf '%s\n' "$beginning" >"$path"
+    head -c 60000 /dev/zero | tr '\0' x >>"$path"
+    printf '\n%s\n' "$end" >>"$path"
 }
 
 make_git_commit_fail() {
-    cat > "$repository/.git/hooks/pre-commit" <<'EOF'
+    cat >"$repository/.git/hooks/pre-commit" <<'EOF'
 #!/bin/sh
 exit 1
 EOF

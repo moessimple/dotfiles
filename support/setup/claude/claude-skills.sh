@@ -117,7 +117,7 @@ claude_skills_cleanup() {
         # No --agent: with it, the CLI removes only that agent's copy and keeps the lock
         # entry, so the skill stays listed as installed. -y keeps the run unattended.
         skills_cli remove "$name" --global -y 2>/dev/null || warn "Could not remove $name, remove it manually"
-    done <<< "$installed"
+    done <<<"$installed"
 
     # An `if`, not `&&`, which would return 1 after a removal and trip `set -e` in bin/update.sh
     if [ "$found_undeclared" -eq 0 ]; then

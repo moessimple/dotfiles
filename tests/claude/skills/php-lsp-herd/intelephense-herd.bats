@@ -10,7 +10,7 @@ setup() {
 
     herd_php="$fixture/herd/8.4/php"
     mkdir -p "$(dirname "$herd_php")"
-    printf '#!/usr/bin/env bash\necho herd-php-8.4\n' > "$herd_php"
+    printf '#!/usr/bin/env bash\necho herd-php-8.4\n' >"$herd_php"
     chmod +x "$herd_php"
 
     write_fake_binary herd "[ \"\$1\" = which-php ] && printf '%s\\n' '$herd_php'"

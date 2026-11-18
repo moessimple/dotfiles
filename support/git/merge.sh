@@ -11,7 +11,10 @@ function merge() {
         return 0
     fi
 
-    [ $# -eq 0 ] && { echo "No branch name given." >&2; return 1; }
+    [ $# -eq 0 ] && {
+        echo "No branch name given." >&2
+        return 1
+    }
 
     local stashed exit_code
     _git_stash_guard || return

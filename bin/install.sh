@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e  # Exit on unhandled command failures
+set -e # Exit on unhandled command failures
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/output.sh"
 
@@ -34,8 +34,14 @@ else
     while true; do
         read -r -p "Choose [1/2]: " choice || error "No machine profile selected."
         case "$choice" in
-            1) DOTFILES_PROFILE=private; break ;;
-            2) DOTFILES_PROFILE=work; break ;;
+            1)
+                DOTFILES_PROFILE=private
+                break
+                ;;
+            2)
+                DOTFILES_PROFILE=work
+                break
+                ;;
             *) echo "Please choose 1 or 2." ;;
         esac
     done
@@ -55,11 +61,14 @@ if [ -z "${email//[[:space:]]/}" ]; then
         fi
         echo "Please enter your Git email."
     done
-    (umask 077; git config --file "$HOME/.gitconfig-local" user.email "$email") \
+    (
+        umask 077
+        git config --file "$HOME/.gitconfig-local" user.email "$email"
+    ) \
         || error "Could not save the Git email in ~/.gitconfig-local."
 
     mkdir -p "$HOME/.config/dotfiles"
-    printf '%s\n' "$DOTFILES_PROFILE" > "$HOME/.config/dotfiles/profile"
+    printf '%s\n' "$DOTFILES_PROFILE" >"$HOME/.config/dotfiles/profile"
 fi
 
 echo ""

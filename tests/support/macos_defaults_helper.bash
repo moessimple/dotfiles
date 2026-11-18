@@ -15,10 +15,10 @@ source_from_setup_script_answering() {
         set -e
         source "$1"
         echo "Setup script continued"
-    ' bash "$script" <<< "$answer"
+    ' bash "$script" <<<"$answer"
 }
 
 run_standalone_answering() {
     local answer="$1" script="$2"
-    PATH="$restricted_path" /bin/bash "$script" <<< "$answer"
+    PATH="$restricted_path" /bin/bash "$script" <<<"$answer"
 }

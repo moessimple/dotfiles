@@ -15,7 +15,7 @@ new_quality_fixture() {
     mkdir -p "$fake_bin" "$test_home/.claude"
     ln -s "$hooks_dir" "$test_home/.claude/hooks"
 
-    cat > "$fake_bin/tool" <<'TOOL'
+    cat >"$fake_bin/tool" <<'TOOL'
 #!/usr/bin/env bash
 set -u
 
@@ -31,13 +31,13 @@ TOOL
     # invocation. This fixture never depends on the Herd-specific interpreter
     # it resolves, and CI has no herd on PATH either, so shadowing it here to
     # fail fast is behavior-equivalent, not a shortcut around real coverage.
-    cat > "$fake_bin/herd" <<'TOOL'
+    cat >"$fake_bin/herd" <<'TOOL'
 #!/usr/bin/env bash
 exit 1
 TOOL
     chmod +x "$fake_bin/herd"
 
-    cat > "$fake_bin/php-tool" <<'TOOL'
+    cat >"$fake_bin/php-tool" <<'TOOL'
 <?php
 
 $tool = basename($argv[0]);
@@ -47,7 +47,7 @@ exit($tool === getenv('QUALITY_FAIL_TOOL') ? 1 : 0);
 TOOL
     chmod +x "$fake_bin/php-tool"
 
-    : > "$log"
+    : >"$log"
 }
 
 teardown_quality_fixture() {
@@ -60,9 +60,9 @@ new_project() {
 
     mkdir -p "$project/src" "$project/vendor/bin"
     git init -q "$git_root"
-    printf '{}\n' > "$project/composer.json"
-    printf '<?php\n' > "$project/src/Example.php"
-    printf '# Fixture\n' > "$project/README.md"
+    printf '{}\n' >"$project/composer.json"
+    printf '<?php\n' >"$project/src/Example.php"
+    printf '# Fixture\n' >"$project/README.md"
 }
 
 given_project_with_tools() {
@@ -91,8 +91,8 @@ new_nested_project() {
 
     mkdir -p "$project/src" "$project/vendor/bin"
     git init -q "$git_root"
-    printf '{}\n' > "$project/composer.json"
-    printf '<?php\n' > "$project/src/Example.php"
+    printf '{}\n' >"$project/composer.json"
+    printf '<?php\n' >"$project/src/Example.php"
 }
 
 given_nested_project_with_tools() {
@@ -112,7 +112,7 @@ given_dirty_project_after_php_edit_with_tools() {
     marker="$config_home/claude-quality/runs$project.dirty"
     post_event post-edit.sh "$project/src/Example.php"
     [ -e "$marker" ]
-    : > "$log"
+    : >"$log"
 }
 
 # A second, sibling Composer project inside the same Git root as the current
@@ -122,11 +122,11 @@ given_second_dirty_project_with_failing_phpstan() {
     second_project="$git_root/second"
     second_marker="$config_home/claude-quality/runs$second_project.dirty"
     mkdir -p "$second_project/src" "$second_project/vendor/bin"
-    printf '{}\n' > "$second_project/composer.json"
-    printf '<?php\n' > "$second_project/src/Example.php"
+    printf '{}\n' >"$second_project/composer.json"
+    printf '<?php\n' >"$second_project/src/Example.php"
     install_tool "$second_project" pint
     install_tool "$second_project" rector
-    cat > "$second_project/vendor/bin/phpstan" <<'TOOL'
+    cat >"$second_project/vendor/bin/phpstan" <<'TOOL'
 #!/usr/bin/env bash
 printf 'phpstan\n' >> "$QUALITY_TEST_LOG"
 exit 1
@@ -150,7 +150,7 @@ install_tool() {
     local project="$1" tool="$2"
     case "$tool" in
         composer) ln -s "$fake_bin/tool" "$fake_bin/composer" ;;
-        pest|phpunit|paratest) ln -s "$fake_bin/php-tool" "$project/vendor/bin/$tool" ;;
+        pest | phpunit | paratest) ln -s "$fake_bin/php-tool" "$project/vendor/bin/$tool" ;;
         *) ln -s "$fake_bin/tool" "$project/vendor/bin/$tool" ;;
     esac
 }
@@ -189,9 +189,9 @@ run_gate_for_project_without_composer() {
     shift
 
     PATH="$(path_without_composer)" \
-        XDG_CONFIG_HOME="$config_home" \
-        CLAUDE_PROJECT_DIR="$selected_project" \
-        QUALITY_TEST_LOG="$log" \
+    XDG_CONFIG_HOME="$config_home" \
+    CLAUDE_PROJECT_DIR="$selected_project" \
+    QUALITY_TEST_LOG="$log" \
         "$gate" "$@"
 }
 
@@ -258,7 +258,7 @@ given_herd_resolving_to_system_php() {
     system_php="$(command -v php)"
     herd_which_php_directory_log="$fixture/herd-which-php-directory"
 
-    cat > "$fake_bin/herd" <<HERD
+    cat >"$fake_bin/herd" <<HERD
 #!/usr/bin/env bash
 if [[ "\$1" == "which-php" ]]; then
     pwd -P > "$herd_which_php_directory_log"
@@ -283,14 +283,14 @@ given_herd_only_at_its_default_install_path() {
     mkdir -p "$herd_home"
 
     herd_php_wrapper="$fixture/herd-php"
-    cat > "$herd_php_wrapper" <<WRAPPER
+    cat >"$herd_php_wrapper" <<WRAPPER
 #!/usr/bin/env bash
 printf 'herd-php\n' >> "\$QUALITY_TEST_LOG"
 exec "$real_php" "\$@"
 WRAPPER
     chmod +x "$herd_php_wrapper"
 
-    cat > "$herd_home/herd" <<HERD
+    cat >"$herd_home/herd" <<HERD
 #!/usr/bin/env bash
 [[ "\$1" == "which-php" ]] && { printf '%s\n' "$herd_php_wrapper"; exit 0; }
 exit 1
@@ -306,7 +306,7 @@ given_mktemp_creating_directories_under_fixture() {
     mktemp_tracking_dir="$fixture/mktemp-tracking"
     mkdir -p "$mktemp_tracking_dir"
 
-    cat > "$fake_bin/mktemp" <<MKTEMP
+    cat >"$fake_bin/mktemp" <<MKTEMP
 #!/usr/bin/env bash
 if [[ "\$1" == "-d" ]]; then
     /usr/bin/mktemp -d "$mktemp_tracking_dir/tmp.XXXXXXXX"
@@ -318,7 +318,7 @@ MKTEMP
 }
 
 install_artisan_test_runner() {
-    cat > "$project/artisan" <<'ARTISAN'
+    cat >"$project/artisan" <<'ARTISAN'
 <?php
 $tool = 'artisan';
 file_put_contents(getenv('QUALITY_TEST_LOG'), "$tool\n", FILE_APPEND);
@@ -331,15 +331,15 @@ write_quality_record() {
     local record="$1" root="$2" mode="$3" exit_code="$4"
     mkdir -p "$(dirname -- "$record")"
     jq -n --arg root "$root" --arg mode "$mode" --argjson exit "$exit_code" \
-        '{root: $root, mode: $mode, exit: $exit}' > "$record"
+        '{root: $root, mode: $mode, exit: $exit}' >"$record"
 }
 
 configure_pint_to_exclude() {
-    printf '{"exclude": ["%s"]}\n' "$1" > "$project/pint.json"
+    printf '{"exclude": ["%s"]}\n' "$1" >"$project/pint.json"
 }
 
 configure_pint_to_deny() {
-    printf '{"notPath": ["%s"]}\n' "$1" > "$project/pint.json"
+    printf '{"notPath": ["%s"]}\n' "$1" >"$project/pint.json"
 }
 
 ran() {

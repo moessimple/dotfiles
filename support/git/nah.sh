@@ -24,5 +24,5 @@ function nah() {
         git bisect reset
     fi
 
-    git reset --hard && git clean -df;
+    git reset --hard && git clean -df
 }

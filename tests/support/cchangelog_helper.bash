@@ -17,12 +17,12 @@ create_fake_cchangelog_tools() {
     mkdir -p "$fake_bin"
     given_herd_forwarding_php_and_composer
 
-    cat > "$fake_bin/git" <<'GIT'
+    cat >"$fake_bin/git" <<'GIT'
 #!/usr/bin/env bash
 [[ "$1" == "rev-parse" && "$2" == "--verify" ]]
 GIT
 
-    cat > "$fake_bin/composer" <<'COMPOSER'
+    cat >"$fake_bin/composer" <<'COMPOSER'
 #!/usr/bin/env bash
 if [[ " $* " == *" --format=json "* ]]; then
     if [[ -n "${CCHANGELOG_EMPTY:-}" || " $* " == *" --direct "* ]]; then

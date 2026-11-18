@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e  # Exit on unhandled command failures
+set -e # Exit on unhandled command failures
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/output.sh"
 
@@ -118,15 +118,18 @@ raise_npm_pin() {
     current=$(sed -n "s/^$variable=\"\(.*\)\"$/\1/p" "$file")
     # pipefail, so a failed npm lookup is reported instead of reading as "no newer release".
     # npm 12 wraps `npm view --json` output in an array, hence the leading .[0].
-    if ! newest=$(set -o pipefail; global_npm view "$package" time --json 2>/dev/null \
-        | jq -r --arg current "$current" '
+    if ! newest=$(
+        set -o pipefail
+        global_npm view "$package" time --json 2>/dev/null \
+            | jq -r --arg current "$current" '
             def numbers: split(".") | map(tonumber);
             .[0]
             | to_entries
             | map(select(.key | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")))
             | map(select((.value | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601) <= now - 3 * 86400))
             | map(select((.key | numbers) > ($current | numbers)))
-            | max_by(.key | numbers) | .key // empty'); then
+            | max_by(.key | numbers) | .key // empty'
+    ); then
         warn "Could not check $package for a newer release"
         return 0
     fi

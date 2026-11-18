@@ -8,8 +8,8 @@ setup() {
     given_fake_bin_on_path
     given_fake_mime_type_detection
     given_fake_clipboard
-    printf 'hello\n' > "$fixture/notes.txt"
-    printf 'hello\n' > "$fixture/photo-binary.png"
+    printf 'hello\n' >"$fixture/notes.txt"
+    printf 'hello\n' >"$fixture/photo-binary.png"
 }
 
 teardown() {

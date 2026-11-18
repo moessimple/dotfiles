@@ -137,7 +137,7 @@ teardown() {
     failing_tool=phpstan
     QUALITY_FAIL_TOOL="$failing_tool" run stop_event false
     assert_status 2
-    : > "$log"
+    : >"$log"
 
     # Act
     run stop_event true
@@ -152,7 +152,7 @@ teardown() {
     # Arrange
     given_dirty_project_after_php_edit_with_tools composer pint phpstan rector pest phpunit
     given_second_dirty_project_with_failing_phpstan
-    : > "$log"
+    : >"$log"
 
     # Act
     run stop_event false
@@ -170,7 +170,7 @@ teardown() {
     run stop_event false
     assert_status 2
     ln -sf "$fake_bin/tool" "$second_project/vendor/bin/phpstan"
-    : > "$log"
+    : >"$log"
 
     # Act
     run stop_event false
@@ -240,15 +240,15 @@ teardown() {
     other_project="$other_repo"
     mkdir -p "$other_project/src" "$other_project/vendor/bin"
     git init -q "$other_repo"
-    printf '{}\n' > "$other_project/composer.json"
-    printf '<?php\n' > "$other_project/src/Example.php"
+    printf '{}\n' >"$other_project/composer.json"
+    printf '<?php\n' >"$other_project/src/Example.php"
     install_tool "$other_project" pint
 
     other_marker="$config_home/claude-quality/runs$other_project.dirty"
     post_event post-edit.sh "$other_project/src/Example.php"
     assert_path_exists "$other_marker"
 
-    : > "$log"
+    : >"$log"
 
     # Act
     run stop_event false

@@ -48,7 +48,7 @@ pint_covers_path() {
         case "$relative_path" in
             "$excluded_path" | "$excluded_path"/* | */"$excluded_path" | */"$excluded_path"/*) return 1 ;;
         esac
-    done <<< "$excluded_paths"
+    done <<<"$excluded_paths"
 
     return 0
 }
@@ -60,8 +60,9 @@ pint_covers_path() {
 # toplevel, is wrong for a project nested below the Git root.
 dirty_php_files() {
     local file
-    { git diff --name-only --relative --diff-filter=ACMR HEAD -- . 2>/dev/null
-      git ls-files --others --exclude-standard -- . 2>/dev/null
+    {
+        git diff --name-only --relative --diff-filter=ACMR HEAD -- . 2>/dev/null
+        git ls-files --others --exclude-standard -- . 2>/dev/null
     } | grep '\.php$' | sort -u | while IFS= read -r file; do
         is_hidden_path "$file" || printf '%s\n' "$file"
     done
@@ -72,7 +73,7 @@ run_rector_dirty() {
     while IFS= read -r file; do
         [[ -n "$file" ]] && files+=("$file")
     done < <(dirty_php_files)
-    (( ${#files[@]} == 0 )) && return 0
+    ((${#files[@]} == 0)) && return 0
     vendor/bin/rector process "${files[@]}" --dry-run --no-progress-bar --memory-limit="$memory_limit"
 }
 
@@ -98,7 +99,7 @@ mode="${1:-}"
 file="${2:-}"
 
 case "$mode" in
-    file|fast|full) ;;
+    file | fast | full) ;;
     *)
         echo "Usage: quality-gate.sh <file|fast|full> [path]" >&2
         exit "$exit_usage"
@@ -118,8 +119,8 @@ if [[ "$mode" == "file" ]]; then
     fi
 
     canonical="$(
-        cd "$(dirname -- "$file")" >/dev/null 2>&1 &&
-        printf '%s/%s' "$(pwd -P)" "$(basename -- "$file")"
+        cd "$(dirname -- "$file")" >/dev/null 2>&1 \
+            && printf '%s/%s' "$(pwd -P)" "$(basename -- "$file")"
     )" || exit "$exit_usage"
 
     # A repository can nest several Composer projects, so the file's own
@@ -163,14 +164,22 @@ if [[ -x "$php_bin" ]]; then
     PATH="$php_shim_dir:$PATH"
 fi
 
-has_pint=false;     [[ -x vendor/bin/pint    ]] && has_pint=true
-has_phpstan=false;  [[ -x vendor/bin/phpstan ]] && has_phpstan=true
-has_rector=false;   [[ -x vendor/bin/rector  ]] && has_rector=true
-has_pest=false;     [[ -x vendor/bin/pest    ]] && has_pest=true
-has_phpunit=false;  [[ -x vendor/bin/phpunit ]] && has_phpunit=true
-has_artisan=false;  [[ -f artisan            ]] && has_artisan=true
-has_composer=false; command -v composer >/dev/null 2>&1 && has_composer=true
-has_paratest=false; [[ -x vendor/bin/paratest ]] && has_paratest=true
+has_pint=false
+[[ -x vendor/bin/pint ]] && has_pint=true
+has_phpstan=false
+[[ -x vendor/bin/phpstan ]] && has_phpstan=true
+has_rector=false
+[[ -x vendor/bin/rector ]] && has_rector=true
+has_pest=false
+[[ -x vendor/bin/pest ]] && has_pest=true
+has_phpunit=false
+[[ -x vendor/bin/phpunit ]] && has_phpunit=true
+has_artisan=false
+[[ -f artisan ]] && has_artisan=true
+has_composer=false
+command -v composer >/dev/null 2>&1 && has_composer=true
+has_paratest=false
+[[ -x vendor/bin/paratest ]] && has_paratest=true
 
 if ! $has_pint && ! $has_phpstan && ! $has_rector && ! $has_pest && ! $has_phpunit && ! $has_artisan && ! $has_composer; then
     echo "QUALITY_NO_TOOLING: no Pint, PHPStan, Rector, Pest, PHPUnit, Artisan or composer found in $root" >&2
@@ -204,16 +213,16 @@ case "$mode" in
         fi
         ;;
     fast)
-        $has_pint     && { vendor/bin/pint --dirty --test || status=$?; }
-        $has_rector   && [[ -z "${CLAUDE_QUALITY_SKIP_RECTOR:-}" ]] && { run_rector_dirty || status=$?; }
-        $has_phpstan  && { vendor/bin/phpstan analyse --no-progress --memory-limit="$memory_limit" || status=$?; }
+        $has_pint && { vendor/bin/pint --dirty --test || status=$?; }
+        $has_rector && [[ -z "${CLAUDE_QUALITY_SKIP_RECTOR:-}" ]] && { run_rector_dirty || status=$?; }
+        $has_phpstan && { vendor/bin/phpstan analyse --no-progress --memory-limit="$memory_limit" || status=$?; }
         $has_composer && { composer validate --no-check-all --strict || status=$?; }
         [[ -z "${CLAUDE_QUALITY_SKIP_TESTS:-}" ]] && { run_test_suite || status=$?; }
         ;;
     full)
-        $has_pint     && { vendor/bin/pint --test || status=$?; }
-        $has_phpstan  && { vendor/bin/phpstan analyse --no-progress --memory-limit="$memory_limit" || status=$?; }
-        $has_rector   && { vendor/bin/rector process --dry-run --no-progress-bar --memory-limit="$memory_limit" || status=$?; }
+        $has_pint && { vendor/bin/pint --test || status=$?; }
+        $has_phpstan && { vendor/bin/phpstan analyse --no-progress --memory-limit="$memory_limit" || status=$?; }
+        $has_rector && { vendor/bin/rector process --dry-run --no-progress-bar --memory-limit="$memory_limit" || status=$?; }
         $has_composer && { composer validate --no-check-all --strict || status=$?; }
         $has_composer && { composer audit || status=$?; }
         run_test_suite || status=$?
@@ -232,9 +241,9 @@ if [[ "$mode" != "file" ]]; then
 
     jq -nc --arg root "$root" --arg mode "$mode" --arg sha "$sha" --arg tree "$tree" \
         --argjson exit "$status" --arg started "$now" \
-        '{root: $root, mode: $mode, sha: $sha, tree: $tree, exit: $exit, started: $started}' > "$record"
+        '{root: $root, mode: $mode, sha: $sha, tree: $tree, exit: $exit, started: $started}' >"$record"
 
-    (( status == 0 )) && rm -f "$marker"
+    ((status == 0)) && rm -f "$marker"
 fi
 
 exit "$status"

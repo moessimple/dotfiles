@@ -43,7 +43,7 @@ teardown() {
 @test "dropdbs also drops the test database and one shard per CPU when phpunit.xml declares one" {
     # Arrange
     given_env_file DB_DATABASE=maindb
-    printf '<php><env name="DB_DATABASE" value="testdb"/></php>\n' > "$working_directory/phpunit.xml"
+    printf '<php><env name="DB_DATABASE" value="testdb"/></php>\n' >"$working_directory/phpunit.xml"
     write_fake_binary mysql
     write_fake_binary nproc "printf '2\n'"
 
@@ -58,8 +58,8 @@ teardown() {
 
 @test "dropdbs uses the local PHPUnit configuration instead of its distribution template" {
     given_env_file DB_DATABASE=maindb
-    printf '<php><env name="DB_DATABASE" value="local_test"/></php>\n' > "$working_directory/phpunit.xml"
-    printf '<php><env name="DB_DATABASE" value="template_test"/></php>\n' > "$working_directory/phpunit.xml.dist"
+    printf '<php><env name="DB_DATABASE" value="local_test"/></php>\n' >"$working_directory/phpunit.xml"
+    printf '<php><env name="DB_DATABASE" value="template_test"/></php>\n' >"$working_directory/phpunit.xml.dist"
     write_fake_binary mysql
     write_fake_binary nproc "printf '1\n'"
 
@@ -74,7 +74,7 @@ teardown() {
 @test "dropdbs skips a database that fails to drop and continues with the rest" {
     # Arrange
     given_env_file DB_DATABASE=maindb
-    printf '<php><env name="DB_DATABASE" value="testdb"/></php>\n' > "$working_directory/phpunit.xml"
+    printf '<php><env name="DB_DATABASE" value="testdb"/></php>\n' >"$working_directory/phpunit.xml"
     write_fake_binary nproc "printf '1\n'"
     write_fake_binary mysql "case \"\$*\" in
     *maindb*) exit 1 ;;

@@ -1,0 +1,13 @@
+root = true
+
+# shfmt's settings for bin/format.sh. [[shell]] is shfmt's own section that matches by shebang, outside the
+# EditorConfig spec. Google's shell style as shfmt documents it (-ci -bn), with this repository's 4-space indent.
+[[shell]]
+indent_style = space
+indent_size = 4
+binary_next_line = true
+switch_case_indent = true
+
+# Skills are left as their authors wrote them.
+[home/.claude/skills/**]
+ignore = true

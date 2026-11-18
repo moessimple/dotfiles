@@ -92,14 +92,14 @@ cmdp() {
     fi
     shift
 
-    if (( $# == 0 )); then
+    if (($# == 0)); then
         echo "cmdp: command required" >&2
         echo "Usage: cmdp <n> <command>" >&2
         return 1
     fi
 
     local cmd
-    if (( $# == 1 )); then
+    if (($# == 1)); then
         cmd="$1"
     else
         cmd="${(j: :)${(q)@}}"
@@ -118,7 +118,10 @@ fork() {
         return 0
     fi
 
-    [ -z "$1" ] && { echo "No repo was given." >&2; return 1; }
+    [ -z "$1" ] && {
+        echo "No repo was given." >&2
+        return 1
+    }
 
     gh config set -h github.com git_protocol ssh
     gh repo fork "$1" --clone
@@ -141,12 +144,12 @@ commit() {
         {
             spinner="⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
             while true; do
-                for (( i=0; i<${#spinner}; i++ )); do
+                for ((i = 0; i < ${#spinner}; i++)); do
                     printf "\r${spinner:$i:1} Generating commit message..."
                     sleep 0.1
                 done
             done
-        } &!
+        } &|
         local spinner_pid=$!
 
         # zsh cannot end commit from a trap while a command substitution runs,
@@ -164,7 +167,7 @@ commit() {
             commitMessage=$(printf '%s\n' "$claude_result" | jq -er 'select(.type == "result" and .is_error == false) | .result | select(type == "string" and test("\\S"))') || commitMessage=""
         fi
 
-        if [[ -z "${commitMessage//[[:space:]]/}" ]] && (( ! interrupted )); then
+        if [[ -z "${commitMessage//[[:space:]]/}" ]] && ((! interrupted)); then
             local codex_result=""
 
             if command -v codex &>/dev/null \
@@ -182,10 +185,13 @@ commit() {
         fi
 
         trap - INT
-        { kill $spinner_pid; wait $spinner_pid; } 2>/dev/null
+        {
+            kill $spinner_pid
+            wait $spinner_pid
+        } 2>/dev/null
         printf "\r\033[K"
 
-        if (( interrupted )); then
+        if ((interrupted)); then
             echo "Commit cancelled."
             return 130
         fi
@@ -262,7 +268,7 @@ pp() {
 }
 
 # Watch for file changes and re-run tests automatically
-pw()  { PHP_OPTIONS="-d memory_limit=2G" herd php "$(which phpunit-watcher)" watch --testdox "$@"; }
+pw() { PHP_OPTIONS="-d memory_limit=2G" herd php "$(which phpunit-watcher)" watch --testdox "$@"; }
 pwf() { pw --filter "$@"; }
 
 _run_until_fail() {
@@ -293,7 +299,10 @@ puff() {
         return 0
     fi
 
-    [ -z "$1" ] && { echo "test case required" 1>&2; return 1; }
+    [ -z "$1" ] && {
+        echo "test case required" 1>&2
+        return 1
+    }
     _test_until_fail --filter "$1"
 }
 
@@ -305,7 +314,10 @@ ppuff() {
         return 0
     fi
 
-    [ -z "$1" ] && { echo "test case required" 1>&2; return 1; }
+    [ -z "$1" ] && {
+        echo "test case required" 1>&2
+        return 1
+    }
     _parallel_test_until_fail --filter "$1"
 }
 
@@ -317,7 +329,10 @@ puf() {
         return 0
     fi
 
-    [ -z "$1" ] && { echo "file or directory required" 1>&2; return 1; }
+    [ -z "$1" ] && {
+        echo "file or directory required" 1>&2
+        return 1
+    }
     _test_until_fail "$1"
 }
 
@@ -329,7 +344,10 @@ ppuf() {
         return 0
     fi
 
-    [ -z "$1" ] && { echo "file or directory required" 1>&2; return 1; }
+    [ -z "$1" ] && {
+        echo "file or directory required" 1>&2
+        return 1
+    }
     _parallel_test_until_fail "$1"
 }
 
@@ -340,10 +358,10 @@ quality() {
     local dispatcher="$HOME/.claude/hooks/quality-gate.sh"
 
     case "${1:-fast}" in
-        file)      "$dispatcher" file "${2:-}" ;;
-        fast|full) "$dispatcher" "${1:-fast}" ;;
-        status)    _quality_status ;;
-        -h|--help)
+        file) "$dispatcher" file "${2:-}" ;;
+        fast | full) "$dispatcher" "${1:-fast}" ;;
+        status) _quality_status ;;
+        -h | --help)
             cat <<'HELP'
 Usage:
   quality [fast|full]     run the gate for this project (default: fast)
@@ -414,21 +432,35 @@ cchangelog() {
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -d|--direct)   mode="direct";   shift ;;
-            -i|--indirect) mode="indirect"; shift ;;
-            -a|--all)      mode="all";      shift ;;
-            -h|--help)
+            -d | --direct)
+                mode="direct"
+                shift
+                ;;
+            -i | --indirect)
+                mode="indirect"
+                shift
+                ;;
+            -a | --all)
+                mode="all"
+                shift
+                ;;
+            -h | --help)
                 echo "Usage: cchangelog [-d|-i|-a] [branch]"
                 echo "  -d  Show only direct (explicitly required) packages (default)"
                 echo "  -i  Show only indirect (transitive) packages"
                 echo "  -a  Show all packages"
                 echo "  branch  Branch or ref to compare against (default: default branch)"
-                return 0 ;;
+                return 0
+                ;;
             -*)
                 echo "Unknown option: $1" >&2
                 echo "Run 'cchangelog --help' for usage." >&2
-                return 1 ;;
-            *) branch="$1"; shift ;;
+                return 1
+                ;;
+            *)
+                branch="$1"
+                shift
+                ;;
         esac
     done
 
@@ -488,7 +520,10 @@ importdump() {
 
     local db="${1:?database name required}"
     shift
-    [[ $# -eq 0 ]] && { echo "No SQL files provided." 1>&2; return 1; }
+    [[ $# -eq 0 ]] && {
+        echo "No SQL files provided." 1>&2
+        return 1
+    }
     _require_local_database || return
 
     # pipefail so an unreadable dump (pv fails) is not masked by mysql exiting 0 on
@@ -515,19 +550,24 @@ _env_val() {
 # Guards every helper that drops, migrates, or imports into databases. Callers run it
 # before their first mysql or artisan call, because artisan reads DB_HOST from .env itself.
 _require_local_database() {
-    local host; host=$(_env_val DB_HOST)
+    local host
+    host=$(_env_val DB_HOST)
     case "$host" in
-        ""|127.0.0.1|::1|localhost) return 0 ;;
+        "" | 127.0.0.1 | ::1 | localhost) return 0 ;;
     esac
     echo "$host is not a local database host; refusing to change databases there." >&2
     return 1
 }
 
 _mysql_cmd() {
-    local host; host=$(_env_val DB_HOST)
-    local port; port=$(_env_val DB_PORT)
-    local user; user=$(_env_val DB_USERNAME)
-    local pass; pass=$(_env_val DB_PASSWORD)
+    local host
+    host=$(_env_val DB_HOST)
+    local port
+    port=$(_env_val DB_PORT)
+    local user
+    user=$(_env_val DB_USERNAME)
+    local pass
+    pass=$(_env_val DB_PASSWORD)
     # For localhost the mysql client connects over the Unix socket and ignores -P,
     # which would reach whichever server owns the socket instead of DB_PORT.
     [[ -z "$host" || "$host" == localhost ]] && host=127.0.0.1
@@ -539,13 +579,17 @@ _mysql_cmd() {
 # Manage local MySQL databases: refresh, create, drop, or list
 db() {
     case "$1" in
-        refresh|create|drop)
-            [ -n "$2" ] || { echo "db: '$1' requires a database name" >&2; echo "Run 'db --help' for usage." >&2; return 1; }
+        refresh | create | drop)
+            [ -n "$2" ] || {
+                echo "db: '$1' requires a database name" >&2
+                echo "Run 'db --help' for usage." >&2
+                return 1
+            }
             ;;
     esac
 
     case "$1" in
-        -h|--help)
+        -h | --help)
             echo "Usage: db <refresh|create|drop|list> [database_name]"
             echo "  refresh  Drop and recreate a database"
             echo "  create   Create a new database"
@@ -594,16 +638,18 @@ _migrate_databases() {
 
 # Resolve all databases (main + test + parallel shards) from .env and phpunit.xml
 _all_databases() {
-    local main_db; main_db=$(_env_val DB_DATABASE)
+    local main_db
+    main_db=$(_env_val DB_DATABASE)
     local phpunit_config="phpunit.xml"
     [[ -f "$phpunit_config" ]] || phpunit_config="phpunit.xml.dist"
-    local test_db; test_db=$(grep -o 'name="DB_DATABASE" value="[^"]*' "$phpunit_config" 2>/dev/null | sed 's/.*value="//' | tail -n1)
+    local test_db
+    test_db=$(grep -o 'name="DB_DATABASE" value="[^"]*' "$phpunit_config" 2>/dev/null | sed 's/.*value="//' | tail -n1)
 
     local databases=("$main_db")
     if [ -n "$test_db" ]; then
         databases+=("$test_db")
         local i
-        for ((i=1; i<=$(nproc); i++)); do
+        for ((i = 1; i <= $(nproc); i++)); do
             databases+=("${test_db}_test_$i")
         done
     fi
@@ -613,7 +659,10 @@ _all_databases() {
 
 # Drop all project databases: main, test, and all parallel test shards
 dropdbs() {
-    [ ! -f .env ] && { echo "No .env file found." >&2; return 1; }
+    [ ! -f .env ] && {
+        echo "No .env file found." >&2
+        return 1
+    }
     _require_local_database || return
 
     local -a dbs
@@ -629,17 +678,20 @@ dropdbs() {
 }
 
 # Fresh migrate the main database
-mf()   { _migrate_databases "$(_env_val DB_DATABASE)"; }
+mf() { _migrate_databases "$(_env_val DB_DATABASE)"; }
 # Fresh migrate the main database and seed
-mfs()  { mf && herd php artisan db:seed; }
+mfs() { mf && herd php artisan db:seed; }
 # Fresh migrate all databases (main + all test databases)
-mfa()  { _migrate_databases $(_all_databases); }
+mfa() { _migrate_databases $(_all_databases); }
 # Fresh migrate all databases, then seed the main database
 mfsa() { mfa && herd php artisan db:seed; }
 
 # Open the current project's database in a GUI client using credentials from .env
 opendb() {
-    [ ! -f .env ] && { echo "No .env file found." >&2; return 1; }
+    [ ! -f .env ] && {
+        echo "No .env file found." >&2
+        return 1
+    }
 
     local DB_CONNECTION=$(_env_val DB_CONNECTION)
     local DB_HOST=$(_env_val DB_HOST)
@@ -650,7 +702,10 @@ opendb() {
 
     local var
     for var in DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME; do
-        [[ -z "${(P)var}" ]] && { echo "$var not found in .env file." >&2; return 1; }
+        [[ -z "${(P)var}" ]] && {
+            echo "$var not found in .env file." >&2
+            return 1
+        }
     done
 
     # Only the characters that end the URL's userinfo early (and % itself) are percent-encoded.
@@ -675,7 +730,7 @@ sd() {
     local mountpoint="/Volumes/$volume"
 
     case "$1" in
-        -h|--help)
+        -h | --help)
             echo "Usage: sd <load|unload|delete|status>"
             echo "  load    Mount the secure data volume"
             echo "  unload  Unmount the secure data volume"
@@ -702,7 +757,10 @@ sd() {
             fi
             ;;
         delete)
-            read -q "?Delete $volume permanently? [y/N] " || { echo; return 1; }
+            read -q "?Delete $volume permanently? [y/N] " || {
+                echo
+                return 1
+            }
             echo
             if _sd_mounted "$mountpoint" && ! diskutil eject "$mountpoint"; then
                 echo "Could not unmount $volume; not deleting." >&2

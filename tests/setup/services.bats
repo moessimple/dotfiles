@@ -16,7 +16,7 @@ teardown() {
 
 @test "meilisearch is started with a config.toml that upgrades its database in place" {
     # Arrange
-    printf 'http_addr = "0.0.0.0:7700"\n' > "$fixture/var/config.toml"
+    printf 'http_addr = "0.0.0.0:7700"\n' >"$fixture/var/config.toml"
 
     # Act
     run run_setup_script "$dotfiles_dir/support/setup/services.sh"

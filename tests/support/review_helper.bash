@@ -15,16 +15,16 @@ given_repository_with_origin_head_set_to() {
 
 given_staged_new_file() {
     local path="$1"
-    printf 'staged %s\n' "$path" > "$repository/$path"
+    printf 'staged %s\n' "$path" >"$repository/$path"
     git -C "$repository" add "$path"
 }
 
 given_unstaged_change_to() {
     local path="$1"
-    printf 'unstaged change\n' >> "$repository/$path"
+    printf 'unstaged change\n' >>"$repository/$path"
 }
 
 given_untracked_file() {
     local path="$1"
-    printf 'untracked %s\n' "$path" > "$repository/$path"
+    printf 'untracked %s\n' "$path" >"$repository/$path"
 }

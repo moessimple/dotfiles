@@ -15,6 +15,6 @@ given_branch_with_commit_dates() {
 assert_branch_listed_before() {
     local listing
     listing=$(strip_ansi_colors "$output" | awk '{ print $NF }')
-    [ "$(grep -nxF -- "$1" <<< "$listing" | cut -d: -f1)" -lt \
-        "$(grep -nxF -- "$2" <<< "$listing" | cut -d: -f1)" ]
+    [ "$(grep -nxF -- "$1" <<<"$listing" | cut -d: -f1)" -lt \
+        "$(grep -nxF -- "$2" <<<"$listing" | cut -d: -f1)" ]
 }

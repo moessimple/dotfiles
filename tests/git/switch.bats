@@ -214,7 +214,7 @@ teardown() {
     run call_switch_with_input "1" main
     assert_success
     git -C "$repository" switch -q feature
-    printf 'newer change\n' > "$repository/tracked.txt"
+    printf 'newer change\n' >"$repository/tracked.txt"
 
     # Act
     run call_switch_choosing_leave_and_confirming_overwrite_with "y" main
@@ -255,12 +255,12 @@ teardown() {
     assert_success
 
     git -C "$repository" switch -q feature
-    printf 'second round\n' > "$repository/tracked.txt"
+    printf 'second round\n' >"$repository/tracked.txt"
     run call_switch_choosing_leave_and_confirming_overwrite_with "y" main
     assert_success
 
     git -C "$repository" switch -q feature
-    printf 'third round\n' > "$repository/tracked.txt"
+    printf 'third round\n' >"$repository/tracked.txt"
 
     # Act
     run call_switch_choosing_leave_and_confirming_overwrite_with "y" main
@@ -353,7 +353,7 @@ teardown() {
 @test "an older stash remains after carrying newer local changes" {
     # Arrange
     given_switch_repository_on_feature_branch
-    printf 'older change\n' > "$repository/tracked.txt"
+    printf 'older change\n' >"$repository/tracked.txt"
     git -C "$repository" stash push -qm older
     given_tracked_and_untracked_changes
 
@@ -371,7 +371,7 @@ teardown() {
 @test "a stash operation that saves nothing does not consume an older stash" {
     # Arrange
     given_switch_repository_on_feature_branch
-    printf 'older change\n' > "$repository/tracked.txt"
+    printf 'older change\n' >"$repository/tracked.txt"
     git -C "$repository" stash push -qm older
     given_tracked_and_untracked_changes
 

@@ -26,8 +26,8 @@ file="$(jq -r '.tool_input.file_path // empty' <<<"$input")"
 [[ "$file" == *.php || "$(basename -- "$file")" == "composer.json" ]] || exit 0
 
 canonical="$(
-    cd "$(dirname -- "$file")" >/dev/null 2>&1 &&
-    printf '%s/%s' "$(pwd -P)" "$(basename -- "$file")"
+    cd "$(dirname -- "$file")" >/dev/null 2>&1 \
+        && printf '%s/%s' "$(pwd -P)" "$(basename -- "$file")"
 )" || exit 0
 
 # quality-gate.sh independently resolves the project from $file. This lookup is
@@ -41,7 +41,7 @@ status=$?
 [[ "$status" == "$exit_nothing_to_check" ]] && exit 0
 
 marker="$quality_runs_dir$root.dirty"
-mkdir -p "$(dirname -- "$marker")" && : > "$marker"
+mkdir -p "$(dirname -- "$marker")" && : >"$marker"
 
 if [[ "$status" != 0 ]]; then
     printf '%s\n' "$output" >&2

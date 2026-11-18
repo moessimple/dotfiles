@@ -42,9 +42,9 @@ given_marketplace() {
     mkdir -p "$marketplace_repository/.claude-plugin" "$marketplace_repository/laravel/skills" \
         "$marketplace_repository/other-plugin"
     jq -n --argjson laravel "$laravel_entry" '{plugins: [$laravel, {name: "other-plugin", source: "./other-plugin"}]}' \
-        > "$marketplace_repository/.claude-plugin/marketplace.json"
-    echo "first" > "$marketplace_repository/laravel/skills/SKILL.md"
-    echo "first" > "$marketplace_repository/other-plugin/README.md"
+        >"$marketplace_repository/.claude-plugin/marketplace.json"
+    echo "first" >"$marketplace_repository/laravel/skills/SKILL.md"
+    echo "first" >"$marketplace_repository/other-plugin/README.md"
     git -C "$marketplace_repository" add .
     git -C "$marketplace_repository" commit -qm first
     write_fake_claude_listing_marketplace
@@ -68,7 +68,7 @@ esac"
 given_upstream_change_to() {
     local path="$1"
     mkdir -p "$(dirname "$marketplace_repository/$path")"
-    echo "changed $RANDOM" >> "$marketplace_repository/$path"
+    echo "changed $RANDOM" >>"$marketplace_repository/$path"
     git -C "$marketplace_repository" add .
     git -C "$marketplace_repository" commit -qm "change $path"
 }
@@ -77,7 +77,7 @@ given_upstream_change_to() {
 given_upstream_marketplace_entry() {
     local entry="$1" marketplace_json="$marketplace_repository/.claude-plugin/marketplace.json"
     jq --argjson entry "$entry" '.plugins |= map(if .name == "laravel" then $entry else . end)' "$marketplace_json" \
-        > "$marketplace_json.tmp"
+        >"$marketplace_json.tmp"
     mv "$marketplace_json.tmp" "$marketplace_json"
     git -C "$marketplace_repository" commit -qam "change the laravel entry"
 }
@@ -91,8 +91,8 @@ given_skill_repository() {
     git init -q -b main "$skill_repository"
     configure_test_repository "$skill_repository"
     mkdir -p "$skill_repository/skills/$name" "$skill_repository/docs"
-    echo "first" > "$skill_repository/skills/$name/SKILL.md"
-    echo "first" > "$skill_repository/docs/index.md"
+    echo "first" >"$skill_repository/skills/$name/SKILL.md"
+    echo "first" >"$skill_repository/docs/index.md"
     git -C "$skill_repository" add .
     git -C "$skill_repository" commit -qm first
     if [ -n "$source_url" ]; then
@@ -102,14 +102,14 @@ given_skill_repository() {
     jq -n --arg name "$name" --arg url "${source_url:-$skill_repository}" --arg path "skills/$name/SKILL.md" \
         --arg hash "$(git -C "$skill_repository" rev-parse "HEAD:skills/$name")" \
         '{version: 3, skills: {($name): {sourceUrl: $url, skillPath: $path, skillFolderHash: $hash}}}' \
-        > "$test_home/.agents/.skill-lock.json"
+        >"$test_home/.agents/.skill-lock.json"
     write_fake_binary npx
 }
 
 # Commits a change of <path> in the skill repository upstream.
 given_skill_upstream_change_to() {
     local path="$1"
-    echo "changed $RANDOM" >> "$skill_repository/$path"
+    echo "changed $RANDOM" >>"$skill_repository/$path"
     git -C "$skill_repository" add .
     git -C "$skill_repository" commit -qm "change $path"
 }
@@ -118,20 +118,20 @@ given_skill_upstream_change_to() {
 given_first_sightings_aged_by_days() {
     local days="$1" state="$test_home/.config/claude-update-cooldown/first-seen"
     [ -f "$state" ] || return 0
-    awk -F '\t' -v OFS='\t' -v seconds="$(( days * 86400 ))" '{ $3 -= seconds; print }' "$state" > "$state.tmp"
+    awk -F '\t' -v OFS='\t' -v seconds="$((days * 86400))" '{ $3 -= seconds; print }' "$state" >"$state.tmp"
     mv "$state.tmp" "$state"
 }
 
 # Replaces the recorded first-seen time of every sighting with <value>, valid or not.
 given_first_sighting_time_replaced_with() {
     local value="$1" state="$test_home/.config/claude-update-cooldown/first-seen"
-    awk -F '\t' -v OFS='\t' -v value="$value" '{ $3 = value; print }' "$state" > "$state.tmp"
+    awk -F '\t' -v OFS='\t' -v value="$value" '{ $3 = value; print }' "$state" >"$state.tmp"
     mv "$state.tmp" "$state"
 }
 
 # Lets the plugin update see the current upstream state once, then ages that sighting by <days>.
 given_plugin_state_seen_days_ago() {
-    call_update_plugins_after_cooldown > /dev/null
+    call_update_plugins_after_cooldown >/dev/null
     given_first_sightings_aged_by_days "$1"
     rm -f "$fake_bin/claude.calls"
 }
@@ -141,14 +141,14 @@ given_plugin_state_seen_days_ago() {
 given_plugin_states_seen_days_ago() {
     local days="$1"
     shift
-    call_update_plugins_after_cooldown "$@" > /dev/null
+    call_update_plugins_after_cooldown "$@" >/dev/null
     given_first_sightings_aged_by_days "$days"
     rm -f "$fake_bin/claude.calls"
 }
 
 # Lets the skill update see the current upstream state once, then ages that sighting by <days>.
 given_skill_state_seen_days_ago() {
-    call_update_skills_after_cooldown > /dev/null
+    call_update_skills_after_cooldown >/dev/null
     given_first_sightings_aged_by_days "$1"
     rm -f "$fake_bin/npx.calls"
 }

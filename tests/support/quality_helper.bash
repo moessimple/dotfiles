@@ -15,7 +15,7 @@ given_fake_home_with_quality_gate() {
     fake_home="$fixture/home"
     mkdir -p "$fake_home/.claude/hooks/support"
     cp "$dotfiles_dir/home/.claude/hooks/support/"*.sh "$fake_home/.claude/hooks/support/"
-    cat > "$fake_home/.claude/hooks/quality-gate.sh" <<'SCRIPT'
+    cat >"$fake_home/.claude/hooks/quality-gate.sh" <<'SCRIPT'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "$(dirname "$0")/quality-gate.calls"
 SCRIPT
@@ -25,7 +25,7 @@ SCRIPT
 
 given_composer_project_repository() {
     given_clean_repository_on_main
-    printf '{}\n' > "$repository/composer.json"
+    printf '{}\n' >"$repository/composer.json"
     git -C "$repository" add composer.json
     git -C "$repository" commit -qm "add composer.json"
 }

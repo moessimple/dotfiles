@@ -6,8 +6,17 @@ on:
       - main
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  bats:
+  tests:
+    # macOS, because the scripts target its /bin/bash 3.2 and BSD userland. Formatting runs as its own
+    # workflow (lint.yml), so a formatting nit and a failing test are separate red checks.
     runs-on: macos-latest
     timeout-minutes: 5
 

@@ -7,7 +7,7 @@ cd "$repository"
 
 export TERM="${TERM:-xterm}"
 
-if (( $# == 0 )); then
+if (($# == 0)); then
     set -- -r tests/
 fi
 

@@ -1,6 +1,7 @@
 # My Dotfiles
 
 [![tests](https://github.com/moessimple/dotfiles/actions/workflows/tests.yml/badge.svg)](https://github.com/moessimple/dotfiles/actions/workflows/tests.yml)
+[![lint](https://github.com/moessimple/dotfiles/actions/workflows/lint.yml/badge.svg)](https://github.com/moessimple/dotfiles/actions/workflows/lint.yml)
 
 ![Terminal](images/terminal.jpg)
 
@@ -237,6 +238,14 @@ bin/test.sh
 
 The suite covers the Claude Code quality hooks, scripts bundled with local skills, selected shell functions and
 aliases, the Git helpers, and the update and setup scripts.
+
+Format the shell scripts with [shfmt](https://github.com/mvdan/sh) in the style set in `.editorconfig`, or only
+check them, as CI does:
+
+```zsh
+bin/format.sh
+bin/format.sh --check
+```
 
 ## Further Documentation
 

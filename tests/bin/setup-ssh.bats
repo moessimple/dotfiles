@@ -50,7 +50,7 @@ teardown() {
 @test "refuses to overwrite an existing private or public key" {
     mkdir -p "$HOME/.ssh"
     for path in "$HOME/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519.pub"; do
-        printf 'existing key\n' > "$path"
+        printf 'existing key\n' >"$path"
 
         run /bin/bash "$dotfiles_dir/bin/setup-ssh.sh" "dev@example.com"
 

@@ -35,7 +35,7 @@ run_setup_script() {
 
 given_fake_composer_reporting_installed() {
     local json="$1"
-    cat > "$fake_bin/composer" <<EOF
+    cat >"$fake_bin/composer" <<EOF
 #!/usr/bin/env bash
 printf '%s\n' "\$*" >> "$fake_bin/composer.calls"
 if [ "\$*" = "global show -D --format=json" ]; then
@@ -46,7 +46,7 @@ EOF
 }
 
 given_fake_composer_failing_to_report_installed() {
-    cat > "$fake_bin/composer" <<EOF
+    cat >"$fake_bin/composer" <<EOF
 #!/usr/bin/env bash
 printf '%s\n' "\$*" >> "$fake_bin/composer.calls"
 [ "\$*" = "global show -D --format=json" ] && exit 1
@@ -57,7 +57,7 @@ EOF
 
 given_fake_npm_reporting_installed() {
     local json="$1"
-    cat > "$fake_bin/npm" <<EOF
+    cat >"$fake_bin/npm" <<EOF
 #!/usr/bin/env bash
 printf '%s\n' "\$*" >> "$fake_bin/npm.calls"
 if [ "\$*" = "ls -g --depth=0 --json" ]; then
@@ -68,7 +68,7 @@ EOF
 }
 
 given_fake_npm_failing_to_report_installed() {
-    cat > "$fake_bin/npm" <<EOF
+    cat >"$fake_bin/npm" <<EOF
 #!/usr/bin/env bash
 printf '%s\n' "\$*" >> "$fake_bin/npm.calls"
 [ "\$*" = "ls -g --depth=0 --json" ] && exit 1
@@ -81,7 +81,7 @@ EOF
 # real pip refuses to install or uninstall without it and the fake cannot refuse on its own.
 given_fake_python_reporting_installed() {
     local json="$1"
-    cat > "$fake_bin/python3" <<EOF
+    cat >"$fake_bin/python3" <<EOF
 #!/usr/bin/env bash
 printf '%s\n' "PIP_BREAK_SYSTEM_PACKAGES=\${PIP_BREAK_SYSTEM_PACKAGES:-} \$*" >> "$fake_bin/python3.calls"
 case "\$*" in
@@ -94,7 +94,7 @@ EOF
 }
 
 given_fake_python_failing_to_report_installed() {
-    cat > "$fake_bin/python3" <<EOF
+    cat >"$fake_bin/python3" <<EOF
 #!/usr/bin/env bash
 printf '%s\n' "\$*" >> "$fake_bin/python3.calls"
 case "\$*" in
@@ -106,12 +106,12 @@ EOF
 
 given_skill_lock_file() {
     mkdir -p "$test_home/.agents"
-    printf '%s' "$1" > "$test_home/.agents/.skill-lock.json"
+    printf '%s' "$1" >"$test_home/.agents/.skill-lock.json"
 }
 
 given_unreadable_skill_lock_file() {
     mkdir -p "$test_home/.agents"
-    printf 'not valid json' > "$test_home/.agents/.skill-lock.json"
+    printf 'not valid json' >"$test_home/.agents/.skill-lock.json"
 }
 
 # $1: JSON array for `claude plugin list --json`
@@ -122,7 +122,7 @@ given_fake_claude() {
     local plugin_list_json="$1" mcp_list_output="$2"
     shift 2
 
-    cat > "$fake_bin/claude" <<EOF
+    cat >"$fake_bin/claude" <<EOF
 #!/usr/bin/env bash
 printf '%s\n' "\$*" >> "$fake_bin/claude.calls"
 case "\$*" in
@@ -152,10 +152,10 @@ case "\$*" in
         ;;
 EOF
 
-    while (( $# > 0 )); do
+    while (($# > 0)); do
         local name="$1" scope_line="$2"
         shift 2
-        cat >> "$fake_bin/claude" <<EOF
+        cat >>"$fake_bin/claude" <<EOF
     "mcp get $name")
         printf '%s\n' '$scope_line'
         ;;
@@ -163,7 +163,7 @@ EOF
     done
 
     # Like the real CLI, `mcp get` fails for a server that is not configured.
-    cat >> "$fake_bin/claude" <<'EOF'
+    cat >>"$fake_bin/claude" <<'EOF'
     "mcp get "*)
         exit 1
         ;;
@@ -177,7 +177,7 @@ given_claude_knows_marketplaces() {
     local url
     for url in "$@"; do
         jq -n --arg url "$url" '{name: "known", source: "git", url: $url}'
-    done | jq -s . > "$fake_bin/known-marketplaces.json"
+    done | jq -s . >"$fake_bin/known-marketplaces.json"
 }
 
 given_claude_failing_to_list_marketplaces() {
@@ -198,13 +198,13 @@ given_settings_linked_from_repository_with_marketplace() {
     local url="$1"
     mkdir -p "$fixture/repository" "$test_home/.claude"
     jq -n --arg url "$url" '{extraKnownMarketplaces: {impeccable: {source: {source: "git", url: $url}, autoUpdate: false}}}' \
-        > "$fixture/repository/settings.json"
+        >"$fixture/repository/settings.json"
     ln -sf "$fixture/repository/settings.json" "$test_home/.claude/settings.json"
 }
 
 assert_marketplace_auto_update_off() {
     jq -e --arg url "$1" '.extraKnownMarketplaces | any(.[]; .source.url == $url and .autoUpdate == false)' \
-        "$fixture/repository/settings.json" > /dev/null
+        "$fixture/repository/settings.json" >/dev/null
 }
 
 assert_settings_still_linked_into_repository() {
@@ -227,11 +227,11 @@ declared_marketplaces_with_auto_update_not_off() {
         jq -e --arg url "$url" '.extraKnownMarketplaces | any(.[];
             (.source.url | sub("\\.git$"; "")) == $url and .autoUpdate == false)' "$settings" >/dev/null \
             || printf '%s\n' "$url"
-    done <<< "$marketplaces"
+    done <<<"$marketplaces"
 }
 
 given_fake_claude_failing_to_report_plugins_and_mcp_servers() {
-    cat > "$fake_bin/claude" <<EOF
+    cat >"$fake_bin/claude" <<EOF
 #!/usr/bin/env bash
 printf '%s\n' "\$*" >> "$fake_bin/claude.calls"
 case "\$*" in
@@ -249,7 +249,7 @@ EOF
 # $1: model names `ollama list` reports, one per line, printed below its header row
 given_fake_ollama_listing() {
     local models="$1"
-    cat > "$fake_bin/ollama" <<EOF2
+    cat >"$fake_bin/ollama" <<EOF2
 #!/usr/bin/env bash
 printf '%s\n' "\$*" >> "$fake_bin/ollama.calls"
 if [ "\$*" = "list" ]; then
@@ -261,7 +261,7 @@ EOF2
 }
 
 given_fake_ollama_failing_to_list() {
-    cat > "$fake_bin/ollama" <<EOF2
+    cat >"$fake_bin/ollama" <<EOF2
 #!/usr/bin/env bash
 printf '%s\n' "\$*" >> "$fake_bin/ollama.calls"
 [ "\$*" = "list" ] && exit 1
@@ -276,7 +276,7 @@ given_herd_npm_first_on_path() {
     local herd_bin="$fixture/herd/bin"
     herd_npm_calls="$herd_bin/npm.calls"
     mkdir -p "$herd_bin"
-    printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$*" >> "%s"\n' "$herd_npm_calls" > "$herd_bin/npm"
+    printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$*" >> "%s"\n' "$herd_npm_calls" >"$herd_bin/npm"
     chmod +x "$herd_bin/npm"
     export PATH="$herd_bin:$PATH"
 }
@@ -290,6 +290,6 @@ assert_herd_npm_not_called() {
 given_setup_script_pinned() {
     local variable="$1" version="$2"
     local copy="$fixture/$(basename "$target")"
-    sed "s/^$variable=\".*\"$/$variable=\"$version\"/" "$target" > "$copy"
+    sed "s/^$variable=\".*\"$/$variable=\"$version\"/" "$target" >"$copy"
     target="$copy"
 }

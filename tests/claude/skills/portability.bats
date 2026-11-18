@@ -26,10 +26,10 @@ setup() {
         # Manual-only skills need Claude's disable-model-invocation; Codex gets the same
         # restriction from agents/openai.yaml (see the manual-only test below).
         if [ -f "$skills_dir/$skill/agents/openai.yaml" ]; then
-            frontmatter="$(grep -v '^disable-model-invocation: true$' <<< "$frontmatter")"
+            frontmatter="$(grep -v '^disable-model-invocation: true$' <<<"$frontmatter")"
         fi
 
-        ! grep -Eq '^(argument-hint|disable-model-invocation|disallowed-tools|user-invocable):' <<< "$frontmatter" || false
+        ! grep -Eq '^(argument-hint|disable-model-invocation|disallowed-tools|user-invocable):' <<<"$frontmatter" || false
     done
 }
 
@@ -152,8 +152,8 @@ setup() {
         description="$(grep -m1 '^description: ' "$skills_dir/$skill/SKILL.md")"
 
         # A plain (unquoted) scalar may not contain ": ", which strict YAML rejects.
-        if ! grep -Eq '^description: ["'"'"'>|]' <<< "$description"; then
-            ! grep -Fq ': ' <<< "${description#description: }" || return 1
+        if ! grep -Eq '^description: ["'"'"'>|]' <<<"$description"; then
+            ! grep -Fq ': ' <<<"${description#description: }" || return 1
         fi
     done
 }

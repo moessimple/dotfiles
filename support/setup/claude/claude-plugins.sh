@@ -46,7 +46,7 @@ claude_marketplace_auto_update_off() {
     updated=$(jq --arg url "${url%.git}" '.extraKnownMarketplaces |= with_entries(
         if (.value.source.url // "" | sub("\\.git$"; "")) == $url then .value.autoUpdate = false else . end)' \
         "$settings" 2>/dev/null) || return 1
-    printf '%s\n' "$updated" > "$settings"
+    printf '%s\n' "$updated" >"$settings"
 }
 
 step "Installing Claude Code plugins and MCP servers"
@@ -54,7 +54,10 @@ if command -v claude &>/dev/null; then
     # Only marketplaces Claude Code does not know yet are added, and their autoUpdate is set off
     # again afterwards: without it Claude Code updates plugins on its own and bypasses the cooldown
     # in update.sh.
-    if known_marketplaces=$(set -o pipefail; claude plugin marketplace list --json 2>/dev/null | jq -r '.[].url'); then
+    if known_marketplaces=$(
+        set -o pipefail
+        claude plugin marketplace list --json 2>/dev/null | jq -r '.[].url'
+    ); then
         for marketplace in "${CLAUDE_PLUGIN_MARKETPLACES[@]}"; do
             printf '%s\n' "$known_marketplaces" | grep -qxF "$marketplace.git" && continue
             if ! claude plugin marketplace add "$marketplace" 2>/dev/null; then
@@ -67,7 +70,10 @@ if command -v claude &>/dev/null; then
         warn "Could not list the plugin marketplaces, skipping adding them"
     fi
     # Only missing plugins are installed, so a failed install is a real problem.
-    if ! installed_plugins=$(set -o pipefail; claude plugin list --json 2>/dev/null | jq -r '.[] | select(.scope == "user") | .id'); then
+    if ! installed_plugins=$(
+        set -o pipefail
+        claude plugin list --json 2>/dev/null | jq -r '.[] | select(.scope == "user") | .id'
+    ); then
         warn "Could not read installed Claude Code plugins, installing every declared one"
         installed_plugins=""
     fi
@@ -103,7 +109,10 @@ claude_plugins_cleanup() {
     # pipefail and a separate `local`, so a failing claude or a missing jq is reported
     # instead of reading as an empty list.
     local installed_plugins
-    if ! installed_plugins=$(set -o pipefail; claude plugin list --json 2>/dev/null | jq -r '.[] | select(.scope == "user") | .id'); then
+    if ! installed_plugins=$(
+        set -o pipefail
+        claude plugin list --json 2>/dev/null | jq -r '.[] | select(.scope == "user") | .id'
+    ); then
         read_failed=1
         warn "Could not read installed Claude Code plugins, skipping their cleanup"
     else
@@ -114,7 +123,7 @@ claude_plugins_cleanup() {
             found_undeclared=1
             note "Uninstalling undeclared plugin: $name (not in claude-plugins.sh)"
             claude plugin uninstall "$name" || warn "Could not uninstall $name, remove it manually"
-        done <<< "$installed_plugins"
+        done <<<"$installed_plugins"
     fi
 
     # No pipefail here: grep exits 1 when no server is configured at all, which is a valid
@@ -136,7 +145,7 @@ claude_plugins_cleanup() {
             found_undeclared=1
             note "Removing undeclared MCP server: $name (not in claude-plugins.sh)"
             claude mcp remove "$name" -s user || warn "Could not remove $name, remove it manually"
-        done <<< "$mcp_names"
+        done <<<"$mcp_names"
     fi
 
     # The cleanup goes on with whichever half it could read, so read_failed keeps a partial

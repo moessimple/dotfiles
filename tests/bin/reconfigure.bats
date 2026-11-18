@@ -14,9 +14,9 @@ setup() {
     # Keep the real directory preparation and symlinks; isolate service and app setup.
     local script
     for script in codex/codex-skills.sh herd-onboarding.sh herd-debug-ini.sh tinkerbench/tinkerbench.sh services.sh; do
-        printf 'touch "$HOME/%s.applied"\n' "$(basename "$script")" > "$repository/support/setup/$script"
+        printf 'touch "$HOME/%s.applied"\n' "$(basename "$script")" >"$repository/support/setup/$script"
     done
-    printf 'echo "macOS settings must stay separate"\nexit 89\n' > "$repository/bin/macos-defaults.sh"
+    printf 'echo "macOS settings must stay separate"\nexit 89\n' >"$repository/bin/macos-defaults.sh"
 }
 
 teardown() {

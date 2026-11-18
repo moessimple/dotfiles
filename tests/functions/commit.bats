@@ -21,11 +21,11 @@ teardown() {
     # Arrange
     given_repository_with_modified_tracked_file
     mkdir -p "$repository/nested"
-    printf 'remove me\n' > "$repository/nested/removed.txt"
+    printf 'remove me\n' >"$repository/nested/removed.txt"
     git -C "$repository" add nested/removed.txt
     git -C "$repository" commit -qm fixture
     rm "$repository/nested/removed.txt"
-    printf 'new\n' > "$repository/new-root.txt"
+    printf 'new\n' >"$repository/new-root.txt"
 
     working_directory="$repository/nested"
 
@@ -87,11 +87,12 @@ teardown() {
 
 @test "Claude JSON with escaped newlines is parsed without modifying it" {
     given_repository_with_modified_tracked_file
-    write_fake_binary claude "$(cat <<'SCRIPT'
+    write_fake_binary claude "$(
+        cat <<'SCRIPT'
 cat > "$PROVIDER_INPUT"
 printf '%s\n' '{"type":"result","is_error":false,"result":"Preserve Claude JSON","details":"line one\nline two"}'
 SCRIPT
-)"
+    )"
     write_provider_that_must_not_run codex
 
     run call_commit
@@ -104,13 +105,14 @@ SCRIPT
 @test "Codex JSON events with escaped newlines are parsed without modifying them" {
     given_repository_with_modified_tracked_file
     write_failing_provider claude
-    write_fake_binary codex "$(cat <<'SCRIPT'
+    write_fake_binary codex "$(
+        cat <<'SCRIPT'
 cat > "$PROVIDER_INPUT"
 printf '%s\n' '{"type":"item.completed","item":{"type":"command_execution","aggregated_output":"line one\nline two"}}'
 printf '%s\n' '{"type":"item.completed","item":{"type":"agent_message","text":"Preserve Codex JSON"}}'
 printf '%s\n' '{"type":"turn.completed"}'
 SCRIPT
-)"
+    )"
 
     run call_commit
 
@@ -120,7 +122,7 @@ SCRIPT
 
 @test "the diff reaches a message provider with literal backslashes intact" {
     given_repository_with_modified_tracked_file
-    printf '%s\n' 'literal \n and C:\tools' >> "$repository/tracked.txt"
+    printf '%s\n' 'literal \n and C:\tools' >>"$repository/tracked.txt"
     write_successful_claude "Preserve the diff"
     write_provider_that_must_not_run codex
 

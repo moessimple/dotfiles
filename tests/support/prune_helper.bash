@@ -22,7 +22,7 @@ given_merged_branch_pushed_to_origin() {
 given_unmerged_branch_pushed_to_origin() {
     local branch="$1"
     git -C "$repository" switch -qc "$branch"
-    printf 'unmerged change\n' > "$repository/tracked.txt"
+    printf 'unmerged change\n' >"$repository/tracked.txt"
     git -C "$repository" commit -qam "change on $branch"
     git -C "$repository" push -qu origin "$branch"
     git -C "$repository" switch -q "$default_branch"
@@ -50,7 +50,7 @@ given_commit_pushed_to_origin_only() {
 }
 
 given_origin_rejecting_pushes() {
-    printf '#!/bin/sh\necho "branch deletion is not allowed here"\nexit 1\n' > "$origin/hooks/pre-receive"
+    printf '#!/bin/sh\necho "branch deletion is not allowed here"\nexit 1\n' >"$origin/hooks/pre-receive"
     chmod +x "$origin/hooks/pre-receive"
 }
 

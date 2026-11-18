@@ -13,7 +13,7 @@ call_switch() {
 call_switch_with_input() {
     local input="$1"
     shift
-    call_switch "$@" <<< "$input"
+    call_switch "$@" <<<"$input"
 }
 
 # The overwrite-stash confirmation uses zsh's `read -q`, which reads the keypress directly
@@ -91,10 +91,10 @@ call_switch_with_failing_stash() {
 
 create_conflicting_change_on_main() {
     git -C "$repository" switch -q main
-    printf 'change on main\n' > "$repository/tracked.txt"
+    printf 'change on main\n' >"$repository/tracked.txt"
     git -C "$repository" commit -qam conflict
     git -C "$repository" switch -q feature
-    printf 'local change\n' > "$repository/tracked.txt"
+    printf 'local change\n' >"$repository/tracked.txt"
 }
 
 create_remote_branch() {
@@ -107,9 +107,9 @@ create_remote_branch() {
 }
 
 stage_then_edit_tracked_file() {
-    printf 'staged change\n' > "$repository/tracked.txt"
+    printf 'staged change\n' >"$repository/tracked.txt"
     git -C "$repository" add tracked.txt
-    printf 'unstaged change\n' >> "$repository/tracked.txt"
+    printf 'unstaged change\n' >>"$repository/tracked.txt"
 }
 
 assert_file_has_merge_conflict() {

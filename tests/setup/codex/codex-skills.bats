@@ -24,7 +24,7 @@ setup() {
             "agent-browser@agent-browser": [{scope: "user", installPath: ($cache + "/agent-browser/agent-browser/1.0.0"), lastUpdated: "2026-01-01"}],
             "laravel@laravel": [{scope: "user", installPath: ($cache + "/laravel/laravel/1.0.0"), lastUpdated: "2026-01-01"}]
         }
-    }' > "$installed_plugins"
+    }' >"$installed_plugins"
 }
 
 teardown() {

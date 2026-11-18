@@ -25,5 +25,5 @@ if [ -z "${SSH_AUTH_SOCK:-}" ]; then
 fi
 
 ssh-add --apple-use-keychain "$key"
-pbcopy < "$key.pub"
+pbcopy <"$key.pub"
 echo 'Public key copied. Add it at https://github.com/settings/keys'

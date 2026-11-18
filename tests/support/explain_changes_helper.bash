@@ -13,20 +13,20 @@ given_repository_with_file() {
 
 commit_file() {
     local path="$1" content="$2" message="$3"
-    printf '%b' "$content" > "$repository/$path"
+    printf '%b' "$content" >"$repository/$path"
     git -C "$repository" add "$path"
     git -C "$repository" commit -qm "$message"
 }
 
 commit_file_with_reason() {
     local path="$1" content="$2" message="$3" reason="$4"
-    printf '%b' "$content" > "$repository/$path"
+    printf '%b' "$content" >"$repository/$path"
     git -C "$repository" add "$path"
     git -C "$repository" commit -qm "$message" -m "$reason"
 }
 
 change_file_without_committing() {
-    printf '%b' "$2" > "$repository/$1"
+    printf '%b' "$2" >"$repository/$1"
 }
 
 switch_to_branch() {

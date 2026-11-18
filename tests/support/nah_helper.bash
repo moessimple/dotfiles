@@ -5,20 +5,20 @@ call_nah() {
 
 given_conflicting_merge_in_progress() {
     git -C "$repository" switch -qc other
-    printf 'other change\n' > "$repository/tracked.txt"
+    printf 'other change\n' >"$repository/tracked.txt"
     git -C "$repository" commit -qam "change on other"
     git -C "$repository" switch -q main
-    printf 'main change\n' > "$repository/tracked.txt"
+    printf 'main change\n' >"$repository/tracked.txt"
     git -C "$repository" commit -qam "change on main"
     git -C "$repository" merge other || true
 }
 
 given_conflicting_rebase_in_progress() {
     git -C "$repository" switch -qc other
-    printf 'other change\n' > "$repository/tracked.txt"
+    printf 'other change\n' >"$repository/tracked.txt"
     git -C "$repository" commit -qam "change on other"
     git -C "$repository" switch -q main
-    printf 'main change\n' > "$repository/tracked.txt"
+    printf 'main change\n' >"$repository/tracked.txt"
     git -C "$repository" commit -qam "change on main"
     git -C "$repository" switch -q other
     git -C "$repository" rebase main || true
@@ -26,20 +26,20 @@ given_conflicting_rebase_in_progress() {
 
 given_conflicting_cherry_pick_in_progress() {
     git -C "$repository" switch -qc other
-    printf 'other change\n' > "$repository/tracked.txt"
+    printf 'other change\n' >"$repository/tracked.txt"
     git -C "$repository" commit -qam "change on other"
     git -C "$repository" switch -q main
-    printf 'main change\n' > "$repository/tracked.txt"
+    printf 'main change\n' >"$repository/tracked.txt"
     git -C "$repository" commit -qam "change on main"
     git -C "$repository" cherry-pick other || true
 }
 
 given_conflicting_revert_in_progress() {
-    printf 'v1\n' > "$repository/tracked.txt"
+    printf 'v1\n' >"$repository/tracked.txt"
     git -C "$repository" commit -qam "tracked.txt to v1"
     local revertable_commit
     revertable_commit="$(git -C "$repository" rev-parse HEAD)"
-    printf 'v2\n' > "$repository/tracked.txt"
+    printf 'v2\n' >"$repository/tracked.txt"
     git -C "$repository" commit -qam "tracked.txt to v2"
     git -C "$repository" revert --no-edit "$revertable_commit" || true
 }

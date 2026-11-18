@@ -45,11 +45,11 @@ teardown() {
 @test "a fast check limits code checks to changed PHP files" {
     # Arrange
     given_project_with_tools composer pint phpstan rector pest phpunit
-    printf '<?php\n' > "$project/src/Unchanged.php"
+    printf '<?php\n' >"$project/src/Unchanged.php"
     commit_project
-    printf '<?php\n// changed\n' > "$project/src/Example.php"
-    printf '<?php\n' > "$project/src/Staged.php"
-    printf '<?php\n' > "$project/src/Untracked.php"
+    printf '<?php\n// changed\n' >"$project/src/Example.php"
+    printf '<?php\n' >"$project/src/Staged.php"
+    printf '<?php\n' >"$project/src/Untracked.php"
     git -C "$git_root" add "$project/src/Staged.php"
 
     # Act
@@ -69,8 +69,8 @@ teardown() {
     given_project_with_tools composer pint phpstan rector pest phpunit
     commit_project
     mkdir -p "$project/.claude"
-    printf '<?php\n// changed\n' > "$project/src/Example.php"
-    printf '<?php\n' > "$project/.claude/Hook.php"
+    printf '<?php\n// changed\n' >"$project/src/Example.php"
+    printf '<?php\n' >"$project/.claude/Hook.php"
 
     # Act
     run run_gate fast
@@ -113,7 +113,7 @@ teardown() {
     # Arrange
     given_nested_project_with_tools composer pint rector
     commit_project
-    printf '<?php\n// changed\n' > "$project/src/Example.php"
+    printf '<?php\n// changed\n' >"$project/src/Example.php"
 
     # Act
     run run_gate_for_project "$project" fast
@@ -157,7 +157,7 @@ teardown() {
     # Arrange
     given_project_with_tools pint rector
     mkdir -p "$project/.ai/guidelines"
-    printf '<?php\n' > "$project/.ai/guidelines/example.blade.php"
+    printf '<?php\n' >"$project/.ai/guidelines/example.blade.php"
 
     # Act
     run run_gate file "$project/.ai/guidelines/example.blade.php"
@@ -171,7 +171,7 @@ teardown() {
 @test "checking a hidden PHP file does nothing" {
     # Arrange
     given_project_with_tools pint rector
-    printf '<?php\n' > "$project/.php-cs-fixer.php"
+    printf '<?php\n' >"$project/.php-cs-fixer.php"
 
     # Act
     run run_gate file "$project/.php-cs-fixer.php"
@@ -297,7 +297,7 @@ teardown() {
     empty_project="$fixture/empty-project"
     mkdir -p "$empty_project/vendor/bin"
     git init -q "$empty_project"
-    printf '{}\n' > "$empty_project/composer.json"
+    printf '{}\n' >"$empty_project/composer.json"
 
     marker="$config_home/claude-quality/runs$empty_project.dirty"
     mkdir -p "$(dirname -- "$marker")"
@@ -341,7 +341,7 @@ teardown() {
     given_project_with_tools pint
     outside_file="$fixture/outside/Example.php"
     mkdir -p "$(dirname -- "$outside_file")"
-    printf '<?php\n' > "$outside_file"
+    printf '<?php\n' >"$outside_file"
 
     # Act
     run run_gate file "$outside_file"
@@ -407,7 +407,7 @@ teardown() {
     given_nested_project_with_tools pint
     other_project="$git_root/other"
     mkdir -p "$other_project"
-    printf '{}\n' > "$other_project/composer.json"
+    printf '{}\n' >"$other_project/composer.json"
 
     # Act
     run run_gate_for_project "$other_project" file "$project/src/Example.php"
@@ -457,7 +457,7 @@ teardown() {
     given_project_with_tools pint rector
     configure_pint_to_exclude src/Legacy
     mkdir -p "$project/src/Legacy"
-    printf '<?php\n' > "$project/src/Legacy/Old.php"
+    printf '<?php\n' >"$project/src/Legacy/Old.php"
 
     # Act
     run run_gate file "$project/src/Legacy/Old.php"
@@ -486,7 +486,7 @@ teardown() {
     given_project_with_tools pint rector
     configure_pint_to_deny tmp
     mkdir -p "$project/tmp"
-    printf '<?php\n' > "$project/tmp/Scratch.php"
+    printf '<?php\n' >"$project/tmp/Scratch.php"
 
     # Act
     run run_gate file "$project/tmp/Scratch.php"

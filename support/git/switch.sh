@@ -52,8 +52,14 @@ function switch() {
         return 0
     fi
 
-    [ $# -eq 0 ] && { echo "No branch name given." >&2; return 1; }
-    [ $# -ne 1 ] && { echo "Expected exactly one branch name." >&2; return 1; }
+    [ $# -eq 0 ] && {
+        echo "No branch name given." >&2
+        return 1
+    }
+    [ $# -ne 1 ] && {
+        echo "Expected exactly one branch name." >&2
+        return 1
+    }
 
     local requested_branch="$1" branch
     branch=$(git check-ref-format --branch "$requested_branch" 2>/dev/null) || {

@@ -4,5 +4,5 @@ call_rector() {
 
 given_rector_installed_locally() {
     mkdir -p "$working_directory/vendor/bin"
-    : > "$working_directory/vendor/bin/rector"
+    : >"$working_directory/vendor/bin/rector"
 }

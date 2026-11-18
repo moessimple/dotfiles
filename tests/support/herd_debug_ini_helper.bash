@@ -26,7 +26,7 @@ given_herd_reports_installed_php_versions() {
         entries="$entries,{\"version\":\"$version\",\"installed\":true}"
     done
 
-    cat > "$fake_bin/herd" <<EOF
+    cat >"$fake_bin/herd" <<EOF
 #!/usr/bin/env bash
 printf '%s\n' "\$*" >> "$fake_bin/herd.calls"
 [ "\$*" = "php:list --json" ] && printf '%s\n' '[$entries]'
@@ -37,7 +37,7 @@ EOF
 # Writes a fake `herd` whose `php:list --json` exits non-zero, standing in for a
 # broken Herd install or daemon.
 given_herd_php_list_fails() {
-    cat > "$fake_bin/herd" <<EOF
+    cat >"$fake_bin/herd" <<EOF
 #!/usr/bin/env bash
 printf '%s\n' "\$*" >> "$fake_bin/herd.calls"
 exit 1
@@ -50,14 +50,14 @@ given_herd_ships_xdebug_build_for() {
     mkdir -p "$herd_resources/xdebug"
     local slug
     for slug in "$@"; do
-        printf 'fake xdebug build\n' > "$herd_resources/xdebug/xdebug-$slug-arm64.so"
+        printf 'fake xdebug build\n' >"$herd_resources/xdebug/xdebug-$slug-arm64.so"
     done
 }
 
 # Creates Herd's debug.ini template, matching the real file's XDEBUG_PATH placeholder.
 given_herd_debug_template_is_present() {
     mkdir -p "$herd_resources/config/php"
-    cat > "$herd_resources/config/php/debug.ini" <<'TEMPLATE'
+    cat >"$herd_resources/config/php/debug.ini" <<'TEMPLATE'
 zend_extension=XDEBUG_PATH
 xdebug.mode=debug,develop
 xdebug.start_with_request=yes
@@ -69,7 +69,7 @@ given_existing_ini_file() {
     local relative_path="$1" contents="$2"
     local absolute_path="$test_home/Library/Application Support/Herd/config/php/$relative_path"
     mkdir -p "$(dirname "$absolute_path")"
-    printf '%s\n' "$contents" > "$absolute_path"
+    printf '%s\n' "$contents" >"$absolute_path"
 }
 
 # Sources herd-debug-ini.sh the way bin/reconfigure.sh does. Call it through `run` from
@@ -111,7 +111,7 @@ assert_no_ini_files_for() {
 given_herd_config_directory_blocked_for() {
     local slug="$1"
     mkdir -p "$(ini_path "")"
-    printf 'not a directory\n' > "$(ini_path "$slug")"
+    printf 'not a directory\n' >"$(ini_path "$slug")"
 }
 
 # Puts a directory where the given ini file belongs (relative to Herd's PHP config

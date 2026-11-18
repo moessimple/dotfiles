@@ -39,7 +39,7 @@ teardown() {
     # Arrange
     given_repository_on_feature_branch
     git -C "$repository" switch -q main
-    printf 'from main\n' > "$repository/from-main.txt"
+    printf 'from main\n' >"$repository/from-main.txt"
     git -C "$repository" add from-main.txt
     git -C "$repository" commit -qm "change on main"
     git -C "$repository" switch -q feature
@@ -74,7 +74,7 @@ teardown() {
     # Arrange
     given_repository_on_feature_branch
     git -C "$repository" switch -q main
-    printf 'from main\n' > "$repository/from-main.txt"
+    printf 'from main\n' >"$repository/from-main.txt"
     git -C "$repository" add from-main.txt
     git -C "$repository" commit -qm "change on main"
     git -C "$repository" switch -q feature
@@ -95,7 +95,7 @@ teardown() {
     # Arrange
     given_repository_on_feature_branch
     git -C "$repository" switch -q main
-    printf 'from main\n' > "$repository/from-main.txt"
+    printf 'from main\n' >"$repository/from-main.txt"
     git -C "$repository" add from-main.txt
     git -C "$repository" commit -qm "change on main"
     git -C "$repository" switch -q feature

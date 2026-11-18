@@ -14,7 +14,7 @@ teardown() {
 @test "a hunk containing the search term is shown" {
     # Arrange
     given_clean_repository_on_main
-    printf 'original\nNEEDLE_TERM\n' > "$repository/tracked.txt"
+    printf 'original\nNEEDLE_TERM\n' >"$repository/tracked.txt"
 
     # Act
     run call_pickaxe_diff NEEDLE_TERM -- tracked.txt
@@ -27,7 +27,7 @@ teardown() {
 @test "a hunk without the search term is filtered out but the file header still appears" {
     # Arrange
     given_clean_repository_on_main
-    printf 'original\nUNRELATED_CHANGE\n' > "$repository/tracked.txt"
+    printf 'original\nUNRELATED_CHANGE\n' >"$repository/tracked.txt"
 
     # Act
     run call_pickaxe_diff NEEDLE_TERM -- tracked.txt
@@ -41,7 +41,7 @@ teardown() {
 @test "a newly added file's hunk is shown with a new file mode header" {
     # Arrange
     given_clean_repository_on_main
-    printf 'NEEDLE_TERM\n' > "$repository/new.txt"
+    printf 'NEEDLE_TERM\n' >"$repository/new.txt"
     git -C "$repository" add new.txt
 
     # Act
@@ -56,7 +56,7 @@ teardown() {
 @test "a deleted file's hunk is shown with a deleted file mode header" {
     # Arrange
     given_clean_repository_on_main
-    printf 'NEEDLE_TERM\n' > "$repository/old.txt"
+    printf 'NEEDLE_TERM\n' >"$repository/old.txt"
     git -C "$repository" add old.txt
     git -C "$repository" commit -qm "add old.txt"
     rm "$repository/old.txt"
@@ -73,7 +73,7 @@ teardown() {
 @test "a file mode change without a content change reports the old and new mode" {
     # Arrange
     given_clean_repository_on_main
-    printf 'NEEDLE_TERM\n' > "$repository/exe.txt"
+    printf 'NEEDLE_TERM\n' >"$repository/exe.txt"
     git -C "$repository" add exe.txt
     git -C "$repository" commit -qm "add exe.txt"
     chmod +x "$repository/exe.txt"
@@ -90,7 +90,7 @@ teardown() {
 @test "a search term starting with a dash is matched literally instead of being parsed as an option" {
     # Arrange
     given_clean_repository_on_main
-    printf 'original\n-NEEDLE\n' > "$repository/tracked.txt"
+    printf 'original\n-NEEDLE\n' >"$repository/tracked.txt"
 
     # Act
     run call_pickaxe_diff "-NEEDLE" -- tracked.txt
@@ -103,7 +103,7 @@ teardown() {
 @test "a search term with regex characters is matched literally, as git log -S finds it" {
     # Arrange
     given_clean_repository_on_main
-    printf 'original\n$query->where(1)\n' > "$repository/tracked.txt"
+    printf 'original\n$query->where(1)\n' >"$repository/tracked.txt"
 
     # Act
     run call_pickaxe_diff '->where(' -- tracked.txt
@@ -116,7 +116,7 @@ teardown() {
 @test "a dot in the search term matches only a dot, not any character" {
     # Arrange
     given_clean_repository_on_main
-    printf 'original\nconfigXphp\n' > "$repository/tracked.txt"
+    printf 'original\nconfigXphp\n' >"$repository/tracked.txt"
 
     # Act
     run call_pickaxe_diff 'config.php' -- tracked.txt

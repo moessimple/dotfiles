@@ -1,6 +1,6 @@
-call_puf()   { call_dotfiles_function_in "$working_directory" puf "$@"; }
-call_puff()  { call_dotfiles_function_in "$working_directory" puff "$@"; }
-call_ppuf()  { call_dotfiles_function ppuf "$@"; }
+call_puf() { call_dotfiles_function_in "$working_directory" puf "$@"; }
+call_puff() { call_dotfiles_function_in "$working_directory" puff "$@"; }
+call_ppuf() { call_dotfiles_function ppuf "$@"; }
 call_ppuff() { call_dotfiles_function ppuff "$@"; }
 
 # Fake php that succeeds on every run until the given run number, then fails,

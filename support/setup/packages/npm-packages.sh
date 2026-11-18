@@ -63,7 +63,10 @@ npm_packages_cleanup() {
     # pipefail and a separate `local`, so a failing npm or a missing jq is reported instead
     # of reading as an empty list.
     local installed
-    if ! installed=$(set -o pipefail; global_npm ls -g --depth=0 --json 2>/dev/null | jq -r '.dependencies // {} | keys[]'); then
+    if ! installed=$(
+        set -o pipefail
+        global_npm ls -g --depth=0 --json 2>/dev/null | jq -r '.dependencies // {} | keys[]'
+    ); then
         warn "Could not read global npm packages, skipping cleanup"
         return 0
     fi
@@ -76,7 +79,7 @@ npm_packages_cleanup() {
         found_undeclared=1
         note "Removing undeclared global npm package: $name (not in npm-packages.sh)"
         global_npm uninstall -g "$name" || warn "Could not remove $name, remove it manually"
-    done <<< "$installed"
+    done <<<"$installed"
 
     # An `if`, not `&&`, which would return 1 after a removal and trip `set -e` in bin/update.sh
     if [ "$found_undeclared" -eq 0 ]; then

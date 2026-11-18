@@ -20,13 +20,14 @@ cooled_down() {
     case "$seen" in
         '' | *[!0-9]*)
             mkdir -p "$(dirname "$UPDATE_COOLDOWN_FIRST_SEEN")"
-            { awk -F '\t' -v id="$id" '$1 != id' "$UPDATE_COOLDOWN_FIRST_SEEN" 2>/dev/null
+            {
+                awk -F '\t' -v id="$id" '$1 != id' "$UPDATE_COOLDOWN_FIRST_SEEN" 2>/dev/null
                 printf '%s\t%s\t%s\n' "$id" "$state" "$now"
-            } > "$UPDATE_COOLDOWN_FIRST_SEEN.tmp" && mv "$UPDATE_COOLDOWN_FIRST_SEEN.tmp" "$UPDATE_COOLDOWN_FIRST_SEEN"
+            } >"$UPDATE_COOLDOWN_FIRST_SEEN.tmp" && mv "$UPDATE_COOLDOWN_FIRST_SEEN.tmp" "$UPDATE_COOLDOWN_FIRST_SEEN"
             return 1
             ;;
     esac
-    [ $(( now - seen )) -ge $(( UPDATE_COOLDOWN_DAYS * 86400 )) ]
+    [ $((now - seen)) -ge $((UPDATE_COOLDOWN_DAYS * 86400)) ]
 }
 
 # Prints the upstream state of plugin <name> in the marketplace <checkout> of <url>: the tree of its
@@ -37,17 +38,17 @@ plugin_state() {
     local name="$1" checkout="$2" url="$3" entry source folder slug="" tree
     entry=$(git -C "$checkout" show HEAD:.claude-plugin/marketplace.json 2>/dev/null \
         | jq -ce --arg name "$name" 'first(.plugins[] | select(.name == $name))') || return 1
-    source=$(jq -c '.source' <<< "$entry")
+    source=$(jq -c '.source' <<<"$entry")
     case "$url" in
         https://github.com/*) slug=${url#https://github.com/} && slug=${slug%.git} ;;
     esac
-    if folder=$(jq -er 'strings' <<< "$source"); then
+    if folder=$(jq -er 'strings' <<<"$source"); then
         folder=${folder#./}
         folder=${folder%/}
         [ "$folder" != . ] || folder=""
     elif jq -e --arg url "${url%.git}" --arg slug "$slug" \
         '(.repo // "") == $slug and $slug != "" or ((.url // "") | sub("\\.git$"; "")) == $url' \
-        <<< "$source" >/dev/null; then
+        <<<"$source" >/dev/null; then
         folder=""
     else
         return 1
@@ -63,8 +64,11 @@ plugin_state() {
 update_plugins_after_cooldown() {
     local marketplaces
     # pipefail, so a failed listing is reported instead of reading as "no marketplaces to check".
-    if ! marketplaces=$(set -o pipefail; claude plugin marketplace list --json 2>/dev/null \
-        | jq -r '.[] | select(.url != null) | [.name, .url] | @tsv'); then
+    if ! marketplaces=$(
+        set -o pipefail
+        claude plugin marketplace list --json 2>/dev/null \
+            | jq -r '.[] | select(.url != null) | [.name, .url] | @tsv'
+    ); then
         warn "Could not list the plugin marketplaces, plugins not updated"
         return 0
     fi
@@ -104,7 +108,7 @@ update_plugins_after_cooldown() {
         for plugin in "${plugins[@]}"; do
             claude plugin update "$plugin" || warn "Could not update $plugin"
         done
-    done 3<<< "$marketplaces"
+    done 3<<<"$marketplaces"
 }
 
 # Prints the tree the skills CLI recorded for an installed skill, resolved in <checkout>. The lock
@@ -123,7 +127,7 @@ update_skills_after_cooldown() {
     local entries
     if ! entries=$(jq -r '.skills // {} | to_entries[]
             | [.key, .value.sourceUrl, (.value.skillPath | sub("/?SKILL\\.md$"; ""))] | @tsv' \
-            "$SKILL_LOCK_FILE" 2>/dev/null); then
+        "$SKILL_LOCK_FILE" 2>/dev/null); then
         warn "Could not read $SKILL_LOCK_FILE, skills not updated"
         return 0
     fi
@@ -142,5 +146,5 @@ update_skills_after_cooldown() {
             skills_cli update "$name" -g || warn "Could not update $name"
         fi
         rm -rf "$checkout"
-    done 3<<< "$entries"
+    done 3<<<"$entries"
 }

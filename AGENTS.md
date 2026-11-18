@@ -56,11 +56,27 @@ freshly written fake-binary stub (`write_fake_binary` in `tests/support/test_hel
 check is serial and cannot be skipped, so more jobs do not shorten it. Cutting it would mean creating the stubs once
 per file instead of once per test.
 
+Format every tracked Bash, Bats, and zsh script with shfmt, or only check the formatting:
+
+```zsh
+bin/format.sh
+bin/format.sh --check
+```
+
+The style lives in `.editorconfig`, because shfmt ignores it as soon as a style flag is passed on the command line:
+4-space indent plus `-ci -bn`, the options shfmt's documentation names for Google's Shell Style Guide.
+`bin/format.sh` passes only tracked files, adds the zsh dotfiles by name because shfmt does not detect them, and
+leaves out `home/.zshrc` and `home/.zprofile` (Herd and Docker Desktop write into them) and `home/.claude/skills/`
+(skills stay as their authors wrote them).
+
 CI (`.github/workflows/tests.yml`) runs `bin/test.sh` on `macos-latest`, matching the interpreter and userland
 (`/bin/bash` 3.2, BSD tools) the target machine actually has, with `bats-core`, `php`, `patchutils`, and
-`rush-parallel` installed via Homebrew.
+`rush-parallel` installed via Homebrew. `.github/workflows/lint.yml` runs `bin/format.sh --check` with Homebrew's
+`shfmt` as its own workflow, so a formatting failure never hides a test result. Each workflow file, its `name`, and
+its single job share one name (`tests`, `lint`). The `main` ruleset requires both checks by job name; renaming a
+job means updating the ruleset in the same change.
 
-There is no separate lint/build command; shell code is not linted automatically in this repo.
+There is no build step. The `lint` workflow only checks formatting so far; ShellCheck does not run yet.
 
 ## Architecture
 

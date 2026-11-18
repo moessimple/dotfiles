@@ -54,7 +54,7 @@ given_upstream_main_and_develop_and_empty_origin() {
 # with branch-protection rules on tags.
 given_upstream_main_and_origin_rejecting_tags() {
     given_upstream_main_and_empty_origin
-    cat > "$origin/hooks/pre-receive" <<'HOOK'
+    cat >"$origin/hooks/pre-receive" <<'HOOK'
 #!/bin/sh
 while read -r old_sha new_sha ref; do
     case "$ref" in

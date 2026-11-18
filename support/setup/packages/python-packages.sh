@@ -41,7 +41,10 @@ python_packages_cleanup() {
     # pipefail and a separate `local`, so a failing pip or a missing jq is reported instead
     # of reading as an empty list.
     local installed
-    if ! installed=$(set -o pipefail; python_pip list --user --not-required --format=json 2>/dev/null | jq -r '.[].name'); then
+    if ! installed=$(
+        set -o pipefail
+        python_pip list --user --not-required --format=json 2>/dev/null | jq -r '.[].name'
+    ); then
         warn "Could not read user-installed Python packages, skipping cleanup"
         return 0
     fi
@@ -56,7 +59,7 @@ python_packages_cleanup() {
         found_undeclared=1
         note "Removing undeclared Python package: $name (not in python-packages.sh)"
         python_pip uninstall --yes --quiet "$name" || warn "Could not remove $name, remove it manually"
-    done <<< "$installed"
+    done <<<"$installed"
 
     # An `if`, not `&&`, which would return 1 after a removal and trip `set -e` in bin/update.sh
     if [ "$found_undeclared" -eq 0 ]; then

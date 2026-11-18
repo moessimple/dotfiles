@@ -11,17 +11,18 @@ function compare() {
     local base branch
     base="${1:-$(git default-branch)}"
 
-    branch=$(git for-each-ref \
-        --sort=-authordate \
-        --format='%(refname:short)' \
-        refs/heads \
-        | grep -v -x -F -- "$base" \
-        | BASE="$base" fzf \
-            --no-sort \
-            --preview 'git diff --color=always "$BASE"...{}' \
-            --preview-window=right:65%:wrap \
-            --height=90% \
-            --header="compare vs ${base} — Enter: full diff"
+    branch=$(
+        git for-each-ref \
+            --sort=-authordate \
+            --format='%(refname:short)' \
+            refs/heads \
+            | grep -v -x -F -- "$base" \
+            | BASE="$base" fzf \
+                --no-sort \
+                --preview 'git diff --color=always "$BASE"...{}' \
+                --preview-window=right:65%:wrap \
+                --height=90% \
+                --header="compare vs ${base} — Enter: full diff"
     )
 
     [ -n "$branch" ] && git diff "${base}...${branch}"

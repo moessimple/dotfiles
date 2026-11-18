@@ -49,7 +49,10 @@ ollama_models_cleanup() {
     # pipefail and a separate `local`, so an unreachable server is reported instead of
     # reading as an empty list.
     local installed
-    if ! installed=$(set -o pipefail; ollama list 2>/dev/null | awk 'NR > 1 { print $1 }'); then
+    if ! installed=$(
+        set -o pipefail
+        ollama list 2>/dev/null | awk 'NR > 1 { print $1 }'
+    ); then
         warn "Could not read Ollama models, skipping cleanup"
         return 0
     fi
@@ -62,7 +65,7 @@ ollama_models_cleanup() {
         found_undeclared=1
         note "Removing undeclared Ollama model: $name (not in ollama-models.sh)"
         ollama rm "$name" || warn "Could not remove $name, remove it manually"
-    done <<< "$installed"
+    done <<<"$installed"
 
     # An `if`, not `&&`, which would return 1 after a removal and trip `set -e` in bin/update.sh
     if [ "$found_undeclared" -eq 0 ]; then

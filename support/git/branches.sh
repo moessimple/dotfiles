@@ -9,7 +9,7 @@ function branches() {
     fi
 
     git for-each-ref \
-      --sort=-committerdate \
-      --format='%(color:green)%(align:24)%(committerdate:relative)%(end)%(color:reset)  %(if)%(HEAD)%(then)%(color:bold yellow)* %(else)%(color:yellow)  %(end)%(refname:short)%(color:reset)%(if)%(upstream)%(then)  %(color:red)→ %(upstream:short)%(color:reset)%(end)' \
-      refs/heads
+        --sort=-committerdate \
+        --format='%(color:green)%(align:24)%(committerdate:relative)%(end)%(color:reset)  %(if)%(HEAD)%(then)%(color:bold yellow)* %(else)%(color:yellow)  %(end)%(refname:short)%(color:reset)%(if)%(upstream)%(then)  %(color:red)→ %(upstream:short)%(color:reset)%(end)' \
+        refs/heads
 }

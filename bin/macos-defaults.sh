@@ -24,7 +24,11 @@ osascript -e 'tell application "System Preferences" to quit'
 sudo -v
 
 # Keep-alive: update existing `sudo` time stamp until this script has finished
-while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+while true; do
+    sudo -n true
+    sleep 60
+    kill -0 "$$" || exit
+done 2>/dev/null &
 
 ###############################################################################
 # Disk Encryption                                                             #
@@ -126,10 +130,10 @@ defaults write -g com.apple.mouse.scaling -float 1.0
 for mouse_domain in \
     "com.apple.driver.AppleBluetoothMultitouch.mouse" \
     "com.apple.AppleMultitouchMouse"; do
-    defaults write "$mouse_domain" MouseButtonMode             TwoButton
+    defaults write "$mouse_domain" MouseButtonMode TwoButton
     defaults write "$mouse_domain" MouseOneFingerDoubleTapGesture -int 0
     defaults write "$mouse_domain" MouseTwoFingerHorizSwipeGesture -int 2
-    defaults write "$mouse_domain" MouseTwoFingerDoubleTapGesture  -int 3
+    defaults write "$mouse_domain" MouseTwoFingerDoubleTapGesture -int 3
 done
 
 # Increase sound quality for Bluetooth headphones/headsets
@@ -153,7 +157,7 @@ defaults write NSGlobalDomain AppleMeasurementUnits -string "Centimeters"
 defaults write NSGlobalDomain AppleMetricUnits -bool true
 
 # Set the timezone; see `systemsetup -listtimezones` for other values
-sudo systemsetup -settimezone "Europe/Berlin" > /dev/null 2>&1
+sudo systemsetup -settimezone "Europe/Berlin" >/dev/null 2>&1
 
 ###############################################################################
 # SSD-specific tweaks                                                         #
@@ -246,20 +250,20 @@ defaults write com.apple.frameworks.diskimages skip-verify-remote -bool false
 
 # Enable snap-to-grid for icons on the desktop and in other icon views
 for scope in DesktopViewSettings FK_StandardViewSettings StandardViewSettings; do
-    /usr/libexec/PlistBuddy -c "Set :${scope}:IconViewSettings:arrangeBy grid" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null ||
-        /usr/libexec/PlistBuddy -c "Add :${scope}:IconViewSettings:arrangeBy string grid" ~/Library/Preferences/com.apple.finder.plist
+    /usr/libexec/PlistBuddy -c "Set :${scope}:IconViewSettings:arrangeBy grid" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null \
+        || /usr/libexec/PlistBuddy -c "Add :${scope}:IconViewSettings:arrangeBy string grid" ~/Library/Preferences/com.apple.finder.plist
 done
 
 # Increase grid spacing for icons on the desktop and in other icon views
 for scope in DesktopViewSettings FK_StandardViewSettings StandardViewSettings; do
-    /usr/libexec/PlistBuddy -c "Set :${scope}:IconViewSettings:gridSpacing 100" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null ||
-        /usr/libexec/PlistBuddy -c "Add :${scope}:IconViewSettings:gridSpacing real 100" ~/Library/Preferences/com.apple.finder.plist
+    /usr/libexec/PlistBuddy -c "Set :${scope}:IconViewSettings:gridSpacing 100" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null \
+        || /usr/libexec/PlistBuddy -c "Add :${scope}:IconViewSettings:gridSpacing real 100" ~/Library/Preferences/com.apple.finder.plist
 done
 
 # Increase the size of icons on the desktop and in other icon views
 for scope in DesktopViewSettings FK_StandardViewSettings StandardViewSettings; do
-    /usr/libexec/PlistBuddy -c "Set :${scope}:IconViewSettings:iconSize 80" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null ||
-        /usr/libexec/PlistBuddy -c "Add :${scope}:IconViewSettings:iconSize real 80" ~/Library/Preferences/com.apple.finder.plist
+    /usr/libexec/PlistBuddy -c "Set :${scope}:IconViewSettings:iconSize 80" ~/Library/Preferences/com.apple.finder.plist 2>/dev/null \
+        || /usr/libexec/PlistBuddy -c "Add :${scope}:IconViewSettings:iconSize real 80" ~/Library/Preferences/com.apple.finder.plist
 done
 
 # Use icon view in all Finder windows by default
@@ -278,9 +282,9 @@ chflags nohidden /Users
 # Expand the following File Info panes:
 # “General”, “Open with”, and “Sharing & Permissions”
 defaults write com.apple.finder FXInfoPanesExpanded -dict \
-	General -bool true \
-	OpenWith -bool true \
-	Privileges -bool true
+    General -bool true \
+    OpenWith -bool true \
+    Privileges -bool true
 
 ###############################################################################
 # Dock and hot corners                                                        #
@@ -473,7 +477,7 @@ for app in "Activity Monitor" \
     "Safari" \
     "SystemUIServer" \
     "Terminal"; do
-    killall "${app}" &> /dev/null || true
+    killall "${app}" &>/dev/null || true
 done
 
 echo ""

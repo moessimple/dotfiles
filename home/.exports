@@ -1,3 +1,5 @@
+#!/usr/bin/env zsh
+
 # Make nano the default editor
 export EDITOR="nano"
 

@@ -10,7 +10,7 @@ setup() {
     given_fake_bin_on_path
     given_fake_mysql
     given_fake_pv
-    printf 'dump content\n' > "$working_directory/dump.sql"
+    printf 'dump content\n' >"$working_directory/dump.sql"
 }
 
 teardown() {
@@ -85,7 +85,7 @@ teardown() {
 
 @test "importdump imports every given file" {
     # Arrange
-    printf 'more content\n' > "$working_directory/other.sql"
+    printf 'more content\n' >"$working_directory/other.sql"
 
     # Act
     run call_importdump mydb dump.sql other.sql
@@ -99,8 +99,8 @@ teardown() {
 
 @test "importdump fails when an earlier file fails even if a later one succeeds" {
     # Arrange
-    printf 'BROKEN sql\n' > "$working_directory/bad.sql"
-    printf 'good content\n' > "$working_directory/good.sql"
+    printf 'BROKEN sql\n' >"$working_directory/bad.sql"
+    printf 'good content\n' >"$working_directory/good.sql"
     given_mysql_fails_when_streamed_content_contains BROKEN
 
     # Act

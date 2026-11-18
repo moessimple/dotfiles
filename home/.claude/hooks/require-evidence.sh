@@ -39,7 +39,7 @@ while IFS= read -r marker; do
     esac
 done < <(find "$quality_runs_dir" -name '*.dirty' 2>/dev/null)
 
-(( ${#dirty_projects[@]} == 0 )) && exit 0
+((${#dirty_projects[@]} == 0)) && exit 0
 
 still_dirty=()
 
@@ -58,6 +58,6 @@ for project in "${dirty_projects[@]}"; do
     echo "'quality fast' just ran for $project and still failed, see output above. Fix it before treating this as done." >&2
 done
 
-(( ${#still_dirty[@]} == 0 )) && exit 0
+((${#still_dirty[@]} == 0)) && exit 0
 
 exit 2

@@ -135,7 +135,7 @@ teardown() {
     given_project_with_tools composer
     nested_manifest="$project/packages/example/composer.json"
     mkdir -p "$(dirname -- "$nested_manifest")"
-    printf '{}\n' > "$nested_manifest"
+    printf '{}\n' >"$nested_manifest"
     nested_marker="$config_home/claude-quality/runs$project/packages/example.dirty"
     root_marker="$config_home/claude-quality/runs$project.dirty"
 

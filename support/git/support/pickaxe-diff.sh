@@ -10,12 +10,12 @@ set -Eeuo pipefail
 
 trap 'rc=$?; echo "${0}: ERR trap at line ${LINENO} (return code: $rc)"; exit $rc' ERR
 
-if [  ! -z "${PICKAXEDIFF_TRACE+x}" ]; then
-  set -x
+if [ ! -z "${PICKAXEDIFF_TRACE+x}" ]; then
+    set -x
 fi
 
-echo_meta () {
-echo "${color_meta}$1${color_none}"
+echo_meta() {
+    echo "${color_meta}$1${color_none}"
 }
 
 path=$1
@@ -34,8 +34,8 @@ color_old=$(git config --get-color color.diff.old red)
 color_none=$(tput sgr 0 2>/dev/null || :)
 
 only_match_flag=""
-if { grepdiff -h 2>&1 || : ; } | \grep -q -e '--only-match'; then
-  only_match_flag="--only-match=mod"
+if { grepdiff -h 2>&1 || :; } | \grep -q -e '--only-match'; then
+    only_match_flag="--only-match=mod"
 fi
 
 # search() finds commits with `git log -S --regexp-ignore-case`, which matches the term
@@ -45,41 +45,41 @@ fi
 # bracket class such as [üÜ] would match only one byte of a two-byte umlaut. macOS's
 # /usr/bin/tr converts letters such as umlauts; a GNU tr earlier on PATH breaks them.
 safe_regex=""
-for (( i=0; i<${#GREPDIFF_REGEX}; i++ )); do
-  char="${GREPDIFF_REGEX:$i:1}"
-  case "$char" in
-    '.' | '[' | '(' | ')' | '*' | '+' | '?' | '{' | '|' | '^' | '$' | '\')
-      safe_regex+="\\$char"
-      ;;
-    *)
-      lower=$(printf '%s' "$char" | /usr/bin/tr '[:upper:]' '[:lower:]')
-      upper=$(printf '%s' "$char" | /usr/bin/tr '[:lower:]' '[:upper:]')
-      if [ "$lower" != "$upper" ]; then
-        safe_regex+="($lower|$upper)"
-      else
-        safe_regex+="$char"
-      fi
-      ;;
-  esac
+for ((i = 0; i < ${#GREPDIFF_REGEX}; i++)); do
+    char="${GREPDIFF_REGEX:$i:1}"
+    case "$char" in
+        '.' | '[' | '(' | ')' | '*' | '+' | '?' | '{' | '|' | '^' | '$' | '\')
+            safe_regex+="\\$char"
+            ;;
+        *)
+            lower=$(printf '%s' "$char" | /usr/bin/tr '[:upper:]' '[:lower:]')
+            upper=$(printf '%s' "$char" | /usr/bin/tr '[:lower:]' '[:upper:]')
+            if [ "$lower" != "$upper" ]; then
+                safe_regex+="($lower|$upper)"
+            else
+                safe_regex+="$char"
+            fi
+            ;;
+    esac
 done
 
 # Escape leading dashes to prevent grepdiff from interpreting them as options
 if [[ "$safe_regex" == -* ]]; then
-  safe_regex="[-]${safe_regex:1}"
+    safe_regex="[-]${safe_regex:1}"
 fi
 
 diff_output=$(git diff --no-color --no-ext-diff -p --src-prefix=a/ --dst-prefix=b/ "$old_file" "$new_file" || :)
 
-filtered_diff=$( { echo "$diff_output" | \
-                { grepdiff -E "$safe_regex" --output-matching=hunk ${only_match_flag} || true; } | \
-                \grep -v -e '^--- a/' -e '^+++ b/' | \
-                \grep -v -e '^--- /dev/null' -e '^+++ /dev/null' | \
-                \grep -v -e '^diff --git' -e '^index ' | \
-                sed -e "s/\(@@ .* @@\)\(.*\)/${color_frag}\1${color_none}${color_func}\2${color_none}/" | \
-                GREP_COLOR=7 GREP_COLORS="ms=7" \grep --color=always -E "$safe_regex|$" | \
-                sed -e $'s/\x1b\[m\x1b\[K/\x1b\[27m/g' -e $'s/\x1b\[K//g' | \
-                sed -e "s/^\(+.*\)/${color_new}\1${color_none}/" | \
-                sed -e "s/^\(-.*\)/${color_old}\1${color_none}/" ; } || true )
+filtered_diff=$({ echo "$diff_output" \
+    | { grepdiff -E "$safe_regex" --output-matching=hunk ${only_match_flag} || true; } \
+    | \grep -v -e '^--- a/' -e '^+++ b/' \
+    | \grep -v -e '^--- /dev/null' -e '^+++ /dev/null' \
+    | \grep -v -e '^diff --git' -e '^index ' \
+    | sed -e "s/\(@@ .* @@\)\(.*\)/${color_frag}\1${color_none}${color_func}\2${color_none}/" \
+    | GREP_COLOR=7 GREP_COLORS="ms=7" \grep --color=always -E "$safe_regex|$" \
+    | sed -e $'s/\x1b\[m\x1b\[K/\x1b\[27m/g' -e $'s/\x1b\[K//g' \
+    | sed -e "s/^\(+.*\)/${color_new}\1${color_none}/" \
+    | sed -e "s/^\(-.*\)/${color_old}\1${color_none}/"; } || true)
 
 a_path="a/$path"
 b_path="b/$path"
@@ -93,19 +93,19 @@ NULL='/dev/null'
 ZERO_OID="0000000"
 same_mode="$old_mode"
 if [ "$old_file" == "$NULL" ]; then
-   old_path="$NULL"
-   old_hex="$ZERO_OID"
-   same_mode=''
-   echo_meta "new file mode $new_mode"
+    old_path="$NULL"
+    old_hex="$ZERO_OID"
+    same_mode=''
+    echo_meta "new file mode $new_mode"
 elif [ "$new_file" == "$NULL" ]; then
-   new_path="$NULL"
-   new_hex="$ZERO_OID"
-   same_mode=''
-   echo_meta "deleted file mode $old_mode"
+    new_path="$NULL"
+    new_hex="$ZERO_OID"
+    same_mode=''
+    echo_meta "deleted file mode $old_mode"
 elif [ "$old_mode" != "$new_mode" ]; then
-  echo_meta "old mode $old_mode"
-  echo_meta "new mode $new_mode"
-  same_mode=''
+    echo_meta "old mode $old_mode"
+    echo_meta "new mode $new_mode"
+    same_mode=''
 fi
 
 echo_meta "index $old_hex..$new_hex $same_mode"
