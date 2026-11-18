@@ -24,11 +24,14 @@ teardown() {
 }
 
 @test "confirmed macOS setup on a laptop with FileVault on configures firewall, screen lock, screenshots, and Finder and leaves FileVault and hibernation unchanged" {
+    # Arrange
     given_fake_macos_commands
     finder_preferences="$restricted_home/Library/Preferences/com.apple.finder.plist"
 
+    # Act
     TEST_FILEVAULT_STATUS="FileVault is On." TEST_BATTERY_STATUS="InternalBattery" run run_standalone_answering y "$target"
 
+    # Assert
     assert_success
     assert_binary_called_with_args sudo -v
     assert_binary_called_with_args sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
@@ -42,21 +45,27 @@ teardown() {
 }
 
 @test "confirmed macOS setup enables FileVault when it is off and disables hibernation without a battery" {
+    # Arrange
     given_fake_macos_commands
 
+    # Act
     TEST_FILEVAULT_STATUS="FileVault is Off." TEST_BATTERY_STATUS="AC Power" run run_standalone_answering y "$target"
 
+    # Assert
     assert_success
     assert_binary_called_with_args sudo fdesetup enable
     assert_binary_called_with_args sudo pmset -a hibernatemode 0
 }
 
 @test "a failed macOS preference write stops setup without claiming completion" {
+    # Arrange
     given_fake_macos_commands
     write_fake_binary defaults 'exit 17'
 
+    # Act
     run run_standalone_answering y "$target"
 
+    # Assert
     assert_status 17
     assert_output_does_not_contain "macOS defaults configured!"
     assert_binary_not_called killall

@@ -69,13 +69,16 @@ teardown() {
 }
 
 @test "an initialized tinkerbench checkout is left untouched" {
+    # Arrange
     mkdir -p "$test_home/Code/tinkerbench"
     printf 'local environment' >"$test_home/Code/tinkerbench/.env"
     write_fake_binary git
     write_fake_binary composer
 
+    # Act
     run call_setup_function "$target" set_up_tinkerbench
 
+    # Assert
     assert_success
     assert_binary_not_called git
     assert_binary_not_called composer

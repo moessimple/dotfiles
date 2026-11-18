@@ -34,6 +34,7 @@ teardown() {
 }
 
 @test "reconfigure applies links and setup without applying macOS defaults or requesting sudo" {
+    # Arrange
     mkdir -p "$test_home/.claude/skills"
     touch "$test_home/.claude/skills/local-skill"
 
@@ -108,10 +109,13 @@ teardown() {
 }
 
 @test "a directory preparation failure stops reconfigure before links or dependent setup" {
+    # Arrange
     touch "$test_home/Screenshots"
 
+    # Act
     run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/reconfigure.sh"
 
+    # Assert
     assert_failure
     [ ! -L "$test_home/.aliases" ]
     assert_path_does_not_exist "$test_home/herd-onboarding.sh.applied"
@@ -120,11 +124,14 @@ teardown() {
 }
 
 @test "a symlink failure stops reconfigure before dependent setup" {
+    # Arrange
     write_fake_binary ln 'if [[ "${!#}" == "$HOME/.exports" ]]; then exit 73; fi
 exec /bin/ln "$@"'
 
+    # Act
     run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/reconfigure.sh"
 
+    # Assert
     assert_status 73
     assert_path_does_not_exist "$test_home/herd-onboarding.sh.applied"
     assert_path_does_not_exist "$test_home/codex-skills.sh.applied"

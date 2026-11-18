@@ -103,10 +103,13 @@ teardown() {
 }
 
 @test "install and update apply a three-day cooldown without passing it to list or uninstall" {
+    # Arrange
     given_fake_python_reporting_installed '[{"name":"leftpad"}]'
 
+    # Act
     run call_setup_function "$target" install_python_packages update_python_packages clean_up_python_packages
 
+    # Assert
     assert_success
     local call installs=0
     while IFS= read -r call; do
@@ -121,11 +124,14 @@ teardown() {
 }
 
 @test "Python cleanup reports a failed removal of stale-one and continues with stale-two" {
+    # Arrange
     given_fake_python_reporting_installed '[{"name":"stale-one"},{"name":"stale-two"},{"name":"pypdf"}]'
     given_command_fails_when_called_with python3 "-m pip uninstall --yes --quiet stale-one "
 
+    # Act
     run call_cleanup_function "$target" clean_up_python_packages
 
+    # Assert
     assert_success
     assert_output_contains "Could not remove stale-one"
     assert_binary_called_with_substring python3 "-m pip uninstall --yes --quiet stale-two"

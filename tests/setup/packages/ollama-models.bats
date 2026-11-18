@@ -103,11 +103,14 @@ teardown() {
 }
 
 @test "Ollama cleanup reports a failed removal of stale-one and continues with stale-two" {
+    # Arrange
     given_fake_ollama_listing $'stale-one\nstale-two\nembeddinggemma:latest'
     given_command_fails_when_called_with ollama "rm stale-one"
 
+    # Act
     run call_cleanup_function "$target" clean_up_ollama_models
 
+    # Assert
     assert_success
     assert_output_contains "Could not remove stale-one"
     assert_binary_called_with_substring ollama "rm stale-two"

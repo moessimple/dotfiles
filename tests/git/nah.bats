@@ -139,6 +139,7 @@ teardown() {
 }
 
 @test "nah refuses to discard files outside a Git repository" {
+    # Arrange
     repository="$fixture/outside"
     mkdir -p "$repository"
     printf 'local file' >"$repository/keep.txt"
@@ -147,8 +148,10 @@ teardown() {
     given_fake_bin_on_path
     write_fake_binary git 'exec "$REAL_GIT" "$@"'
 
+    # Act
     run call_nah
 
+    # Assert
     assert_failure
     assert_binary_called_with git "rev-parse --git-dir"
     assert_binary_call_count git 1

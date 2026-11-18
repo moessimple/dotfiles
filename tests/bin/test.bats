@@ -19,8 +19,10 @@ teardown() {
 }
 
 @test "bin/test.sh uses the repository Bash 3.2 link and forwards the selected test file" {
+    # Act
     BATS_JOBS=2 run "$dotfiles_dir/bin/test.sh" tests/functions/pf.bats
 
+    # Assert
     assert_success
     assert_output_contains "3.2."
     assert_binary_called_with_args bats --pretty --timing --jobs 2 --parallel-binary-name rush tests/functions/pf.bats
@@ -56,36 +58,45 @@ os.execv(sys.argv[1], sys.argv[1:])
 }
 
 @test "SIGTERM to the runner PID terminates Bats with status 143" {
+    # Arrange
     given_bats_waiting_for_cancellation
     start_test_runner
 
+    # Act
     kill -TERM "$runner_pid"
     local runner_status=0
     wait "$runner_pid" || runner_status="$?"
 
+    # Assert
     [ "$runner_status" -eq 143 ]
     ! kill -0 "$(cat "$TEST_BATS_PID")" 2>/dev/null || false
     [ "$(cat "$TEST_BATS_PID")" -eq "$runner_pid" ]
 }
 
 @test "SIGINT to the runner PID terminates Bats with status 130" {
+    # Arrange
     given_bats_waiting_for_cancellation
     start_test_runner
 
+    # Act
     kill -INT "$runner_pid"
     local runner_status=0
     wait "$runner_pid" || runner_status="$?"
 
+    # Assert
     [ "$runner_status" -eq 130 ]
     ! kill -0 "$(cat "$TEST_BATS_PID")" 2>/dev/null || false
     [ "$(cat "$TEST_BATS_PID")" -eq "$runner_pid" ]
 }
 
 @test "bin/test.sh selects all tests without arguments and preserves exit status 42 from Bats" {
+    # Arrange
     write_fake_binary bats 'command -v bash >"$TEST_INTERPRETER_RECORD"; exit 42'
 
+    # Act
     BATS_JOBS=1 run "$dotfiles_dir/bin/test.sh"
 
+    # Assert
     assert_status 42
     assert_binary_called_with_args bats --pretty --timing --jobs 1 --parallel-binary-name rush -r tests/
     assert_file_content "$TEST_INTERPRETER_RECORD" "$dotfiles_dir/support/test-shell/bash"

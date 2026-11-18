@@ -27,30 +27,50 @@ teardown() {
     assert_binary_not_called npx
 }
 
-@test "Clarity installation removes non-runtime files again when they reappear" {
-    # Arrange
+@test "Clarity installation keeps only its runtime files and leaves other skills untouched" {
+    # Arrange: Clarity runtime files, non-runtime files from its repository, and another skill.
     clarity_dir="$test_home/.claude/skills/clarity"
     mkdir -p "$clarity_dir/references" "$clarity_dir/scripts" "$test_home/.claude/skills/other"
     touch "$clarity_dir/SKILL.md" "$clarity_dir/LICENSE" "$clarity_dir/references/edit.md"
     touch "$clarity_dir/scripts/strip_markdown.py" "$clarity_dir/scripts/prose_stats.py"
     touch "$test_home/.claude/skills/other/keep"
+    mkdir -p "$clarity_dir/site" "$clarity_dir/.github" "$clarity_dir/samples"
+    touch "$clarity_dir/site/index.html" "$clarity_dir/.github/workflow.yml"
+    touch "$clarity_dir/README.md" "$clarity_dir/scripts/validate_package.py"
 
-    local attempt
-    for attempt in 1 2; do
-        mkdir -p "$clarity_dir/site" "$clarity_dir/.github" "$clarity_dir/samples"
-        touch "$clarity_dir/site/index.html" "$clarity_dir/.github/workflow.yml"
-        touch "$clarity_dir/README.md" "$clarity_dir/scripts/validate_package.py"
+    # Act
+    run call_setup_function "$target" install_claude_skills
 
-        # Act
-        run call_setup_function "$target" install_claude_skills
+    # Assert
+    assert_success
+    [ "$(ls -A "$clarity_dir" | sort)" = "$(printf '%s\n' LICENSE SKILL.md references scripts | sort)" ]
+    [ "$(ls -A "$clarity_dir/scripts" | sort)" = "$(printf '%s\n' prose_stats.py strip_markdown.py | sort)" ]
+    assert_file_exists "$clarity_dir/references/edit.md"
+    assert_file_exists "$test_home/.claude/skills/other/keep"
+}
 
-        # Assert
-        assert_success
-        [ "$(ls -A "$clarity_dir" | sort)" = "$(printf '%s\n' LICENSE SKILL.md references scripts | sort)" ]
-        [ "$(ls -A "$clarity_dir/scripts" | sort)" = "$(printf '%s\n' prose_stats.py strip_markdown.py | sort)" ]
-        assert_file_exists "$clarity_dir/references/edit.md"
-        assert_file_exists "$test_home/.claude/skills/other/keep"
-    done
+@test "a repeated Clarity installation removes non-runtime files that reappear" {
+    # Arrange: a completed installation, after which an update restores non-runtime files.
+    clarity_dir="$test_home/.claude/skills/clarity"
+    mkdir -p "$clarity_dir/references" "$clarity_dir/scripts" "$test_home/.claude/skills/other"
+    touch "$clarity_dir/SKILL.md" "$clarity_dir/LICENSE" "$clarity_dir/references/edit.md"
+    touch "$clarity_dir/scripts/strip_markdown.py" "$clarity_dir/scripts/prose_stats.py"
+    touch "$test_home/.claude/skills/other/keep"
+    run call_setup_function "$target" install_claude_skills
+    assert_success
+    mkdir -p "$clarity_dir/site" "$clarity_dir/.github" "$clarity_dir/samples"
+    touch "$clarity_dir/site/index.html" "$clarity_dir/.github/workflow.yml"
+    touch "$clarity_dir/README.md" "$clarity_dir/scripts/validate_package.py"
+
+    # Act
+    run call_setup_function "$target" install_claude_skills
+
+    # Assert
+    assert_success
+    [ "$(ls -A "$clarity_dir" | sort)" = "$(printf '%s\n' LICENSE SKILL.md references scripts | sort)" ]
+    [ "$(ls -A "$clarity_dir/scripts" | sort)" = "$(printf '%s\n' prose_stats.py strip_markdown.py | sort)" ]
+    assert_file_exists "$clarity_dir/references/edit.md"
+    assert_file_exists "$test_home/.claude/skills/other/keep"
 }
 
 @test "Clarity trimming leaves an incomplete installation untouched" {

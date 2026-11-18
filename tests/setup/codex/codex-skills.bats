@@ -81,12 +81,14 @@ run_codex_skills_setup() {
 }
 
 @test "a failed skill symlink is reported in the final summary while other skills are linked" {
+    # Arrange
     given_fake_bin_on_path
     write_fake_binary ln 'if [[ "$2" == */pr ]]; then
     exit 1
 fi
 exec /bin/ln "$@"'
 
+    # Act
     run env CODEX_SKILLS_SOURCE="$source_dir" CODEX_SKILLS_TARGET="$skills_dir" \
         CLAUDE_PLUGIN_CACHE="$plugin_cache" CLAUDE_INSTALLED_PLUGINS="$installed_plugins" \
         /bin/bash -ec '
@@ -96,6 +98,7 @@ exec /bin/ln "$@"'
             finish "Configuration applied"
         ' bash "$dotfiles_dir"
 
+    # Assert
     [ "$status" -eq 1 ]
     assert_output_contains "Could not link pr"
     assert_output_contains "Finished with 1 problem(s):"

@@ -21,8 +21,10 @@ teardown() {
 }
 
 @test "creates a GitHub key, loads it into the keychain, and copies only the public key" {
+    # Act
     run /bin/bash "$dotfiles_dir/bin/setup-ssh.sh" "dev@example.com"
 
+    # Assert
     assert_success
     assert_binary_called_with ssh-keygen "-t ed25519 -C dev@example.com -f $HOME/.ssh/id_ed25519"
     assert_binary_called_with ssh-add "--apple-use-keychain $HOME/.ssh/id_ed25519"
@@ -31,52 +33,78 @@ teardown() {
 }
 
 @test "uses an existing SSH agent" {
+    # Arrange
     export SSH_AUTH_SOCK="/existing/agent"
 
+    # Act
     run /bin/bash "$dotfiles_dir/bin/setup-ssh.sh" "dev@example.com"
 
+    # Assert
     assert_success
     assert_binary_not_called ssh-agent
 }
 
 @test "requires an email argument before making changes" {
+    # Act
     run /bin/bash "$dotfiles_dir/bin/setup-ssh.sh"
 
+    # Assert
     assert_failure
     assert_output_contains "Usage:"
     assert_binary_not_called ssh-keygen
 }
 
-@test "refuses to overwrite an existing private or public key" {
+@test "refuses to overwrite an existing private key" {
+    # Arrange
     mkdir -p "$HOME/.ssh"
-    for path in "$HOME/.ssh/id_ed25519" "$HOME/.ssh/id_ed25519.pub"; do
-        printf 'existing key\n' >"$path"
+    printf 'existing key\n' >"$HOME/.ssh/id_ed25519"
 
-        run /bin/bash "$dotfiles_dir/bin/setup-ssh.sh" "dev@example.com"
+    # Act
+    run /bin/bash "$dotfiles_dir/bin/setup-ssh.sh" "dev@example.com"
 
-        assert_failure
-        assert_output_contains "already exists"
-        assert_file_content "$path" "existing key"
-        assert_binary_not_called ssh-keygen
-        rm "$path"
-    done
+    # Assert
+    assert_failure
+    assert_output_contains "already exists"
+    assert_file_content "$HOME/.ssh/id_ed25519" "existing key"
+    assert_binary_not_called ssh-keygen
+}
+
+@test "refuses to overwrite an existing public key" {
+    # Arrange
+    mkdir -p "$HOME/.ssh"
+    printf 'existing key\n' >"$HOME/.ssh/id_ed25519.pub"
+
+    # Act
+    run /bin/bash "$dotfiles_dir/bin/setup-ssh.sh" "dev@example.com"
+
+    # Assert
+    assert_failure
+    assert_output_contains "already exists"
+    assert_file_content "$HOME/.ssh/id_ed25519.pub" "existing key"
+    assert_binary_not_called ssh-keygen
 }
 
 @test "stops when key generation fails" {
+    # Arrange
     write_fake_binary ssh-keygen 'exit 1'
 
+    # Act
     run /bin/bash "$dotfiles_dir/bin/setup-ssh.sh" "dev@example.com"
 
+    # Assert
     assert_failure
     assert_binary_not_called ssh-add
     assert_binary_not_called pbcopy
 }
 
 @test "does not report success or copy a key when adding it to the agent fails" {
+    # Arrange
     write_fake_binary ssh-add 'exit 1'
 
+    # Act
     run /bin/bash "$dotfiles_dir/bin/setup-ssh.sh" "dev@example.com"
 
+    # Assert
     assert_failure
     assert_binary_not_called pbcopy
     assert_output_does_not_contain "https://github.com/settings/keys"

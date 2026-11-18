@@ -73,10 +73,13 @@ teardown() {
 }
 
 @test "installation applies configuration, keeps local settings, and runs every setup step once" {
+    # Arrange
     printf 'local settings' >"$test_home/.extra"
 
+    # Act
     run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/install.sh" <<<'y'
 
+    # Assert
     assert_success
     assert_output_contains "Installation complete!"
     assert_managed_dotfiles_are_linked
@@ -87,11 +90,12 @@ teardown() {
 }
 
 @test "installation runs dependent setup steps after their prerequisites and macOS defaults last" {
+    # Act
     run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/install.sh" <<<'y'
+
+    # Assert
     assert_success
-
     run cat "$INSTALL_STEPS_FILE"
-
     assert_output_contains_before install_homebrew install_homebrew_packages
     assert_output_contains_before install_homebrew_packages install_python_packages
     assert_output_contains_before install_homebrew_packages wait_for_herd_onboarding
@@ -104,13 +108,16 @@ teardown() {
 }
 
 @test "a repeated installation keeps links and local settings and runs every setup step once again" {
+    # Arrange: a completed first installation with local settings.
     printf 'local settings' >"$test_home/.extra"
     run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/install.sh" <<<'y'
     assert_success
     : >"$INSTALL_STEPS_FILE"
 
+    # Act
     run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/install.sh" <<<'y'
 
+    # Assert
     assert_success
     assert_output_contains "Installation complete!"
     assert_managed_dotfiles_are_linked
@@ -120,8 +127,10 @@ teardown() {
 }
 
 @test "installation continues after a setup warning and reports failure at the end" {
+    # Act
     INSTALL_WARN_STEP=install_npm_packages run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/install.sh" <<<'y'
 
+    # Assert
     assert_status 1
     assert_output_contains "Finished with 1 problem(s):"
     assert_output_contains "Failed install_npm_packages"
@@ -130,11 +139,14 @@ teardown() {
 }
 
 @test "installation stops before package setup when a managed link cannot be created" {
+    # Arrange
     write_fake_binary ln 'if [[ "${!#}" == "$HOME/.exports" ]]; then exit 73; fi
 exec /bin/ln "$@"'
 
+    # Act
     run env HOME="$test_home" /bin/bash "$dotfiles_dir/bin/install.sh" <<<'y'
 
+    # Assert
     assert_status 73
     sort "$INSTALL_STEPS_FILE" >"$fixture/completed-steps"
     assert_file_content "$fixture/completed-steps" $'install_homebrew\ninstall_oh_my_zsh\nsudo'

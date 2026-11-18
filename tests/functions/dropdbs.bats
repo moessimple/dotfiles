@@ -57,14 +57,17 @@ teardown() {
 }
 
 @test "dropdbs uses the local PHPUnit configuration instead of its distribution template" {
+    # Arrange
     given_env_file DB_DATABASE=maindb
     printf '<php><env name="DB_DATABASE" value="local_test"/></php>\n' >"$working_directory/phpunit.xml"
     printf '<php><env name="DB_DATABASE" value="template_test"/></php>\n' >"$working_directory/phpunit.xml.dist"
     write_fake_binary mysql
     write_fake_binary getconf "printf '1\n'"
 
+    # Act
     run call_dropdbs
 
+    # Assert
     assert_success
     assert_output_contains "Dropped: local_test"
     assert_output_does_not_contain "template_test"

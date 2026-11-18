@@ -44,10 +44,13 @@ fi'
 }
 
 @test "sourcing services does not start services or rewrite their config" {
+    # Arrange
     printf 'local config\n' >"$fixture/var/config.toml"
 
+    # Act
     run run_setup_script "$dotfiles_dir/support/setup/services.sh"
 
+    # Assert
     assert_success
     [ -z "$output" ]
     assert_binary_not_called brew
@@ -55,10 +58,13 @@ fi'
 }
 
 @test "a failed Mailpit start does not prevent Meilisearch or Ollama and fails the final summary" {
+    # Arrange
     given_command_fails_when_called_with brew "services start mailpit"
 
+    # Act
     run start_services_then_finish_with "Setup complete"
 
+    # Assert
     assert_status 1
     assert_binary_called_with_args brew services start meilisearch
     assert_binary_called_with_args brew services start ollama
@@ -68,11 +74,13 @@ fi'
 }
 
 @test "an unwritable Meilisearch config is reported without preventing service startup" {
-    # A directory at the config path cannot be written as a file.
+    # Arrange: a directory at the config path cannot be written as a file.
     mkdir "$fixture/var/config.toml"
 
+    # Act
     run start_services_then_finish_with "Setup complete"
 
+    # Assert
     assert_status 1
     assert_binary_called_with_args brew services start meilisearch
     assert_binary_called_with_args brew services start ollama

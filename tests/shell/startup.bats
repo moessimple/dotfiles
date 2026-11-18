@@ -33,6 +33,7 @@ teardown() {
 }
 
 @test "shell startup loads functions, Git helpers, aliases, and local settings together" {
+    # Act
     run env HOME="$test_home" TEST_BREW_PREFIX="$fixture" PATH="/usr/bin:/bin" /bin/zsh -f -c '
         source "$HOME/.zprofile"
         source "$HOME/.zshrc"
@@ -46,6 +47,7 @@ teardown() {
         alias php
     '
 
+    # Assert
     assert_success
     assert_binary_called_with_args stty sane
     assert_output_contains "php='herd php'"
@@ -53,6 +55,7 @@ teardown() {
 }
 
 @test "shell reload preserves PATH priority without adding duplicate entries" {
+    # Act
     run env HOME="$test_home" TEST_BREW_PREFIX="$fixture" PATH="/usr/bin:/bin" /bin/zsh -f -c '
         source "$HOME/.zprofile"
         source "$HOME/.zshrc"
@@ -63,6 +66,7 @@ teardown() {
         print -l -- "${path[@]:0:9}"
     '
 
+    # Assert
     assert_success
     assert_output_equals "$test_home/Library/Application Support/Herd/bin/
 $fixture/opt/ruby/bin

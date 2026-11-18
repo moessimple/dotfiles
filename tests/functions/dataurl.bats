@@ -46,10 +46,13 @@ teardown() {
 }
 
 @test "dataurl preserves the clipboard when the input file is missing" {
+    # Arrange
     printf 'previous clipboard' >"$fixture/clipboard"
 
+    # Act
     run call_dataurl "$fixture/missing.txt"
 
+    # Assert
     assert_failure
     assert_clipboard_content "previous clipboard"
     assert_binary_not_called pbcopy
@@ -57,32 +60,41 @@ teardown() {
 }
 
 @test "dataurl preserves the clipboard when MIME detection fails" {
+    # Arrange
     write_fake_binary file 'exit 17'
     printf 'previous clipboard' >"$fixture/clipboard"
 
+    # Act
     run call_dataurl "$fixture/notes.txt"
 
+    # Assert
     assert_status 17
     assert_binary_not_called pbcopy
     assert_clipboard_content "previous clipboard"
 }
 
 @test "dataurl preserves the clipboard when encoding fails" {
+    # Arrange
     write_fake_binary openssl 'printf partial; exit 23'
     printf 'previous clipboard' >"$fixture/clipboard"
 
+    # Act
     run call_dataurl "$fixture/notes.txt"
 
+    # Assert
     assert_status 23
     assert_binary_not_called pbcopy
     assert_clipboard_content "previous clipboard"
 }
 
 @test "dataurl reports a clipboard failure without claiming success" {
+    # Arrange
     write_fake_binary pbcopy 'cat >/dev/null; exit 19'
 
+    # Act
     run call_dataurl "$fixture/notes.txt"
 
+    # Assert
     assert_status 19
     assert_output_does_not_contain "Copied to clipboard."
 }

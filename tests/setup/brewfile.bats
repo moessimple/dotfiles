@@ -25,23 +25,36 @@ list_mas_apps() {
 }
 
 @test "without a profile the Brewfile still includes private apps" {
+    # Act
     run list_casks
+
+    # Assert
     assert_success
     [[ $'\n'"$output"$'\n' == *$'\ndiscord\n'* ]] || false
     [[ $'\n'"$output"$'\n' == *$'\nwhatsapp\n'* ]] || false
 }
 
 @test "explicit private profile preserves the default cask list" {
+    # Arrange
     list_casks >"$fixture/default"
     echo private >"$HOME/.config/dotfiles/profile"
+
+    # Act
     list_casks >"$fixture/private"
+
+    # Assert
     cmp "$fixture/default" "$fixture/private"
 }
 
 @test "work profile excludes only Discord, OneCast and WhatsApp" {
+    # Arrange
     list_casks | LC_ALL=C sort >"$fixture/private"
     echo work >"$HOME/.config/dotfiles/profile"
+
+    # Act
     list_casks | LC_ALL=C sort >"$fixture/work"
+
+    # Assert: these three casks are missing, and no cask is added.
     run comm -23 "$fixture/private" "$fixture/work"
     assert_success
     [ "$output" = $'discord\nonecast\nwhatsapp' ]
@@ -51,9 +64,14 @@ list_mas_apps() {
 }
 
 @test "work profile excludes only AusweisApp from the Mac App Store apps" {
+    # Arrange
     list_mas_apps | LC_ALL=C sort >"$fixture/private"
     echo work >"$HOME/.config/dotfiles/profile"
+
+    # Act
     list_mas_apps | LC_ALL=C sort >"$fixture/work"
+
+    # Assert: AusweisApp is missing, and no app is added.
     run comm -23 "$fixture/private" "$fixture/work"
     assert_success
     [ "$output" = "AusweisApp" ]

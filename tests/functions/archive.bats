@@ -14,8 +14,10 @@ teardown() {
 }
 
 @test "archive creates a readable ZIP containing the selected directory" {
+    # Act
     run call_archive "build folder"
 
+    # Assert
     assert_success
     assert_file_exists "$fixture/build folder.zip"
     run /usr/bin/unzip -p "$fixture/build folder.zip" "build folder/file.txt"

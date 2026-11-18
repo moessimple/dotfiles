@@ -185,20 +185,26 @@ teardown() {
 }
 
 @test "db create refuses a database host that is not local" {
+    # Arrange
     given_env_file DB_HOST=db.example.com
     write_fake_binary mysql
 
+    # Act
     run call_db create mydb
 
+    # Assert
     assert_failure
     assert_output_contains "db.example.com is not a local database host"
     assert_binary_not_called mysql
 }
 
 @test "db list fails with the MySQL client's exit status when the query fails" {
+    # Arrange
     write_fake_binary mysql 'exit 42'
 
+    # Act
     run call_db list
 
+    # Assert
     assert_status 42
 }

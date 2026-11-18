@@ -38,12 +38,15 @@ given_herd_cli_appears_during_the_wait() {
 }
 
 @test "an available Herd CLI does not reopen onboarding or wait" {
+    # Arrange
     write_fake_binary herd
     write_fake_binary open
     write_fake_binary sleep
 
+    # Act
     run call_setup_function "$target" wait_for_herd_onboarding
 
+    # Assert
     assert_success
     assert_binary_not_called open
     assert_binary_not_called sleep

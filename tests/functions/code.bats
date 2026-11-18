@@ -32,8 +32,10 @@ teardown() {
 }
 
 @test "code preserves multiple paths, spaces, and empty arguments" {
+    # Act
     run call_code "a path/file.php" "" "another path/file.php"
 
+    # Assert
     assert_success
     assert_binary_called_with_args code "a path/file.php" "" "another path/file.php"
 }

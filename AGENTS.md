@@ -328,6 +328,13 @@ test; use `setup` for a clearly visible shared baseline and helpers for mechanic
 must not hide the values or conditions that explain the scenario. Assertions state the expected values and effects
 explicitly. A call count alone does not prove which database was migrated or which file was imported.
 
+Every test body starts with a section comment and marks its sections with `# Arrange`, `# Act`, and `# Assert`,
+omitting a section that has no code (a static check over repository files has only `# Assert`). A marker may add a
+short description after a colon, such as `# Arrange: one CPU and a separate PHPUnit database.` A lifecycle test
+repeats `# Act:` and `# Assert:` for each transition and names the transition in the description. Markers stay at
+the test's top level, never inside a loop: run several cases in one `# Act` section and assert the collected result,
+or give each case its own test.
+
 Give distinct conditions and failure modes separately named tests. When a test covers a lifecycle, make each state
 transition and its expectations clear. Put single-command scenarios in that command's test file and source-only
 checks in `tests/setup/sourcing.bats`. Keep cross-component scenarios together with the behavior they document,

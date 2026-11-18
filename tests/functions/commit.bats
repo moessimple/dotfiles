@@ -86,6 +86,7 @@ teardown() {
 }
 
 @test "Claude JSON with escaped newlines is parsed without modifying it" {
+    # Arrange
     given_repository_with_modified_tracked_file
     write_fake_binary claude "$(
         cat <<'SCRIPT'
@@ -95,14 +96,17 @@ SCRIPT
     )"
     write_provider_that_must_not_run codex
 
+    # Act
     run call_commit
 
+    # Assert
     assert_success
     assert_commit_message "Preserve Claude JSON"
     assert_provider_was_not_called
 }
 
 @test "Codex JSON events with escaped newlines are parsed without modifying them" {
+    # Arrange
     given_repository_with_modified_tracked_file
     write_failing_provider claude
     write_fake_binary codex "$(
@@ -114,20 +118,25 @@ printf '%s\n' '{"type":"turn.completed"}'
 SCRIPT
     )"
 
+    # Act
     run call_commit
 
+    # Assert
     assert_success
     assert_commit_message "Preserve Codex JSON"
 }
 
 @test "the diff reaches a message provider with literal backslashes intact" {
+    # Arrange
     given_repository_with_modified_tracked_file
     printf '%s\n' 'literal \n and C:\tools' >>"$repository/tracked.txt"
     write_successful_claude "Preserve the diff"
     write_provider_that_must_not_run codex
 
+    # Act
     run call_commit
 
+    # Assert
     assert_success
     assert_provider_received 'literal \n and C:\tools'
 }

@@ -15,18 +15,24 @@ teardown() {
     given_project_with_tools composer pint phpstan
     marker="$config_home/claude-quality/runs$project.dirty"
 
-    # The check after the edit fails: the edit is reported and the project is marked dirty.
+    # Act: edit a PHP file while Pint fails.
     QUALITY_FAIL_TOOL=pint run post_event post-edit.sh "$project/src/Example.php"
+
+    # Assert: the edit is reported and the project is marked dirty.
     assert_status 2
     assert_path_exists "$marker"
 
-    # The final check before the response fails too: the response is blocked and stays dirty.
+    # Act: finish the response while PHPStan fails.
     QUALITY_FAIL_TOOL=phpstan run stop_event false
+
+    # Assert: the response is blocked and the project stays dirty.
     assert_status 2
     assert_path_exists "$marker"
 
-    # The next final check passes: the response may finish and the project is clean.
+    # Act: finish the response with every check passing.
     run stop_event false
+
+    # Assert: the response may finish and the project is clean.
     assert_success
     assert_path_does_not_exist "$marker"
 }

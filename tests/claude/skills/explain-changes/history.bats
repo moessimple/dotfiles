@@ -147,48 +147,60 @@ teardown() {
 }
 
 @test "traces removed lines in a Git-quoted filename" {
+    # Arrange
     given_repository_with_file 'notes"quoted.txt' 'old\n'
     switch_to_branch feature
     commit_file 'notes"quoted.txt' 'new\n' "Replace the line"
 
+    # Act
     run_history_for_branch feature
 
+    # Assert
     assert_success
     assert_output_contains 'lines: notes"quoted.txt:1'
     assert_output_contains "    initial"
 }
 
 @test "preserves backslashes in filenames" {
+    # Arrange
     given_repository_with_file 'notes\backslash.txt' 'old\n'
     switch_to_branch feature
     commit_file 'notes\backslash.txt' 'new\n' "Replace the line"
 
+    # Act
     run_history_for_branch feature
 
+    # Assert
     assert_success
     assert_output_contains 'lines: notes\backslash.txt:1'
 }
 
 @test "traces a renamed file using its merge-base path" {
+    # Arrange
     given_repository_with_file old.txt 'old\n'
     switch_to_branch feature
     git -C "$repository" mv old.txt new.txt
     git -C "$repository" commit -qm "Rename the file"
 
+    # Act
     run_history_for_branch feature
 
+    # Assert
     assert_success
     assert_output_contains 'lines: old.txt:1'
     assert_output_contains "    initial"
 }
 
 @test "reports unsupported filename delimiters instead of claiming additions only" {
+    # Arrange
     given_repository_with_file $'notes\ttab.txt' 'old\n'
     switch_to_branch feature
     commit_file $'notes\ttab.txt' 'new\n' "Replace the line"
 
+    # Act
     run_history_for_branch feature
 
+    # Assert
     [ "$status" -ne 0 ]
     assert_output_contains "filenames containing tabs or newlines are not supported"
     assert_output_does_not_contain "the change only adds code"

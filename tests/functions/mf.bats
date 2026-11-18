@@ -52,10 +52,13 @@ teardown() {
 }
 
 @test "mf stops before migration when recreating the database fails" {
+    # Arrange
     write_fake_binary mysql 'exit 1'
 
+    # Act
     run call_mf
 
+    # Assert
     assert_failure
     assert_binary_call_count mysql 1
     assert_binary_not_called php

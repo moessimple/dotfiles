@@ -52,11 +52,14 @@ given_tmpdir_is_a_file() {
 }
 
 @test "an unavailable Herd PHP falls back to PHP already on PATH" {
+    # Arrange
     write_fake_binary herd 'exit 1'
     write_fake_binary php 'echo existing-php'
 
+    # Act
     run "$script" --stdio
 
+    # Assert
     assert_success
     assert_output_contains "args:--stdio"
     assert_output_contains "existing-php"
