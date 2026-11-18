@@ -102,7 +102,11 @@ with agent-specific tools, paths, or runtime behavior stay exclusive to that age
 **Entry points vs. setup logic.** Files in `support/setup/` define variables and functions; sourcing them does
 not run setup. Each script under `bin/` sources every setup file it uses in one block after `set -e`, always from
 `~/.dotfiles`, the fixed location the symlinks and aliases already depend on. It then calls those functions
-explicitly, and each function prints its own step and result. `wait_for_herd_onboarding` in `support/setup/herd/herd-onboarding.sh` waits for Herd's CLI,
+explicitly, and each function prints its own step and result. Every step that changes machine state is such a
+function, even with a single caller: its name states the step's intent, and it can be tested without running the
+whole entry point. An entry point keeps only its own frame (confirmation prompts, `sudo -v`, `bin/update.sh`
+re-running itself after the pull, `finish`, closing notes). `bin/macos-defaults.sh` is the exception: a linear list
+of `defaults` commands under section headers, where the headers already name each part. `wait_for_herd_onboarding` in `support/setup/herd/herd-onboarding.sh` waits for Herd's CLI,
 `install_herd_xdebug` in `support/setup/herd/herd-xdebug.sh` writes Xdebug configuration, and `set_up_tinkerbench`
 in `support/setup/tinkerbench.sh` prepares the local project.
 
