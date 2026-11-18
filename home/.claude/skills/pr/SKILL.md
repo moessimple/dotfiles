@@ -169,6 +169,8 @@ Everything below runs after the human checkpoint in Step 5. Pushing and the `gh`
 
 Add one `--attach './path.png#label'` per local image referenced in the description.
 
+If some attachments fail to upload, `gh pr create` and `gh pr edit` still create or update the PR with the ones that succeeded, print its URL, and exit non-zero. A printed URL means the PR exists: never run `gh pr create` again. Run Mode B step 2 with the same title, description, and every `--attach`, which replaces the body and uploads all files again. If it still fails, tell the user which images are missing and return the URL.
+
 **Mode A (create):**
 
 1. Push: `git push -u origin HEAD`
