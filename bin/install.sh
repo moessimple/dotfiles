@@ -11,6 +11,7 @@ source ~/.dotfiles/support/setup/tinkerbench.sh
 source ~/.dotfiles/support/setup/home-directories.sh
 source ~/.dotfiles/support/setup/oh-my-zsh.sh
 source ~/.dotfiles/support/setup/dotfile-links.sh
+source ~/.dotfiles/support/setup/homebrew.sh
 source ~/.dotfiles/support/setup/packages/homebrew-packages.sh
 source ~/.dotfiles/support/setup/packages/composer-packages.sh
 source ~/.dotfiles/support/setup/packages/npm-packages.sh
@@ -91,16 +92,7 @@ prepare_home_directories
 
 install_oh_my_zsh
 
-# Installer shells do not read home/.zprofile, so a new Homebrew installation needs shellenv here.
-step "Installing Homebrew"
-if ! command -v brew &>/dev/null; then
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-fi
-# A failed download runs the installer with an empty script, and shellenv of a missing brew
-# prints nothing; both exit 0, so only finding brew shows that the installation worked.
-command -v brew &>/dev/null || error "Homebrew installation failed"
-success "Homebrew installed"
+install_homebrew
 
 link_dotfiles
 

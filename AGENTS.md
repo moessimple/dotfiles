@@ -119,7 +119,7 @@ Scripts under `bin/` orchestrate these functions:
   with confirmation, sudo, and application termination.
 
 Failure handling follows `brew bundle`, using the helpers in `support/setup/output.sh`. A step that later steps
-depend on stops the run: the profile, the `~/.dotfiles` checkout, and Homebrew itself through `error`,
+depend on stops the run: the profile, the `~/.dotfiles` checkout, and Homebrew itself (`support/setup/homebrew.sh`) through `error`,
 `home-directories.sh` and the symlinks through `set -e` when one of their commands fails. Any other step that cannot
 be completed, such as one package, PHP version, or service, reports it with
 `warn` and the run goes on. `finish` ends install, reconfigure, and update: it prints the success message only when
