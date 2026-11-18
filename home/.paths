@@ -5,7 +5,6 @@
 typeset -U path PATH
 
 # Each directory is put in front of PATH when it exists; (N-/) drops one that does not.
-path=($DOTFILES_DIR/bin(N-/) $path)
 path=(~/.composer/vendor/bin(N-/) $path)
 path=(~/.gem/bin(N-/) $path)
 
