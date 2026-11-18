@@ -2,9 +2,24 @@
 
 set -e
 
-source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/output.sh"
+source ~/.dotfiles/support/setup/output.sh
+source ~/.dotfiles/support/setup/machine-profile.sh
+source ~/.dotfiles/support/setup/services.sh
+source ~/.dotfiles/support/setup/herd-onboarding.sh
+source ~/.dotfiles/support/setup/herd-debug-ini.sh
+source ~/.dotfiles/support/setup/tinkerbench/tinkerbench.sh
+source ~/.dotfiles/support/setup/clean-state.sh
+source ~/.dotfiles/support/setup/oh-my-zsh.sh
+source ~/.dotfiles/support/setup/symlink-dotfiles.sh
+source ~/.dotfiles/support/setup/packages/homebrew-packages.sh
+source ~/.dotfiles/support/setup/packages/composer-packages.sh
+source ~/.dotfiles/support/setup/packages/npm-packages.sh
+source ~/.dotfiles/support/setup/packages/python-packages.sh
+source ~/.dotfiles/support/setup/packages/ollama-models.sh
+source ~/.dotfiles/support/setup/claude/claude-skills.sh
+source ~/.dotfiles/support/setup/claude/claude-plugins.sh
+source ~/.dotfiles/support/setup/codex/codex-skills.sh
 
-source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/machine-profile.sh"
 machine_profile_load
 
 echo ""
@@ -71,22 +86,6 @@ fi
 
 echo ""
 sudo -v
-
-source ~/.dotfiles/support/setup/services.sh
-source ~/.dotfiles/support/setup/herd-onboarding.sh
-source ~/.dotfiles/support/setup/herd-debug-ini.sh
-source ~/.dotfiles/support/setup/tinkerbench/tinkerbench.sh
-source ~/.dotfiles/support/setup/clean-state.sh
-source ~/.dotfiles/support/setup/oh-my-zsh.sh
-source ~/.dotfiles/support/setup/symlink-dotfiles.sh
-source ~/.dotfiles/support/setup/packages/homebrew-packages.sh
-source ~/.dotfiles/support/setup/packages/composer-packages.sh
-source ~/.dotfiles/support/setup/packages/npm-packages.sh
-source ~/.dotfiles/support/setup/packages/python-packages.sh
-source ~/.dotfiles/support/setup/packages/ollama-models.sh
-source ~/.dotfiles/support/setup/claude/claude-skills.sh
-source ~/.dotfiles/support/setup/claude/claude-plugins.sh
-source ~/.dotfiles/support/setup/codex/codex-skills.sh
 
 clean_state_apply
 

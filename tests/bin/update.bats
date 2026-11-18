@@ -23,6 +23,7 @@ teardown() {
 @test "a feature branch is rejected before the repository or packages are updated" {
     # Arrange
     given_clean_repository_on_main
+    given_repository_with_real_setup_scripts
     git -C "$repository" switch -qc feature
     write_update_side_effects_that_must_not_run
 
@@ -39,6 +40,7 @@ teardown() {
 @test "detached HEAD is rejected before the repository or packages are updated" {
     # Arrange
     given_clean_repository_on_main
+    given_repository_with_real_setup_scripts
     git -C "$repository" switch -q --detach HEAD
     write_update_side_effects_that_must_not_run
 
@@ -55,6 +57,7 @@ teardown() {
 @test "a dirty main worktree is still rejected before the repository or packages are updated" {
     # Arrange
     given_clean_repository_on_main
+    given_repository_with_real_setup_scripts
     printf 'changed\n' >"$repository/tracked.txt"
     write_update_side_effects_that_must_not_run
 

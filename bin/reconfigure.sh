@@ -2,12 +2,8 @@
 
 set -e
 
-source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/output.sh"
-
-# Validate the saved profile before changing machine configuration.
-source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/machine-profile.sh"
-machine_profile_load
-
+source ~/.dotfiles/support/setup/output.sh
+source ~/.dotfiles/support/setup/machine-profile.sh
 source ~/.dotfiles/support/setup/services.sh
 source ~/.dotfiles/support/setup/herd-onboarding.sh
 source ~/.dotfiles/support/setup/herd-debug-ini.sh
@@ -15,6 +11,9 @@ source ~/.dotfiles/support/setup/tinkerbench/tinkerbench.sh
 source ~/.dotfiles/support/setup/clean-state.sh
 source ~/.dotfiles/support/setup/symlink-dotfiles.sh
 source ~/.dotfiles/support/setup/codex/codex-skills.sh
+
+# Validate the saved profile before changing machine configuration.
+machine_profile_load
 
 clean_state_apply
 

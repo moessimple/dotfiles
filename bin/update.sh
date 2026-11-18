@@ -2,10 +2,18 @@
 
 set -e
 
-source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/output.sh"
+source ~/.dotfiles/support/setup/output.sh
+source ~/.dotfiles/support/setup/machine-profile.sh
+source ~/.dotfiles/support/setup/packages/homebrew-packages.sh
+source ~/.dotfiles/support/setup/packages/composer-packages.sh
+source ~/.dotfiles/support/setup/packages/npm-packages.sh
+source ~/.dotfiles/support/setup/packages/python-packages.sh
+source ~/.dotfiles/support/setup/packages/ollama-models.sh
+source ~/.dotfiles/support/setup/claude/claude-skills.sh
+source ~/.dotfiles/support/setup/claude/claude-plugins.sh
+source ~/.dotfiles/support/setup/claude/update-cooldown.sh
 
 # Validate the saved profile before installing or removing packages.
-source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/machine-profile.sh"
 machine_profile_load
 
 if [[ -z "${DOTFILES_UPDATE_PULLED:-}" ]]; then
@@ -44,15 +52,6 @@ if [[ -z "${DOTFILES_UPDATE_PULLED:-}" ]]; then
     # instead, and the variable keeps it from pulling again.
     DOTFILES_UPDATE_PULLED=1 exec ~/.dotfiles/bin/update.sh
 fi
-
-source ~/.dotfiles/support/setup/packages/homebrew-packages.sh
-source ~/.dotfiles/support/setup/packages/composer-packages.sh
-source ~/.dotfiles/support/setup/packages/npm-packages.sh
-source ~/.dotfiles/support/setup/packages/python-packages.sh
-source ~/.dotfiles/support/setup/packages/ollama-models.sh
-source ~/.dotfiles/support/setup/claude/claude-skills.sh
-source ~/.dotfiles/support/setup/claude/claude-plugins.sh
-source ~/.dotfiles/support/setup/claude/update-cooldown.sh
 
 homebrew_packages_update
 

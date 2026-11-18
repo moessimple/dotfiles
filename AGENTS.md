@@ -100,8 +100,9 @@ Claude remains the only installer and updater. Shared workflows keep their instr
 with agent-specific tools, paths, or runtime behavior stay exclusive to that agent.
 
 **Entry points vs. setup logic.** Files in `support/setup/` define variables and functions; sourcing them does
-not run setup. Scripts under `bin/` call those functions explicitly, and each function prints its own step and
-result. `herd_onboarding_wait` in `support/setup/herd-onboarding.sh` waits for Herd's CLI,
+not run setup. Each script under `bin/` sources every setup file it uses in one block after `set -e`, always from
+`~/.dotfiles`, the fixed location the symlinks and aliases already depend on. It then calls those functions
+explicitly, and each function prints its own step and result. `herd_onboarding_wait` in `support/setup/herd-onboarding.sh` waits for Herd's CLI,
 `herd_debug_ini_install` in `support/setup/herd-debug-ini.sh` writes Xdebug configuration, and `tinkerbench_setup`
 in `support/setup/tinkerbench/tinkerbench.sh` prepares the local project.
 

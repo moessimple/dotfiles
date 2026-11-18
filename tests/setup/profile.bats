@@ -7,7 +7,8 @@ setup() {
     export HOME="$fixture/home"
     export GIT_CONFIG_NOSYSTEM=1
     unset GIT_CONFIG_GLOBAL
-    mkdir -p "$HOME"
+    mkdir -p "$HOME/.dotfiles"
+    cp -R "$dotfiles_dir/support" "$HOME/.dotfiles/"
     cp "$dotfiles_dir/home/.gitconfig" "$HOME/.gitconfig"
     profile_file="$HOME/.config/dotfiles/profile"
 }
@@ -179,13 +180,7 @@ configure_profile() (
 @test "reconfigure and update accept a saved work profile without identity checks or prompts" {
     mkdir -p "$(dirname "$profile_file")"
     echo work >"$profile_file"
-    mkdir -p "$HOME/.dotfiles/support/setup"
-    touch "$HOME/.dotfiles/support/setup/services.sh" \
-        "$HOME/.dotfiles/support/setup/herd-onboarding.sh" \
-        "$HOME/.dotfiles/support/setup/herd-debug-ini.sh"
-    mkdir -p "$HOME/.dotfiles/support/setup/tinkerbench"
-    touch "$HOME/.dotfiles/support/setup/tinkerbench/tinkerbench.sh"
-    printf 'exit 73\n' >"$HOME/.dotfiles/support/setup/clean-state.sh"
+    printf 'clean_state_apply() { exit 73; }\n' >"$HOME/.dotfiles/support/setup/clean-state.sh"
     run /bin/bash "$dotfiles_dir/bin/reconfigure.sh" </dev/null
     [ "$status" -eq 73 ]
     run /bin/bash "$dotfiles_dir/bin/update.sh" </dev/null

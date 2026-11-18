@@ -2,7 +2,7 @@
 
 set -e
 
-source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/output.sh"
+source ~/.dotfiles/support/setup/output.sh
 
 echo ""
 note "This will change macOS system settings."

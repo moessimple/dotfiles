@@ -1,13 +1,14 @@
-# Runs bin/macos-defaults.sh with a PATH that holds only `dirname`, which it needs to find
-# output.sh, so a regression past the confirmation prompt fails on the first missing
-# command (osascript, sudo) instead of changing this machine's settings.
+# Runs bin/macos-defaults.sh with an empty PATH and a HOME whose ~/.dotfiles holds the output
+# helpers, so a regression past the confirmation prompt fails on the first missing command
+# (osascript, sudo) instead of changing this machine's settings.
 given_path_without_system_commands() {
     restricted_path="$BATS_TEST_TMPDIR/restricted-bin"
-    mkdir -p "$restricted_path"
-    ln -s /usr/bin/dirname "$restricted_path/dirname"
+    restricted_home="$BATS_TEST_TMPDIR/home"
+    mkdir -p "$restricted_path" "$restricted_home/.dotfiles"
+    cp -R "$dotfiles_dir/support" "$restricted_home/.dotfiles/"
 }
 
 run_standalone_answering() {
     local answer="$1" script="$2"
-    PATH="$restricted_path" /bin/bash "$script" <<<"$answer"
+    HOME="$restricted_home" PATH="$restricted_path" /bin/bash "$script" <<<"$answer"
 }
