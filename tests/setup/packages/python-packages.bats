@@ -13,12 +13,25 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "declared packages are installed into the user site of Homebrew's python3" {
+@test "sourcing python-packages.sh only defines its functions and runs no pip command" {
     # Arrange
     given_fake_python_reporting_installed '[]'
 
     # Act
     run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    [ -z "$output" ]
+    assert_binary_not_called python3
+}
+
+@test "declared packages are installed into the user site of Homebrew's python3" {
+    # Arrange
+    given_fake_python_reporting_installed '[]'
+
+    # Act
+    run call_setup_function "$target" python_packages_install
 
     # Assert
     assert_success
@@ -30,12 +43,13 @@ teardown() {
     # Arrange
     given_fake_python_reporting_installed '[{"name":"leftpad"}]'
 
-    # Act: sourcing the file for its cleanup function also runs its install step
-    run call_cleanup_function "$target" python_packages_cleanup
+    # Act
+    run call_setup_function "$target" python_packages_install python_packages_update python_packages_cleanup
 
     # Assert
     assert_success
-    assert_binary_called_with_substring python3 "PIP_BREAK_SYSTEM_PACKAGES=1 -m pip install"
+    assert_binary_called_with_substring python3 "PIP_BREAK_SYSTEM_PACKAGES=1 -m pip install --user --quiet --no-warn-script-location pandas"
+    assert_binary_called_with_substring python3 "PIP_BREAK_SYSTEM_PACKAGES=1 -m pip install --user --quiet --no-warn-script-location --upgrade"
     assert_binary_called_with_substring python3 "PIP_BREAK_SYSTEM_PACKAGES=1 -m pip list"
     assert_binary_called_with_substring python3 "PIP_BREAK_SYSTEM_PACKAGES=1 -m pip uninstall"
 }

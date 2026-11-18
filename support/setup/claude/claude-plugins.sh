@@ -49,52 +49,63 @@ claude_marketplace_auto_update_off() {
     printf '%s\n' "$updated" >"$settings"
 }
 
-step "Installing Claude Code plugins and MCP servers"
-if command -v claude &>/dev/null; then
-    # Only marketplaces Claude Code does not know yet are added, and their autoUpdate is set off
-    # again afterwards: without it Claude Code updates plugins on its own and bypasses the cooldown
-    # in update.sh.
-    if known_marketplaces=$(
-        set -o pipefail
-        claude plugin marketplace list --json 2>/dev/null | jq -r '.[].url'
-    ); then
-        for marketplace in "${CLAUDE_PLUGIN_MARKETPLACES[@]}"; do
-            printf '%s\n' "$known_marketplaces" | grep -qxF "$marketplace.git" && continue
-            if ! claude plugin marketplace add "$marketplace" 2>/dev/null; then
-                warn "Could not add the $marketplace marketplace"
-            elif ! claude_marketplace_auto_update_off "$marketplace"; then
-                warn "Could not turn off auto-update for $marketplace, set \"autoUpdate\": false in ~/.claude/settings.json"
-            fi
-        done
-    else
-        warn "Could not list the plugin marketplaces, skipping adding them"
-    fi
-    # Only missing plugins are installed, so a failed install is a real problem.
-    if ! installed_plugins=$(
-        set -o pipefail
-        claude plugin list --json 2>/dev/null | jq -r '.[] | select(.scope == "user") | .id'
-    ); then
-        warn "Could not read installed Claude Code plugins, installing every declared one"
-        installed_plugins=""
-    fi
-    for plugin in "${CLAUDE_PLUGINS[@]}"; do
-        printf '%s\n' "$installed_plugins" | grep -qxF "$plugin" && continue
-        claude plugin install "$plugin" || warn "Could not install $plugin"
-    done
-    # `claude mcp add` refuses an existing name, so a registration with another version is
-    # removed first; that is how a raised version takes effect. `mcp get` fails when the server
-    # is not configured yet, which under the entry points' `set -e` would end the whole run.
-    registered_mcp=$(claude mcp get chrome-devtools 2>/dev/null) || registered_mcp=""
-    if [[ "$registered_mcp" != *"chrome-devtools-mcp@$CHROME_DEVTOOLS_MCP_VERSION "* ]]; then
-        if [ -n "$registered_mcp" ]; then
-            claude mcp remove chrome-devtools -s user >/dev/null 2>&1 || true
+claude_plugins_install() {
+    local known_marketplaces marketplace installed_plugins plugin registered_mcp
+    step "Installing Claude Code plugins and MCP servers"
+    if command -v claude &>/dev/null; then
+        # Only marketplaces Claude Code does not know yet are added, and their autoUpdate is set off
+        # again afterwards: without it Claude Code updates plugins on its own and bypasses the cooldown
+        # in update.sh.
+        if known_marketplaces=$(
+            set -o pipefail
+            claude plugin marketplace list --json 2>/dev/null | jq -r '.[].url'
+        ); then
+            for marketplace in "${CLAUDE_PLUGIN_MARKETPLACES[@]}"; do
+                printf '%s\n' "$known_marketplaces" | grep -qxF "$marketplace.git" && continue
+                if ! claude plugin marketplace add "$marketplace" 2>/dev/null; then
+                    warn "Could not add the $marketplace marketplace"
+                elif ! claude_marketplace_auto_update_off "$marketplace"; then
+                    warn "Could not turn off auto-update for $marketplace, set \"autoUpdate\": false in ~/.claude/settings.json"
+                fi
+            done
+        else
+            warn "Could not list the plugin marketplaces, skipping adding them"
         fi
-        claude mcp add chrome-devtools --scope user -- npx -y "chrome-devtools-mcp@$CHROME_DEVTOOLS_MCP_VERSION" --isolated 2>/dev/null || warn "Could not configure the chrome-devtools MCP server"
+        # Only missing plugins are installed, so a failed install is a real problem.
+        if ! installed_plugins=$(
+            set -o pipefail
+            claude plugin list --json 2>/dev/null | jq -r '.[] | select(.scope == "user") | .id'
+        ); then
+            warn "Could not read installed Claude Code plugins, installing every declared one"
+            installed_plugins=""
+        fi
+        for plugin in "${CLAUDE_PLUGINS[@]}"; do
+            printf '%s\n' "$installed_plugins" | grep -qxF "$plugin" && continue
+            claude plugin install "$plugin" || warn "Could not install $plugin"
+        done
+        # `claude mcp add` refuses an existing name, so a registration with another version is
+        # removed first; that is how a raised version takes effect. `mcp get` fails when the server
+        # is not configured yet, which under the entry points' `set -e` would end the whole run.
+        registered_mcp=$(claude mcp get chrome-devtools 2>/dev/null) || registered_mcp=""
+        if [[ "$registered_mcp" != *"chrome-devtools-mcp@$CHROME_DEVTOOLS_MCP_VERSION "* ]]; then
+            if [ -n "$registered_mcp" ]; then
+                claude mcp remove chrome-devtools -s user >/dev/null 2>&1 || true
+            fi
+            claude mcp add chrome-devtools --scope user -- npx -y "chrome-devtools-mcp@$CHROME_DEVTOOLS_MCP_VERSION" --isolated 2>/dev/null || warn "Could not configure the chrome-devtools MCP server"
+        fi
+        success "Claude Code plugins and MCP servers installed"
+    else
+        warn "claude CLI not found — install Claude Code first, then run: claude plugin install ${CLAUDE_PLUGINS[*]}"
     fi
-    success "Claude Code plugins and MCP servers installed"
-else
-    warn "claude CLI not found — install Claude Code first, then run: claude plugin install ${CLAUDE_PLUGINS[*]}"
-fi
+}
+
+# A new upstream version of a plugin waits out the same 3-day cooldown as Composer and npm. Needs
+# support/setup/claude/update-cooldown.sh sourced as well.
+claude_plugins_update() {
+    step "Updating Claude Code plugins"
+    update_plugins_after_cooldown
+    success "Claude Code plugins updated"
+}
 
 # Removes any installed plugin or configured MCP server that isn't declared above. Same
 # idea as `brew bundle cleanup --force` and claude_skills_cleanup in claude-skills.sh.

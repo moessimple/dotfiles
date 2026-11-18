@@ -31,9 +31,24 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-run_codex_skills_setup() {
+source_codex_skills_setup() {
     CODEX_SKILLS_SOURCE="$source_dir" CODEX_SKILLS_TARGET="$skills_dir" \
         CLAUDE_PLUGIN_CACHE="$plugin_cache" CLAUDE_INSTALLED_PLUGINS="$installed_plugins" run_setup_script "$target"
+}
+
+run_codex_skills_setup() {
+    CODEX_SKILLS_SOURCE="$source_dir" CODEX_SKILLS_TARGET="$skills_dir" \
+        CLAUDE_PLUGIN_CACHE="$plugin_cache" CLAUDE_INSTALLED_PLUGINS="$installed_plugins" call_setup_function "$target" codex_skills_link
+}
+
+@test "sourcing codex-skills.sh only defines its functions and links nothing" {
+    # Act
+    run source_codex_skills_setup
+
+    # Assert
+    assert_success
+    [ -z "$output" ]
+    [ -z "$(ls -A "$skills_dir")" ]
 }
 
 @test "reviewed harness-neutral skills are linked for Codex" {

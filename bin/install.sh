@@ -6,6 +6,7 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/output.sh"
 
 # Read the saved machine profile; only install asks when none exists.
 source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/machine-profile.sh"
+machine_profile_load
 
 echo ""
 # Entry point; nothing below runs until this is confirmed.
@@ -74,11 +75,22 @@ fi
 echo ""
 sudo -v
 
-# Prepare clean state: creates the directories later steps write into and removes the five
-# ~/.claude/ directories linked next, because `ln -sfn` cannot replace a real directory.
-step "Prepare clean state"
+source ~/.dotfiles/support/setup/services.sh
+source ~/.dotfiles/support/setup/herd-onboarding.sh
+source ~/.dotfiles/support/setup/herd-debug-ini.sh
+source ~/.dotfiles/support/setup/tinkerbench/tinkerbench.sh
 source ~/.dotfiles/support/setup/clean-state.sh
-success "Clean state prepared"
+source ~/.dotfiles/support/setup/symlink-dotfiles.sh
+source ~/.dotfiles/support/setup/packages/homebrew-packages.sh
+source ~/.dotfiles/support/setup/packages/composer-packages.sh
+source ~/.dotfiles/support/setup/packages/npm-packages.sh
+source ~/.dotfiles/support/setup/packages/python-packages.sh
+source ~/.dotfiles/support/setup/packages/ollama-models.sh
+source ~/.dotfiles/support/setup/claude/claude-skills.sh
+source ~/.dotfiles/support/setup/claude/claude-plugins.sh
+source ~/.dotfiles/support/setup/codex/codex-skills.sh
+
+clean_state_apply
 
 # Oh My Zsh: guarded so a re-run doesn't reinstall over an existing checkout.
 step "Installing Oh My Zsh"
@@ -105,55 +117,38 @@ fi
 command -v brew &>/dev/null || error "Homebrew installation failed"
 success "Homebrew installed"
 
-# Symlinks: needed before anything below can rely on ~/.aliases, ~/.zshrc etc. existing.
-step "Creating symlinks"
-source ~/.dotfiles/support/setup/symlink-dotfiles.sh
-success "Symlinks created"
+symlink_dotfiles_apply
 
-# Brewfile: already-installed packages are skipped; any remaining bundle failure is
-# downgraded to a warning so the installation can continue.
-step "Installing packages from Brewfile"
-if brew bundle --file=~/.dotfiles/support/config/Brewfile; then
-    success "Brewfile processed"
-else
-    warn "Some Brewfile packages failed to install, see the output above"
-fi
+homebrew_packages_install
 
-# Global Composer packages
-source ~/.dotfiles/support/setup/packages/composer-packages.sh
+composer_packages_install
 
 # Herd onboarding: Homebrew installs only the app bundle. The following steps
 # need the CLI binaries created during Herd's one-time onboarding.
-source ~/.dotfiles/support/setup/herd-onboarding.sh
+herd_onboarding_wait
 
 # Install Xdebug configuration before any Herd project uses coverage or debug.
-source ~/.dotfiles/support/setup/herd-debug-ini.sh
+herd_debug_ini_install
 
 # tinkerbench (tinkerbench.test)
-source ~/.dotfiles/support/setup/tinkerbench/tinkerbench.sh
+tinkerbench_setup
 
-# Global npm packages
-source ~/.dotfiles/support/setup/packages/npm-packages.sh
+npm_packages_install
 
 # Python packages: after the Brewfile, which installs python3 and the PDF tools they call.
-source ~/.dotfiles/support/setup/packages/python-packages.sh
+python_packages_install
 
-# Claude Code skills
-source ~/.dotfiles/support/setup/claude/claude-skills.sh
+claude_skills_install
 
-# Claude Code plugins: adds each marketplace, each plugin from CLAUDE_PLUGINS and the
-# declared MCP servers; commands that fail are reported as warnings by claude-plugins.sh.
-source ~/.dotfiles/support/setup/claude/claude-plugins.sh
+claude_plugins_install
 
 # Share reviewed standalone and plugin-provided skills with Codex after Claude installs them.
-source ~/.dotfiles/support/setup/codex/codex-skills.sh
+codex_skills_link
 
-step "Starting background services"
-source ~/.dotfiles/support/setup/services.sh
-success "Background services started"
+services_start
 
 # Ollama models: after services.sh, which starts the Ollama service the pulls talk to.
-source ~/.dotfiles/support/setup/packages/ollama-models.sh
+ollama_models_install
 
 # Create local config files if they don't exist
 touch ~/.extra

@@ -19,10 +19,21 @@ teardown() {
     printf 'http_addr = "0.0.0.0:7700"\n' >"$fixture/var/config.toml"
 
     # Act
-    run run_setup_script "$dotfiles_dir/support/setup/services.sh"
+    run call_setup_function "$dotfiles_dir/support/setup/services.sh" services_start
 
     # Assert
     assert_success
     assert_file_content "$fixture/var/config.toml" "upgrade_db = true"
     assert_binary_called_with brew "services start meilisearch"
+}
+
+@test "sourcing services does not start services or rewrite their config" {
+    printf 'local config\n' >"$fixture/var/config.toml"
+
+    run run_setup_script "$dotfiles_dir/support/setup/services.sh"
+
+    assert_success
+    [ -z "$output" ]
+    assert_binary_not_called brew
+    assert_file_content "$fixture/var/config.toml" "local config"
 }

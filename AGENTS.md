@@ -99,7 +99,13 @@ Claude's installed plugin cache into `~/.agents/skills`.
 Claude remains the only installer and updater. Shared workflows keep their instructions in one `SKILL.md`. Skills
 with agent-specific tools, paths, or runtime behavior stay exclusive to that agent.
 
-**Entry points vs. setup logic.** Scripts under `bin/` orchestrate the shared scripts in `support/setup/`:
+**Entry points vs. setup logic.** Files in `support/setup/` define variables and functions; sourcing them does
+not run setup. Scripts under `bin/` call those functions explicitly, and each function prints its own step and
+result. `herd_onboarding_wait` in `support/setup/herd-onboarding.sh` waits for Herd's CLI,
+`herd_debug_ini_install` in `support/setup/herd-debug-ini.sh` writes Xdebug configuration, and `tinkerbench_setup`
+in `support/setup/tinkerbench/tinkerbench.sh` prepares the local project.
+
+Scripts under `bin/` orchestrate these functions:
 
 - `bin/install.sh` performs a full fresh setup, ending with `bin/macos-defaults.sh`.
 - `bin/reconfigure.sh` reapplies symlinks, Codex skill links, services, and Herd/tinkerbench setup without package
@@ -118,8 +124,8 @@ with `error`. Any other step that cannot be completed, such as one package, PHP 
 nothing warned, and otherwise lists every warning and exits 1. `note` is for information that is not a problem
 (an undeclared package being removed, a reminder to restart the terminal) and is never counted.
 
-`support/setup/herd-debug-ini.sh` reapplies both managed Xdebug ini files on every install/reconfigure/update run,
-replacing local changes. `support/setup/services.sh` likewise rewrites `/opt/homebrew/var/config.toml` with
+`herd_debug_ini_install` in `support/setup/herd-debug-ini.sh` reapplies both managed Xdebug ini files on every install/reconfigure/update run,
+replacing local changes. `services_start` in `support/setup/services.sh` likewise rewrites `/opt/homebrew/var/config.toml` with
 `upgrade_db = true`, so the Meilisearch service migrates its local database after a version bump instead of
 refusing to start.
 
@@ -128,7 +134,8 @@ macOS Keychain, and copies the public key for manual registration on GitHub. It 
 and does not run as part of `bin/install.sh`.
 
 `bin/install.sh`, `bin/reconfigure.sh`, and `bin/update.sh` read and validate the saved profile through
-`support/setup/machine-profile.sh`. On its first run, `bin/install.sh` asks private/work,
+`machine_profile_load` in `support/setup/machine-profile.sh`. All three call it explicitly after sourcing;
+sourcing the file alone does not read or set the profile. On its first run, `bin/install.sh` asks private/work,
 saves the choice in `~/.config/dotfiles/profile`, and asks for the machine's Git email for either profile.
 Private setup offers the existing global email as a default. Only `user.email` is written to the untracked
 `~/.gitconfig-local`, which `home/.gitconfig` includes last; the name stays shared. `home/.gitconfig` has no email
@@ -140,7 +147,8 @@ reads the same profile and excludes AusweisApp, Discord, OneCast and WhatsApp on
 used by update's cleanup. Other packages and sudo steps are shared.
 
 **Claude Code plugin and skill updates (`support/setup/claude/update-cooldown.sh`).** Neither Claude Code nor the
-skills CLI has a release-age cooldown, so `update.sh` calls `update_skills_after_cooldown` and
+skills CLI has a release-age cooldown, so `claude_skills_update` in `claude-skills.sh` calls
+`update_skills_after_cooldown` and `claude_plugins_update` in `claude-plugins.sh` calls
 `update_plugins_after_cooldown`, which give them the same 3 days that Composer and npm wait. The upstream state (a
 skill's folder; a plugin's folder plus its `marketplace.json` entry) is installed only after it has been seen
 unchanged for 3 days, counted from its first sighting in
@@ -155,7 +163,8 @@ itself; `claude-plugins.sh` sets it again after `claude plugin marketplace add`.
 and Ollama models (`support/setup/packages/`), Claude Code skills/plugins (`support/setup/claude/claude-skills.sh`,
 `claude-plugins.sh`), and Codex-compatible skills (`support/setup/codex/codex-skills.sh`) are each treated as the full
 desired state. After each update step, `bin/update.sh` removes anything installed but not declared: Homebrew and
-Mac App Store apps (the Brewfile's `mas` entries) via `brew bundle cleanup --force`, the others via a
+Mac App Store apps (the Brewfile's `mas` entries) via `brew bundle cleanup --force` in
+`support/setup/packages/homebrew-packages.sh`, the others via a
 `*_cleanup` function in the declaring file, while `codex-skills.sh`
 prunes its own stale links on every run. When adding a package or skill, add it to the declaration; do not
 install it out of band, or the next `update.sh` run removes it. `claude-skills.sh` documents a manual vetting checklist
@@ -172,11 +181,14 @@ know. Otherwise it belongs to the project (its `.claude/skills`, Laravel Boost, 
 deliberate exceptions are `document-product`, `characterize-behavior`, and `raise-quality-gate`: they bring their own
 standards on purpose, to develop legacy projects safely, and run only when invoked by name.
 
-**`support/setup/clean-state.sh` clears what `ln -sf` itself cannot replace.** `symlink-dotfiles.sh` uses `ln -sf`/
-`ln -sfn` for every managed path, which already replaces an existing file or symlink on its own. The one case it
-cannot handle is a real (non-symlink) directory, so `clean-state.sh` only clears the five `~/.claude/` directories
-(`agents`, `commands`, `hooks`, `rules`, `skills`) before symlinking. Files it does not know about (e.g. `~/.extra`)
-are left untouched.
+**`support/setup/clean-state.sh` prepares directories and clears paths for symlinks.** Its `clean_state_apply`
+creates `~/Screenshots`, `~/Temp`, `~/Code`, `~/.config/ghostty`, `~/.config/git`, `~/.claude`, and `~/.codex`.
+`support/setup/symlink-dotfiles.sh` defines `symlink_dotfiles_apply`, which uses `ln -sf`/`ln -sfn` for every
+managed path. Those commands already replace an existing file or symlink, but cannot replace a real directory,
+so `clean_state_apply` clears the five `~/.claude/` paths (`agents`, `commands`, `hooks`, `rules`, `skills`)
+before symlinking. Files it does not know about (e.g. `~/.extra`) are left untouched. Both files only define
+functions when sourced; install and reconfigure call them explicitly, and each function reports its own step
+and result.
 
 **Claude Code quality gate (`home/.claude/hooks/`).** A multi-file system that runs Pint/PHPStan/Rector/Pest/PHPUnit
 against whatever Laravel/PHP project Claude Code is currently editing, using each project's own installed tools

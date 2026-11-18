@@ -137,7 +137,7 @@ configure_profile() (
 }
 
 @test "no saved profile reads as private without questions or writes" {
-    run /bin/bash -ec 'source "$1/support/setup/output.sh"; source "$1/support/setup/machine-profile.sh"; printf "%s" "$DOTFILES_PROFILE"' bash "$dotfiles_dir"
+    run /bin/bash -ec 'source "$1/support/setup/output.sh"; source "$1/support/setup/machine-profile.sh"; machine_profile_load; printf "%s" "$DOTFILES_PROFILE"' bash "$dotfiles_dir"
     assert_success
     [ "$output" = private ]
     [ ! -e "$profile_file" ]
@@ -180,6 +180,11 @@ configure_profile() (
     mkdir -p "$(dirname "$profile_file")"
     echo work >"$profile_file"
     mkdir -p "$HOME/.dotfiles/support/setup"
+    touch "$HOME/.dotfiles/support/setup/services.sh" \
+        "$HOME/.dotfiles/support/setup/herd-onboarding.sh" \
+        "$HOME/.dotfiles/support/setup/herd-debug-ini.sh"
+    mkdir -p "$HOME/.dotfiles/support/setup/tinkerbench"
+    touch "$HOME/.dotfiles/support/setup/tinkerbench/tinkerbench.sh"
     printf 'exit 73\n' >"$HOME/.dotfiles/support/setup/clean-state.sh"
     run /bin/bash "$dotfiles_dir/bin/reconfigure.sh" </dev/null
     [ "$status" -eq 73 ]
@@ -204,4 +209,14 @@ configure_profile() (
     run /bin/bash "$dotfiles_dir/bin/reconfigure.sh" </dev/null
     [ "$status" -eq 1 ]
     assert_output_contains 'Invalid machine profile'
+}
+
+@test "sourcing machine-profile does not read or overwrite the profile" {
+    mkdir -p "$(dirname "$profile_file")"
+    echo invalid >"$profile_file"
+
+    run /bin/bash -ec 'source "$1/support/setup/output.sh"; DOTFILES_PROFILE=untouched; source "$1/support/setup/machine-profile.sh"; printf "%s" "$DOTFILES_PROFILE"' bash "$dotfiles_dir"
+
+    assert_success
+    [ "$output" = untouched ]
 }

@@ -1,27 +1,32 @@
 #!/bin/bash
 
-ln -sf ~/.dotfiles/home/.aliases ~/.aliases
-ln -sf ~/.dotfiles/home/.exports ~/.exports
-ln -sf ~/.dotfiles/home/.functions ~/.functions
-ln -sf ~/.dotfiles/home/.gemrc ~/.gemrc
-ln -sf ~/.dotfiles/home/.gitconfig ~/.gitconfig
-ln -sf ~/.dotfiles/home/.global-gitignore ~/.global-gitignore
-ln -sf ~/.dotfiles/home/.hushlogin ~/.hushlogin
-ln -sf ~/.dotfiles/home/.paths ~/.paths
-ln -sf ~/.dotfiles/home/.zprofile ~/.zprofile
-ln -sf ~/.dotfiles/home/.zshrc ~/.zshrc
+# Needed before anything that relies on ~/.aliases, ~/.zshrc etc. existing.
+symlink_dotfiles_apply() {
+    step "Creating symlinks"
+    ln -sf ~/.dotfiles/home/.aliases ~/.aliases
+    ln -sf ~/.dotfiles/home/.exports ~/.exports
+    ln -sf ~/.dotfiles/home/.functions ~/.functions
+    ln -sf ~/.dotfiles/home/.gemrc ~/.gemrc
+    ln -sf ~/.dotfiles/home/.gitconfig ~/.gitconfig
+    ln -sf ~/.dotfiles/home/.global-gitignore ~/.global-gitignore
+    ln -sf ~/.dotfiles/home/.hushlogin ~/.hushlogin
+    ln -sf ~/.dotfiles/home/.paths ~/.paths
+    ln -sf ~/.dotfiles/home/.zprofile ~/.zprofile
+    ln -sf ~/.dotfiles/home/.zshrc ~/.zshrc
 
-ln -sfn ~/.dotfiles/home/.claude/agents ~/.claude/agents
-ln -sfn ~/.dotfiles/home/.claude/commands ~/.claude/commands
-ln -sfn ~/.dotfiles/home/.claude/hooks ~/.claude/hooks
-ln -sfn ~/.dotfiles/home/.claude/rules ~/.claude/rules
-ln -sfn ~/.dotfiles/home/.claude/skills ~/.claude/skills
-ln -sf ~/.dotfiles/home/.claude/settings.json ~/.claude/settings.json
-ln -sf ~/.dotfiles/home/.claude/statusline.sh ~/.claude/statusline.sh
-# Claude Code reads a project's AGENTS.md natively, but user-level instructions have to live at
-# ~/.claude/CLAUDE.md, so that gets a symlink under the name it expects. Codex reads AGENTS.md directly.
-ln -sf ~/.dotfiles/home/.claude/AGENTS.md ~/.claude/CLAUDE.md
-ln -sf ~/.dotfiles/home/.claude/AGENTS.md ~/.codex/AGENTS.md
+    ln -sfn ~/.dotfiles/home/.claude/agents ~/.claude/agents
+    ln -sfn ~/.dotfiles/home/.claude/commands ~/.claude/commands
+    ln -sfn ~/.dotfiles/home/.claude/hooks ~/.claude/hooks
+    ln -sfn ~/.dotfiles/home/.claude/rules ~/.claude/rules
+    ln -sfn ~/.dotfiles/home/.claude/skills ~/.claude/skills
+    ln -sf ~/.dotfiles/home/.claude/settings.json ~/.claude/settings.json
+    ln -sf ~/.dotfiles/home/.claude/statusline.sh ~/.claude/statusline.sh
+    # Claude Code reads a project's AGENTS.md natively, but user-level instructions have to live at
+    # ~/.claude/CLAUDE.md, so that gets a symlink under the name it expects. Codex reads AGENTS.md directly.
+    ln -sf ~/.dotfiles/home/.claude/AGENTS.md ~/.claude/CLAUDE.md
+    ln -sf ~/.dotfiles/home/.claude/AGENTS.md ~/.codex/AGENTS.md
 
-ln -sf ~/.dotfiles/home/.config/ghostty/config ~/.config/ghostty/config
-ln -sf ~/.dotfiles/home/.config/git/default-branch ~/.config/git/default-branch
+    ln -sf ~/.dotfiles/home/.config/ghostty/config ~/.config/ghostty/config
+    ln -sf ~/.dotfiles/home/.config/git/default-branch ~/.config/git/default-branch
+    success "Symlinks created"
+}

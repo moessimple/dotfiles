@@ -20,7 +20,7 @@ teardown() {
     write_fake_binary git 'exit 128'
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" tinkerbench_setup
 
     # Assert
     assert_success
@@ -34,7 +34,7 @@ teardown() {
     write_fake_binary composer 'exit 1'
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" tinkerbench_setup
 
     # Assert
     assert_success
@@ -48,7 +48,7 @@ teardown() {
     write_fake_binary composer
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" tinkerbench_setup
 
     # Assert
     assert_success

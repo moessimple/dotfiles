@@ -13,12 +13,25 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "every declared model is pulled" {
+@test "sourcing ollama-models.sh only defines its functions and talks to no Ollama server" {
     # Arrange
     given_fake_ollama_listing ''
 
     # Act
     run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    [ -z "$output" ]
+    assert_binary_not_called ollama
+}
+
+@test "every declared model is pulled" {
+    # Arrange
+    given_fake_ollama_listing ''
+
+    # Act
+    run call_setup_function "$target" ollama_models_install
 
     # Assert
     assert_success
@@ -32,7 +45,7 @@ teardown() {
     write_fake_binary sleep
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" ollama_models_install
 
     # Assert
     assert_success
@@ -82,7 +95,7 @@ teardown() {
 
 @test "models are skipped entirely when ollama is not installed" {
     # Act
-    PATH="/usr/bin:/bin" run run_setup_script "$target"
+    PATH="/usr/bin:/bin" run call_setup_function "$target" ollama_models_install
 
     # Assert
     assert_success

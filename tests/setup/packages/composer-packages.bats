@@ -13,12 +13,25 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "Composer withholds releases younger than 3 days in every project" {
+@test "sourcing composer-packages.sh only defines its functions and runs no Composer command" {
     # Arrange
     given_fake_composer_reporting_installed '{"installed":[]}'
 
     # Act
     run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    [ -z "$output" ]
+    assert_binary_not_called composer
+}
+
+@test "Composer withholds releases younger than 3 days in every project" {
+    # Arrange
+    given_fake_composer_reporting_installed '{"installed":[]}'
+
+    # Act
+    run call_setup_function "$target" composer_packages_install
 
     # Assert
     assert_success
@@ -31,7 +44,7 @@ teardown() {
     given_fake_composer_reporting_installed '{"installed":[]}'
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" composer_packages_install
 
     # Assert
     assert_success

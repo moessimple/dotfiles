@@ -70,23 +70,34 @@ claude_skills_trim_clarity() {
         ! -name strip_markdown.py ! -name prose_stats.py -exec rm -rf -- {} +
 }
 
-step "Installing Claude Code skills"
-# Only skills missing from the lock file are added, so a failed add is a real problem, and an
-# installed skill changes only through update_skills_after_cooldown. No lock file yet means
-# nothing is installed.
-installed_skills=""
-if [ -f "$SKILL_LOCK_FILE" ] && ! installed_skills=$(jq -r '.skills // {} | keys[]' "$SKILL_LOCK_FILE" 2>/dev/null); then
-    warn "Could not read $SKILL_LOCK_FILE, adding every declared skill"
-    installed_skills=""
-fi
-for entry in "${THIRD_PARTY_SKILLS[@]}"; do
-    repo="${entry%%:*}"
-    skill="${entry#*:}"
-    printf '%s\n' "$installed_skills" | grep -qxF "$skill" && continue
-    skills_cli add "$repo" -s "$skill" --global -y --agent claude-code || warn "Could not install $skill"
-done
-claude_skills_trim_clarity || warn "Could not trim Clarity's repository extras"
-success "Claude Code skills processed"
+claude_skills_install() {
+    step "Installing Claude Code skills"
+    # Only skills missing from the lock file are added, so a failed add is a real problem, and an
+    # installed skill changes only through update_skills_after_cooldown. No lock file yet means
+    # nothing is installed.
+    local installed_skills="" entry repo skill
+    if [ -f "$SKILL_LOCK_FILE" ] && ! installed_skills=$(jq -r '.skills // {} | keys[]' "$SKILL_LOCK_FILE" 2>/dev/null); then
+        warn "Could not read $SKILL_LOCK_FILE, adding every declared skill"
+        installed_skills=""
+    fi
+    for entry in "${THIRD_PARTY_SKILLS[@]}"; do
+        repo="${entry%%:*}"
+        skill="${entry#*:}"
+        printf '%s\n' "$installed_skills" | grep -qxF "$skill" && continue
+        skills_cli add "$repo" -s "$skill" --global -y --agent claude-code || warn "Could not install $skill"
+    done
+    claude_skills_trim_clarity || warn "Could not trim Clarity's repository extras"
+    success "Claude Code skills processed"
+}
+
+# A new upstream version of a skill waits out the same 3-day cooldown as Composer and npm. Needs
+# support/setup/claude/update-cooldown.sh sourced as well.
+claude_skills_update() {
+    step "Updating Claude Code skills"
+    update_skills_after_cooldown
+    claude_skills_trim_clarity || warn "Could not trim Clarity's repository extras"
+    success "Claude Code skills updated"
+}
 
 # Removes any globally installed skill that isn't in THIRD_PARTY_SKILLS, the Claude Code
 # equivalent of `brew bundle cleanup --force`. That includes skills added by hand with
@@ -97,7 +108,7 @@ claude_skills_cleanup() {
 
     step "Checking for undeclared Claude Code skills"
 
-    local declared_names=()
+    local declared_names=() entry
     for entry in "${THIRD_PARTY_SKILLS[@]}"; do
         declared_names+=("${entry#*:}")
     done

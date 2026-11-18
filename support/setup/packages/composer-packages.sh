@@ -10,19 +10,31 @@ COMPOSER_PACKAGES=(
     cpx/cpx
 )
 
-step "Installing global Composer packages"
-# A 3-day cooldown in the machine-wide config, the same window as the npm tools and as the projects
-# that set their own: update, require and remove skip releases younger than that, which keeps out
-# hijacked releases that are found and pulled within days. A project's own policy.cooldown takes
-# precedence. Set before the requires below so they wait too. `composer outdated` lists withheld
-# releases; `--no-cooldown` takes one deliberately, which an urgent security fix needs.
-composer config --global policy.cooldown.period "3 days" || warn "Could not set the Composer cooldown"
-composer config --global policy.cooldown.audit report || warn "Could not set the Composer cooldown audit mode"
-composer global config --no-plugins allow-plugins.ion-bazan/composer-diff true || warn "Could not allow-list the composer-diff plugin"
-for package in "${COMPOSER_PACKAGES[@]}"; do
-    composer global require --no-interaction "$package" || warn "Could not install $package"
-done
-success "Composer packages processed"
+composer_packages_install() {
+    step "Installing global Composer packages"
+    # A 3-day cooldown in the machine-wide config, the same window as the npm tools and as the projects
+    # that set their own: update, require and remove skip releases younger than that, which keeps out
+    # hijacked releases that are found and pulled within days. A project's own policy.cooldown takes
+    # precedence. Set before the requires below so they wait too. `composer outdated` lists withheld
+    # releases; `--no-cooldown` takes one deliberately, which an urgent security fix needs.
+    composer config --global policy.cooldown.period "3 days" || warn "Could not set the Composer cooldown"
+    composer config --global policy.cooldown.audit report || warn "Could not set the Composer cooldown audit mode"
+    composer global config --no-plugins allow-plugins.ion-bazan/composer-diff true || warn "Could not allow-list the composer-diff plugin"
+    local package
+    for package in "${COMPOSER_PACKAGES[@]}"; do
+        composer global require --no-interaction "$package" || warn "Could not install $package"
+    done
+    success "Composer packages processed"
+}
+
+composer_packages_update() {
+    step "Updating global Composer packages"
+    if composer global update; then
+        success "Composer packages updated"
+    else
+        warn "Could not update the global Composer packages, see the output above"
+    fi
+}
 
 # Removes any globally required Composer package that isn't in COMPOSER_PACKAGES. Same idea
 # as `brew bundle cleanup --force` and claude_skills_cleanup in claude-skills.sh: only direct

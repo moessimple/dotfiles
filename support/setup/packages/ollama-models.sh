@@ -16,9 +16,9 @@ OLLAMA_MODELS=(
 
 # The Homebrew service starts `ollama serve` asynchronously (services.sh on install, a
 # restart during `brew upgrade` on update), so give it a moment before talking to it.
-_ollama_wait_for_server() {
+ollama_models_wait_for_server() {
     local attempt
-    for attempt in 1 2 3 4 5 6 7 8 9 10; do
+    for ((attempt = 0; attempt < 10; attempt++)); do
         ollama list &>/dev/null && return 0
         sleep 1
     done
@@ -27,17 +27,20 @@ _ollama_wait_for_server() {
 
 # `ollama pull` on an installed model only fetches changed layers, so this is both the
 # install and the update step.
-step "Installing Ollama models"
-if ! command -v ollama &>/dev/null; then
-    warn "Ollama is not installed, skipping models"
-elif ! _ollama_wait_for_server; then
-    warn "Ollama server is not reachable, skipping models (start it with: brew services start ollama)"
-else
-    for model in "${OLLAMA_MODELS[@]}"; do
-        ollama pull "$model" || warn "Could not pull $model"
-    done
-    success "Ollama models processed"
-fi
+ollama_models_install() {
+    step "Installing Ollama models"
+    if ! command -v ollama &>/dev/null; then
+        warn "Ollama is not installed, skipping models"
+    elif ! ollama_models_wait_for_server; then
+        warn "Ollama server is not reachable, skipping models (start it with: brew services start ollama)"
+    else
+        local model
+        for model in "${OLLAMA_MODELS[@]}"; do
+            ollama pull "$model" || warn "Could not pull $model"
+        done
+        success "Ollama models processed"
+    fi
+}
 
 # Removes any pulled model that isn't in OLLAMA_MODELS: a model pulled by hand to try it
 # out is gone after the next update unless it is declared here.

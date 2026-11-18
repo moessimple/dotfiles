@@ -13,6 +13,21 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
+@test "sourcing npm-packages.sh only defines its functions and runs no npm command" {
+    # Arrange
+    given_fake_npm_reporting_installed '{"dependencies":{}}'
+    write_fake_binary agent-browser
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    [ -z "$output" ]
+    assert_binary_not_called npm
+    assert_binary_not_called agent-browser
+}
+
 @test "global packages are installed with Homebrew's npm, not the npm Herd puts first on PATH" {
     # Arrange
     given_fake_npm_reporting_installed '{"dependencies":{}}'
@@ -20,7 +35,7 @@ teardown() {
     given_herd_npm_first_on_path
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" npm_packages_install
 
     # Assert
     assert_success
@@ -34,7 +49,7 @@ teardown() {
     write_fake_binary agent-browser
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" npm_packages_install
 
     # Assert
     assert_success
@@ -128,7 +143,7 @@ teardown() {
         "$test_home/.agent-browser/browsers/chrome-99.0.1.1"
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" npm_packages_install
 
     # Assert
     assert_success
@@ -145,7 +160,7 @@ teardown() {
     write_fake_binary agent-browser
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" npm_packages_install
 
     # Assert
     assert_success

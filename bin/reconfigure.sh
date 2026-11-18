@@ -6,20 +6,22 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/output.sh"
 
 # Validate the saved profile before changing machine configuration.
 source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/machine-profile.sh"
+machine_profile_load
 
-# Prepare clean state: creates the directories later steps write into and removes the five
-# ~/.claude/ directories linked next, because `ln -sfn` cannot replace a real directory.
-step "Prepare clean state"
+source ~/.dotfiles/support/setup/services.sh
+source ~/.dotfiles/support/setup/herd-onboarding.sh
+source ~/.dotfiles/support/setup/herd-debug-ini.sh
+source ~/.dotfiles/support/setup/tinkerbench/tinkerbench.sh
 source ~/.dotfiles/support/setup/clean-state.sh
-success "Clean state prepared"
-
-# Symlinks: needed before anything below can rely on ~/.aliases, ~/.zshrc etc. existing.
-step "Creating symlinks"
 source ~/.dotfiles/support/setup/symlink-dotfiles.sh
-success "Symlinks created"
+source ~/.dotfiles/support/setup/codex/codex-skills.sh
+
+clean_state_apply
+
+symlink_dotfiles_apply
 
 # Reapply the reviewed shared-skill links without reinstalling the skills.
-source ~/.dotfiles/support/setup/codex/codex-skills.sh
+codex_skills_link
 
 # Create local config files if they don't exist
 touch ~/.extra
@@ -27,16 +29,14 @@ touch ~/.extra
 # Herd onboarding: reconfigure does not install Herd, but it completes
 # onboarding when an existing installation has not been initialized. The
 # following steps need Herd's CLI binaries.
-source ~/.dotfiles/support/setup/herd-onboarding.sh
+herd_onboarding_wait
 
 # Install Xdebug configuration before any Herd project uses coverage or debug.
-source ~/.dotfiles/support/setup/herd-debug-ini.sh
+herd_debug_ini_install
 
 # tinkerbench (tinkerbench.test)
-source ~/.dotfiles/support/setup/tinkerbench/tinkerbench.sh
+tinkerbench_setup
 
-step "Starting background services"
-source ~/.dotfiles/support/setup/services.sh
-success "Background services started"
+services_start
 
 finish "Configuration applied"

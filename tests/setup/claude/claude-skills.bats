@@ -17,6 +17,16 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
+@test "sourcing claude-skills.sh only defines its functions and runs no skills CLI command" {
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    [ -z "$output" ]
+    assert_binary_not_called npx
+}
+
 @test "Clarity keeps only runtime files after installation and updates" {
     # Arrange
     clarity_dir="$test_home/.claude/skills/clarity"
@@ -31,7 +41,7 @@ teardown() {
         touch "$clarity_dir/README.md" "$clarity_dir/scripts/validate_package.py"
 
         # Act
-        run run_setup_script "$target"
+        run call_setup_function "$target" claude_skills_install
 
         # Assert
         assert_success
@@ -48,7 +58,7 @@ teardown() {
     touch "$test_home/.claude/skills/clarity/site/keep"
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" claude_skills_install
 
     # Assert
     assert_success
@@ -57,7 +67,7 @@ teardown() {
 
 @test "skills are installed through the pinned skills CLI with a release-age cooldown" {
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" claude_skills_install
 
     # Assert
     assert_success
@@ -69,7 +79,7 @@ teardown() {
     given_skill_lock_file '{"skills":{"pdf":{}}}'
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" claude_skills_install
 
     # Assert
     assert_success
@@ -82,7 +92,7 @@ teardown() {
     given_skills_cli_failing_to_add_skills
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" claude_skills_install
 
     # Assert
     assert_success
@@ -94,7 +104,7 @@ teardown() {
     given_unreadable_skill_lock_file
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" claude_skills_install
 
     # Assert
     assert_success

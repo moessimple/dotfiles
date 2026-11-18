@@ -16,6 +16,19 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
+@test "sourcing claude-plugins.sh only defines its functions and runs no claude command" {
+    # Arrange
+    given_fake_claude '[]' ""
+
+    # Act
+    run run_setup_script "$target"
+
+    # Assert
+    assert_success
+    [ -z "$output" ]
+    assert_binary_not_called claude
+}
+
 @test "a chrome-devtools MCP server on another version is registered again with the pinned version" {
     # Arrange
     given_fake_claude '[]' "chrome-devtools: npx -y chrome-devtools-mcp@latest --isolated" \
@@ -23,7 +36,7 @@ teardown() {
   Args: -y chrome-devtools-mcp@latest --isolated"
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" claude_plugins_install
 
     # Assert
     assert_success
@@ -39,7 +52,7 @@ teardown() {
   Args: -y chrome-devtools-mcp@1.12.0 --isolated"
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" claude_plugins_install
 
     # Assert
     assert_success
@@ -52,7 +65,7 @@ teardown() {
     given_fake_claude '[]' ""
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" claude_plugins_install
 
     # Assert
     assert_success
@@ -65,7 +78,7 @@ teardown() {
     given_fake_claude '[]' ""
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" claude_plugins_install
 
     # Assert
     assert_success
@@ -82,7 +95,7 @@ teardown() {
     given_claude_knows_marketplaces https://github.com/anthropics/claude-plugins-official.git
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" claude_plugins_install
 
     # Assert
     assert_success
@@ -96,7 +109,7 @@ teardown() {
     given_settings_linked_from_repository_with_marketplace https://github.com/pbakaus/impeccable.git
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" claude_plugins_install
 
     # Assert
     assert_success
@@ -110,7 +123,7 @@ teardown() {
     given_claude_failing_to_list_marketplaces
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" claude_plugins_install
 
     # Assert
     assert_success
@@ -136,7 +149,7 @@ teardown() {
     given_fake_claude '[]' ""
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" claude_plugins_install
 
     # Assert
     assert_success
@@ -148,7 +161,7 @@ teardown() {
     given_fake_claude '[{"id":"agent-skills@addy-agent-skills","scope":"user"}]' ""
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" claude_plugins_install
 
     # Assert
     assert_success
@@ -162,7 +175,7 @@ teardown() {
     given_claude_failing_to_install_plugins
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" claude_plugins_install
 
     # Assert
     assert_success
@@ -174,7 +187,7 @@ teardown() {
     given_fake_claude_failing_to_report_plugins_and_mcp_servers
 
     # Act
-    run run_setup_script "$target"
+    run call_setup_function "$target" claude_plugins_install
 
     # Assert
     assert_success

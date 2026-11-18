@@ -33,6 +33,25 @@ run_setup_script() {
     ' bash "$file"
 }
 
+# Like run_setup_script, then calls each <function> from that file in order, the way an entry
+# point in bin/ calls them after sourcing.
+call_setup_function() {
+    local file="$1"
+    shift
+    HOME="${test_home:-$HOME}" HOMEBREW_PREFIX="$fixture" bash -ec '
+        step() { echo "STEP: $*"; }
+        warn() { echo "WARN: $*"; }
+        note() { echo "NOTE: $*"; }
+        success() { echo "SUCCESS: $*"; }
+        error() { echo "ERROR: $*"; exit 1; }
+        source "$1"
+        shift
+        for function_name in "$@"; do
+            "$function_name"
+        done
+    ' bash "$file" "$@"
+}
+
 given_fake_composer_reporting_installed() {
     local json="$1"
     cat >"$fake_bin/composer" <<EOF

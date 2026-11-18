@@ -24,9 +24,20 @@ python_pip() {
     PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip "$@" --disable-pip-version-check
 }
 
-step "Installing Python packages"
-python_pip install --user --quiet --no-warn-script-location "${PYTHON_PACKAGES[@]}" || warn "Some Python packages failed to install"
-success "Python packages processed"
+python_packages_install() {
+    step "Installing Python packages"
+    python_pip install --user --quiet --no-warn-script-location "${PYTHON_PACKAGES[@]}" || warn "Some Python packages failed to install"
+    success "Python packages processed"
+}
+
+python_packages_update() {
+    step "Updating Python packages"
+    if python_pip install --user --quiet --no-warn-script-location --upgrade "${PYTHON_PACKAGES[@]}"; then
+        success "Python packages updated"
+    else
+        warn "Could not update the Python packages, see the output above"
+    fi
+}
 
 # Removes any user-installed Python package that isn't in PYTHON_PACKAGES. Same idea as
 # `brew bundle cleanup --force` and npm_packages_cleanup in npm-packages.sh.

@@ -1,7 +1,7 @@
 # Fixtures for tests/setup/herd/xdebug-ini.bats.
 #
-# support/setup/herd-debug-ini.sh is a straight-line script (not a function) that
-# bin/install.sh and bin/reconfigure.sh source. These helpers stand in for the two
+# bin/install.sh and bin/reconfigure.sh call herd_debug_ini_install from
+# support/setup/herd-debug-ini.sh. These helpers stand in for the two
 # things it reaches outside the repo:
 #   - `herd php:list --json`, faked on PATH to report chosen PHP versions
 #   - the Herd.app resources tree (debug.ini template + xdebug-<slug>-arm64.so
@@ -72,10 +72,10 @@ given_existing_ini_file() {
     printf '%s\n' "$contents" >"$absolute_path"
 }
 
-# Sources herd-debug-ini.sh the way bin/reconfigure.sh does. Call it through `run` from
+# Calls herd_debug_ini_install the way bin/reconfigure.sh does. Call it through `run` from
 # the test body.
 run_herd_debug_ini_setup() {
-    HERD_RESOURCES_DIR="$herd_resources" run_setup_script "$target"
+    HERD_RESOURCES_DIR="$herd_resources" call_setup_function "$target" herd_debug_ini_install
 }
 
 ini_path() {
