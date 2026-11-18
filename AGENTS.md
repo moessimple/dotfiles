@@ -284,6 +284,7 @@ place that logic lives; callers never re-derive it. Its priority order is covere
 - `tests/setup/*.bats`: the files directly in `support/setup/`, the profile handling in `support/config/Brewfile`,
   and that sourcing a setup file changes nothing
 - `tests/bin/macos-defaults.bats`: `bin/macos-defaults.sh`
+- `tests/bin/install.bats`: that `bin/install.sh` calls every step `bin/reconfigure.sh` calls
 - `tests/bin/update.bats`: a full `bin/update.sh` run across all package cleanups
 - `tests/bin/reconfigure.bats`: configuration application without macOS defaults or an unconditional sudo request
 - `tests/bin/setup-ssh.bats`: standalone SSH key setup and protection of existing keys
