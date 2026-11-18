@@ -105,7 +105,8 @@ not run setup. Each script under `bin/` sources every setup file it uses in one 
 explicitly, and each function prints its own step and result. Every step that changes machine state is such a
 function, even with a single caller: its name states the step's intent, and it can be tested without running the
 whole entry point. An entry point keeps only its own frame (confirmation prompts, `sudo -v`, `bin/update.sh`
-re-running itself after the pull, `finish`, closing notes). `bin/macos-defaults.sh` is the exception: a linear list
+re-running itself after the pull, `finish`, closing notes). Entry points group their steps under
+`# === section ===` headers, as `home/.functions` does. `bin/macos-defaults.sh` is the exception: a linear list
 of `defaults` commands under section headers, where the headers already name each part. `wait_for_herd_onboarding` in `support/setup/herd/herd-onboarding.sh` waits for Herd's CLI,
 `install_herd_xdebug` in `support/setup/herd/herd-xdebug.sh` writes Xdebug configuration, and `set_up_tinkerbench`
 in `support/setup/tinkerbench.sh` prepares the local project.
@@ -154,9 +155,11 @@ reads the same profile and excludes AusweisApp, Discord, OneCast and WhatsApp on
 used by update's cleanup. Other packages and sudo steps are shared.
 
 **Claude Code plugin and skill updates (`support/setup/claude/update-cooldown.sh`).** Neither Claude Code nor the
-skills CLI has a release-age cooldown, so `update_claude_skills` in `claude-skills.sh` calls
-`update_skills_after_cooldown` and `update_claude_plugins` in `claude-plugins.sh` calls
-`update_plugins_after_cooldown`, which give them the same 3 days that Composer, npm, and Python packages wait.
+skills CLI has a release-age cooldown, so `update_skills_after_cooldown` in `claude-skills.sh` and
+`update_plugins_after_cooldown` in `claude-plugins.sh` give them the same 3 days that Composer, npm, and Python
+packages wait. Both ask `has_cooled_down` in `update-cooldown.sh`, which also holds `raise_npm_pins`: it raises the
+npm versions pinned in those two files (the skills CLI and `chrome-devtools-mcp`) to the newest release that is at
+least 3 days old.
 `support/setup/packages/python-packages.sh` passes `--uploaded-prior-to P3D` only to pip install and update
 (requires pip 26.1+, with upload-time metadata from the index). The upstream state (a
 skill's folder; a plugin's folder plus its `marketplace.json` entry) is installed only after it has been seen

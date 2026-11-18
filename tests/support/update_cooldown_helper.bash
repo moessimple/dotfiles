@@ -1,6 +1,6 @@
-# Sources support/setup/claude/update-cooldown.sh with the output helpers stubbed, under the set -e
-# of bin/update.sh, and updates the declared <plugins> (default: laravel@laravel) from the fixture
-# marketplace.
+# Sources support/setup/claude/claude-plugins.sh and update-cooldown.sh with the output helpers
+# stubbed, under the set -e of bin/update.sh, and updates the declared <plugins> (default:
+# laravel@laravel) from the fixture marketplace.
 call_update_plugins_after_cooldown() {
     local plugins=("$@")
     [ "$#" -gt 0 ] || plugins=("laravel@laravel")
@@ -9,10 +9,12 @@ call_update_plugins_after_cooldown() {
         warn() { echo "WARN: $*"; }
         note() { echo "NOTE: $*"; }
         source "$1"
-        shift
+        source "$2"
+        shift 2
         CLAUDE_PLUGINS=("$@")
         update_plugins_after_cooldown
-    ' bash "$dotfiles_dir/support/setup/claude/update-cooldown.sh" "${plugins[@]}"
+    ' bash "$dotfiles_dir/support/setup/claude/claude-plugins.sh" \
+        "$dotfiles_dir/support/setup/claude/update-cooldown.sh" "${plugins[@]}"
 }
 
 # Sources claude-skills.sh, for the real skills_cli, and update-cooldown.sh with the output helpers

@@ -227,6 +227,7 @@ list_plugin_marketplaces_missing_from_settings() {
     assert_success
     assert_binary_called_with_substring claude "plugin uninstall foo@bar"
     assert_binary_not_called_with_substring claude "plugin uninstall agent-skills@addy-agent-skills"
+    assert_output_does_not_contain "No undeclared Claude Code plugins or MCP servers found"
 }
 
 @test "a plugin declared in LOCAL_PLUGINS is left alone even though it isn't in CLAUDE_PLUGINS" {
@@ -286,6 +287,7 @@ undeclared-server: some-mcp-command" \
     assert_success
     assert_binary_called_with_substring claude "mcp remove undeclared-server -s user"
     assert_binary_not_called_with_substring claude "mcp remove chrome-devtools -s user"
+    assert_output_does_not_contain "No undeclared Claude Code plugins or MCP servers found"
 }
 
 @test "a project-scoped MCP server is left alone even when its name isn't declared" {
@@ -333,6 +335,21 @@ undeclared-server: some-mcp-command" \
     assert_output_contains "Could not read configured MCP servers, skipping their cleanup"
     assert_binary_not_called_with_substring claude "plugin uninstall"
     assert_binary_not_called_with_substring claude "mcp remove"
+}
+
+@test "an unreadable MCP server list is reported instead of a clean state, while plugins are still checked" {
+    # Arrange
+    given_fake_claude '[{"id":"agent-skills@addy-agent-skills","scope":"user"},{"id":"foo@bar","scope":"user"}]' ""
+    given_claude_failing_to_list_mcp_servers
+
+    # Act
+    run call_cleanup_function "$target" clean_up_claude_plugins
+
+    # Assert
+    assert_success
+    assert_output_contains "Could not read configured MCP servers, skipping their cleanup"
+    assert_binary_called_with_substring claude "plugin uninstall foo@bar"
+    assert_output_does_not_contain "No undeclared Claude Code plugins or MCP servers found"
 }
 
 @test "cleanup is skipped entirely when the claude CLI is not installed" {

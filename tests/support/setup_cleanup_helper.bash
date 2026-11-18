@@ -168,6 +168,7 @@ case "\$*" in
         cat "$fake_bin/known-marketplaces.json" 2>/dev/null || printf '[]\n'
         ;;
     "mcp list")
+        [ ! -e "$fake_bin/mcp-list-fails" ] || exit 1
         printf '%s\n' '$mcp_list_output'
         ;;
 EOF
@@ -202,6 +203,10 @@ given_claude_knows_marketplaces() {
 
 given_claude_failing_to_list_marketplaces() {
     touch "$fake_bin/marketplace-list-fails"
+}
+
+given_claude_failing_to_list_mcp_servers() {
+    touch "$fake_bin/mcp-list-fails"
 }
 
 given_claude_failing_to_install_plugins() {

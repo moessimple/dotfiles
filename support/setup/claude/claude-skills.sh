@@ -39,6 +39,8 @@ trim_clarity_skill() {
         ! -name strip_markdown.py ! -name prose_stats.py -exec rm -rf -- {} +
 }
 
+# === Install ===
+
 install_claude_skills() {
     step "Installing Claude Code skills"
     # Only skills missing from the lock file are added, so a failed add is a real problem, and an
@@ -59,6 +61,46 @@ install_claude_skills() {
     success "Claude Code skills processed"
 }
 
+# === Update ===
+
+# Prints the tree the skills CLI recorded for an installed skill, resolved in <checkout>. The lock
+# file holds a tree hash for a skill in a subdirectory and a commit hash for one at the repository
+# root; ^{tree} turns both into the tree that upstream is compared against.
+print_installed_skill_tree() {
+    local name="$1" checkout="$2" hash
+    hash="$(jq -r --arg name "$name" '.skills[$name].skillFolderHash // empty' "$SKILL_LOCK_FILE" 2>/dev/null)" || return 1
+    [[ -n "$hash" ]] || return 1
+    git -C "$checkout" rev-parse --verify --quiet "$hash^{tree}"
+}
+
+# Updates every skill in the skills CLI's lock file whose upstream folder differs from the
+# installed one and has passed the cooldown.
+update_skills_after_cooldown() {
+    local entries
+    if ! entries="$(jq -r '.skills // {} | to_entries[]
+            | [.key, .value.sourceUrl, (.value.skillPath | sub("/?SKILL\\.md$"; ""))] | @tsv' \
+        "$SKILL_LOCK_FILE" 2>/dev/null)"; then
+        warn "Could not read $SKILL_LOCK_FILE, skills not updated"
+        return 0
+    fi
+
+    local name url skill_dir checkout upstream
+    # The list arrives on fd 3, so the skills CLI in the loop cannot consume it from stdin.
+    while IFS=$'\t' read -r -u 3 name url skill_dir; do
+        [[ -n "$name" ]] || continue
+        # shortcut: one clone per skill, even for skills from the same repository. Each takes about
+        # a second; share them per repository if the list grows.
+        checkout="$(mktemp -d)"
+        if ! git clone --quiet --filter=blob:none --no-checkout "$url" "$checkout" 2>/dev/null \
+            || ! upstream="$(git -C "$checkout" rev-parse --verify --quiet "HEAD:$skill_dir")"; then
+            warn "Could not check $name, not updated"
+        elif [[ "$upstream" != "$(print_installed_skill_tree "$name" "$checkout")" ]] && has_cooled_down "$name" "$upstream"; then
+            skills_cli update "$name" -g || warn "Could not update $name"
+        fi
+        rm -rf "$checkout"
+    done 3<<<"$entries"
+}
+
 # A new upstream version of a skill waits out the same 3-day cooldown as Composer and npm. Needs
 # support/setup/claude/update-cooldown.sh sourced as well.
 update_claude_skills() {
@@ -67,6 +109,8 @@ update_claude_skills() {
     trim_clarity_skill || warn "Could not trim Clarity's repository extras"
     success "Claude Code skill updates processed"
 }
+
+# === Clean up ===
 
 # Removes any globally installed skill that isn't in THIRD_PARTY_SKILLS, the Claude Code
 # equivalent of `brew bundle cleanup --force`. That includes skills added by hand with

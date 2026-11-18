@@ -17,6 +17,7 @@ source ~/.dotfiles/support/setup/claude/update-cooldown.sh
 # Validate the saved profile before installing or removing packages.
 load_machine_profile
 
+# === Dotfiles repository ===
 if [[ -z "${DOTFILES_UPDATE_PULLED:-}" ]]; then
     echo ""
     step "Updating dotfiles"
@@ -30,6 +31,7 @@ if [[ -z "${DOTFILES_UPDATE_PULLED:-}" ]]; then
     DOTFILES_UPDATE_PULLED=1 exec ~/.dotfiles/bin/update.sh
 fi
 
+# === Packages ===
 update_homebrew_packages
 
 install_composer_packages
@@ -44,6 +46,7 @@ install_python_packages
 update_python_packages
 clean_up_python_packages
 
+# === Claude Code ===
 install_claude_skills
 update_claude_skills
 clean_up_claude_skills
@@ -52,11 +55,13 @@ install_claude_plugins
 update_claude_plugins
 clean_up_claude_plugins
 
+raise_npm_pins
+
+# === Ollama models ===
 install_ollama_models
 clean_up_ollama_models
 
-raise_npm_pins
-
+# === Configuration ===
 step "Applying dotfiles configuration"
 ~/.dotfiles/bin/reconfigure.sh || warn "Could not apply the dotfiles configuration, see the output above"
 
