@@ -38,7 +38,6 @@ is_hidden_path() {
 pint_covers_path() {
     local relative_path="$1"
     [[ -f pint.json ]] || return 0
-    command -v jq >/dev/null 2>&1 || return 0
 
     local excluded_paths
     excluded_paths="$(jq -r '(.exclude // []) + (.notPath // []) | .[]' pint.json 2>/dev/null)"
