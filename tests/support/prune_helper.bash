@@ -48,3 +48,15 @@ given_commit_pushed_to_origin_only() {
     git -C "$other" commit -q --allow-empty -m "more work on $branch"
     git -C "$other" push -q origin "$branch"
 }
+
+given_origin_rejecting_pushes() {
+    printf '#!/bin/sh\necho "branch deletion is not allowed here"\nexit 1\n' > "$origin/hooks/pre-receive"
+    chmod +x "$origin/hooks/pre-receive"
+}
+
+given_unmerged_branch_with_gone_upstream() {
+    local branch="$1"
+    given_unmerged_branch_pushed_to_origin "$branch"
+    git -C "$repository" push -q origin --delete "$branch"
+    git -C "$repository" fetch -q origin --prune
+}

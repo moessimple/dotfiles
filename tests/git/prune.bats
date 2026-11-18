@@ -189,3 +189,30 @@ teardown() {
     assert_success
     assert_branch_exists unmerged
 }
+
+@test "a remote deletion the remote rejects is reported" {
+    # Arrange
+    given_repository_with_origin_on main
+    given_merged_branch_pushed_to_origin merged
+    given_origin_rejecting_pushes
+
+    # Act
+    run call_prune
+
+    # Assert
+    assert_output_contains "branch deletion is not allowed here"
+    assert_remote_branch_exists merged
+}
+
+@test "an unmerged branch whose upstream is gone is deleted as well" {
+    # Arrange
+    given_repository_with_origin_on main
+    given_unmerged_branch_with_gone_upstream squashed
+
+    # Act
+    run call_prune
+
+    # Assert
+    assert_success
+    assert_branch_does_not_exist squashed
+}

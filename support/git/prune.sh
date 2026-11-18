@@ -7,7 +7,8 @@ function prune() {
     if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         echo "Usage: prune"
         echo "  Prunes stale remote-tracking branches, deletes local branches merged into"
-        echo "  the default branch, removes their remote counterparts, and deletes squashed branches."
+        echo "  the default branch, removes their remote counterparts, and deletes every local branch"
+        echo "  whose upstream is gone (such as squash-merged ones), even when it is not merged."
         echo "  The default branch and the long-lived branches (main, master, develop, release)"
         echo "  are never deleted."
         return 0
@@ -42,14 +43,19 @@ function prune() {
     # the remote copy is merged as well. A merged branch that exists only on origin
     # belongs to someone else, such as a colleague's freshly pushed branch on a shared
     # repository, which counts as merged before it has commits of its own.
-    local merged_remote_branches branch
+    local merged_remote_branches branch push_output
     merged_remote_branches=$(git branch -r --merged origin/$default_branch | awk '{ print $NF }')
     for branch in ${(f)merged_branches}; do
         print -r -- "$merged_remote_branches" | grep -qxF "origin/$branch" || continue
-        git push origin --delete "$branch" 2>&1 | grep --color=never 'deleted'
+        if push_output=$(git push origin --delete "$branch" 2>&1); then
+            print -r -- "$push_output" | grep --color=never 'deleted'
+        else
+            print -r -- "$push_output" >&2
+        fi
     done
 
-    # Delete local branches whose upstream no longer exists.
+    # Delete local branches whose upstream no longer exists, merged or not: a squash-merged
+    # branch never counts as merged, and its upstream is gone once the remote deletes it.
     git branch --format '%(upstream:track,nobracket)%09%(refname:short)' \
         | grep -E -v "${protected_pattern}" \
         | awk -F '\t' -v branch="$default_branch" '$1 ~ /gone/ && $2 != branch { print $2 }' \
