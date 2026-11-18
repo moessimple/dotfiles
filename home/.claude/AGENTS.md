@@ -51,6 +51,14 @@ and reference must be understandable from the repository itself.
 
 Use the agent-browser skill for browser automation.
 
+The rules for tests, code comments, and PHP docblocks live in `~/.claude/rules/`. Claude Code loads a rule when you
+work on a matching file; Codex never loads them. Before writing or changing such code, read the matching rule unless
+it is already in your context:
+
+- tests: `~/.claude/rules/testing.md`, and also `~/.claude/rules/bats.md` for Bats tests and their helpers
+- comments in source code and shell scripts: `~/.claude/rules/code-comments.md`
+- PHP docblocks: `~/.claude/rules/php-docblocks.md`
+
 For frontend design work in Claude Code, use the `impeccable` skill. Fix Impeccable detector findings. Add an ignore
 only for one rule in one file, with `--reason`, and name it in the PR.
 
