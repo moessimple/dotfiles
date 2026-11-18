@@ -40,21 +40,25 @@ fi
 
 # search() finds commits with `git log -S --regexp-ignore-case`, which matches the term
 # literally and ignoring case. The hunk filters below take an extended regex, so the term's
-# regex characters are escaped and each letter becomes a class of both cases ("a" -> "[aA]").
+# regex characters are escaped and each letter becomes an alternation of both cases
+# ("ü" -> "(ü|Ü)"), since grepdiff has no option to ignore case. grepdiff matches bytes, so a
+# bracket class such as [üÜ] would match only one byte of a two-byte umlaut. macOS's
+# /usr/bin/tr converts letters such as umlauts; a GNU tr earlier on PATH breaks them.
 safe_regex=""
 for (( i=0; i<${#GREPDIFF_REGEX}; i++ )); do
   char="${GREPDIFF_REGEX:$i:1}"
   case "$char" in
-    [a-zA-Z])
-      lower=$(echo "$char" | tr '[:upper:]' '[:lower:]')
-      upper=$(echo "$char" | tr '[:lower:]' '[:upper:]')
-      safe_regex+="[$lower$upper]"
-      ;;
     '.' | '[' | '(' | ')' | '*' | '+' | '?' | '{' | '|' | '^' | '$' | '\')
       safe_regex+="\\$char"
       ;;
     *)
-      safe_regex+="$char"
+      lower=$(printf '%s' "$char" | /usr/bin/tr '[:upper:]' '[:lower:]')
+      upper=$(printf '%s' "$char" | /usr/bin/tr '[:lower:]' '[:upper:]')
+      if [ "$lower" != "$upper" ]; then
+        safe_regex+="($lower|$upper)"
+      else
+        safe_regex+="$char"
+      fi
       ;;
   esac
 done

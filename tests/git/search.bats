@@ -142,3 +142,18 @@ teardown() {
     assert_output_contains "add query.php"
     assert_colorless_output_contains '+$query->where(1)'
 }
+
+@test "a term with umlauts in another case shows the matching change of the commit that introduced it" {
+    # Arrange
+    export LC_ALL=en_US.UTF-8
+    given_clean_repository_on_main
+    given_commit_adding_term notes.md 'Hinweis über Änderungen'
+
+    # Act
+    run call_search 'ÜBER ÄNDERUNGEN'
+
+    # Assert
+    assert_success
+    assert_output_contains "add notes.md"
+    assert_colorless_output_contains '+Hinweis über Änderungen'
+}
