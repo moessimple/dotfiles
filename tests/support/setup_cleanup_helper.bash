@@ -3,10 +3,10 @@
 # invokes the named cleanup function it declares. PATH and HOME are inherited from the
 # calling test so given_fake_bin_on_path fakes and a fixture HOME take effect. HOMEBREW_PREFIX
 # points at the fixture, so a call through $HOMEBREW_PREFIX/bin reaches those fakes too and
-# never the real Homebrew binaries.
+# never the real Homebrew binaries. errexit is on, as in the bin/ entry points that source it.
 call_cleanup_function() {
     local file="$1" function_name="$2"
-    HOME="${test_home:-$HOME}" HOMEBREW_PREFIX="$fixture" bash -c '
+    HOME="${test_home:-$HOME}" HOMEBREW_PREFIX="$fixture" bash -ec '
         step() { :; }
         warn() { echo "WARN: $*"; }
         success() { echo "SUCCESS: $*"; }
@@ -18,10 +18,11 @@ call_cleanup_function() {
 # Sources one support/setup/**/*.sh file with the output helpers stubbed, running only
 # its top-level body (no cleanup function). For asserting on what the install step does.
 # The STEP:/WARN:/SUCCESS:/ERROR: prefixes make each helper's lines assertable; error exits
-# like the real one. Other environment variables pass through from the caller.
+# like the real one. Other environment variables pass through from the caller. errexit is on,
+# as in the bin/ entry points that source it.
 run_setup_script() {
     local file="$1"
-    HOME="${test_home:-$HOME}" HOMEBREW_PREFIX="$fixture" bash -c '
+    HOME="${test_home:-$HOME}" HOMEBREW_PREFIX="$fixture" bash -ec '
         step() { echo "STEP: $*"; }
         warn() { echo "WARN: $*"; }
         success() { echo "SUCCESS: $*"; }
@@ -156,7 +157,11 @@ EOF
 EOF
     done
 
+    # Like the real CLI, `mcp get` fails for a server that is not configured.
     cat >> "$fake_bin/claude" <<'EOF'
+    "mcp get "*)
+        exit 1
+        ;;
 esac
 EOF
     chmod +x "$fake_bin/claude"
@@ -198,7 +203,7 @@ assert_settings_still_linked_into_repository() {
 # name the git URL with `.git`, the declaration names it without.
 declared_marketplaces_with_auto_update_not_off() {
     local file="$1" settings="$2" marketplaces url
-    marketplaces=$(HOME="${test_home:-$HOME}" bash -c '
+    marketplaces=$(HOME="${test_home:-$HOME}" bash -ec '
         step() { :; }; warn() { :; }; success() { :; }
         source "$1" >/dev/null
         printf "%s\n" "${CLAUDE_PLUGIN_MARKETPLACES[@]}"

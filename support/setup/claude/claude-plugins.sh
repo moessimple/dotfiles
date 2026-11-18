@@ -70,8 +70,9 @@ if command -v claude &>/dev/null; then
         claude plugin install "$plugin" 2>/dev/null || warn "$plugin already installed"
     done
     # `claude mcp add` refuses an existing name, so a registration with another version is
-    # removed first; that is how a raised version takes effect.
-    registered_mcp=$(claude mcp get chrome-devtools 2>/dev/null)
+    # removed first; that is how a raised version takes effect. `mcp get` fails when the server
+    # is not configured yet, which under the entry points' `set -e` would end the whole run.
+    registered_mcp=$(claude mcp get chrome-devtools 2>/dev/null) || registered_mcp=""
     if [[ "$registered_mcp" != *"chrome-devtools-mcp@$CHROME_DEVTOOLS_MCP_VERSION "* ]]; then
         if [ -n "$registered_mcp" ]; then
             claude mcp remove chrome-devtools -s user >/dev/null 2>&1 || true
