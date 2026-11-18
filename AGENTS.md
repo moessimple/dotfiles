@@ -119,8 +119,9 @@ Scripts under `bin/` orchestrate these functions:
   with confirmation, sudo, and application termination.
 
 Failure handling follows `brew bundle`, using the helpers in `support/setup/output.sh`. A step that later steps
-depend on (the profile, the `~/.dotfiles` checkout, Homebrew itself, `home-directories.sh`, the symlinks) stops the run
-with `error`. Any other step that cannot be completed, such as one package, PHP version, or service, reports it with
+depend on stops the run: the profile, the `~/.dotfiles` checkout, and Homebrew itself through `error`,
+`home-directories.sh` and the symlinks through `set -e` when one of their commands fails. Any other step that cannot
+be completed, such as one package, PHP version, or service, reports it with
 `warn` and the run goes on. `finish` ends install, reconfigure, and update: it prints the success message only when
 nothing warned, and otherwise lists every warning and exits 1. `note` is for information that is not a problem
 (an undeclared package being removed, a reminder to restart the terminal) and is never counted.
@@ -164,7 +165,8 @@ itself; `claude-plugins.sh` sets it again after `claude plugin marketplace add`.
 
 **Declared list = desired state.** The Brewfile (`support/config/Brewfile`), global Composer/npm/Python package lists
 and Ollama models (`support/setup/packages/`), Claude Code skills/plugins (`support/setup/claude/claude-skills.sh`,
-`claude-plugins.sh`), Codex-compatible skills (`support/setup/codex/codex-skills.sh`), and plugin marketplaces
+`claude-plugins.sh`), user-scope MCP servers (`CLAUDE_MCP_SERVERS` in `claude-plugins.sh`), Codex-compatible skills
+(`support/setup/codex/codex-skills.sh`), and plugin marketplaces
 (`extraKnownMarketplaces` in `home/.claude/settings.json`) are each treated as the full desired state.
 `install_claude_plugins` and `clean_up_claude_plugins` in `support/setup/claude/claude-plugins.sh` read that
 marketplace declaration instead of maintaining a second URL list. Marketplace cleanup uses the CLI to remove
@@ -232,7 +234,7 @@ against whatever Laravel/PHP project Claude Code is currently editing, using eac
   toplevel, so a monorepo with a nested Composer project (e.g. a Laravel app with its own `packages/*` package) is
   handled correctly. `post-edit.sh`, `quality-gate.sh`, and the `quality` function source it rather
   than re-implementing project resolution. Its `canonical_file_path` resolves an edited file's directory to the
-  physical path for both hooks.
+  physical path for `post-edit.sh` and `quality-gate.sh`.
 - `post-edit.sh` is the `PostToolUse` hook for every `Write`/`Edit` of a `*.php` file or any `composer.json`: it
   runs the `file`-mode check, writes the project's "dirty" marker under
   `${XDG_CONFIG_HOME:-$HOME/.config}/claude-quality/runs`, and reports a failure without blocking the edit.
@@ -274,6 +276,8 @@ place that logic lives; callers never re-derive it. Its priority order is covere
 - `tests/setup/claude/*.bats`, `tests/setup/codex/*.bats`, `tests/setup/packages/*.bats`: the setup/cleanup
   declarations in `support/setup/claude/`, `support/setup/codex/`, and `support/setup/packages/`
 - `tests/setup/herd/*.bats`: `support/setup/herd/herd-xdebug.sh` and `support/setup/herd/herd-onboarding.sh`
+- `tests/setup/*.bats`: the files directly in `support/setup/`, the profile handling in `support/config/Brewfile`,
+  and that sourcing a setup file changes nothing
 - `tests/bin/macos-defaults.bats`: `bin/macos-defaults.sh`
 - `tests/bin/update.bats`: a full `bin/update.sh` run across all package cleanups
 - `tests/bin/reconfigure.bats`: configuration application without macOS defaults or an unconditional sudo request
