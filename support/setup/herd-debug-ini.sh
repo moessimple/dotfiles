@@ -27,6 +27,7 @@ elif ! installed_versions=$(set -o pipefail; herd php:list --json | jq -r '.[] |
     # process nothing and still report success.
     warn "Could not read Herd's PHP versions, skipping Xdebug ini setup"
 else
+    write_failed=0
     while IFS= read -r version; do
         [ -n "$version" ] || continue
         version_slug="${version//./}"
@@ -36,18 +37,27 @@ else
         xdebug_extension="$HERD_RESOURCES_DIR/xdebug/xdebug-$version_slug-arm64.so"
 
         if [ ! -f "$xdebug_extension" ]; then
-            warn "Herd has no Xdebug build for PHP $version yet, skipping its Xdebug ini files"
+            note "Herd has no Xdebug build for PHP $version yet, skipping its Xdebug ini files"
             continue
         fi
 
-        mkdir -p "$debug_dir" \
-            || error "Could not create the Herd debug configuration directory for PHP $version"
-        sed "s#XDEBUG_PATH#$xdebug_extension#" "$HERD_DEBUG_TEMPLATE" > "$debug_ini" \
-            || error "Could not install the Herd debug configuration for PHP $version"
+        if ! mkdir -p "$debug_dir"; then
+            warn "Could not create the Herd debug configuration directory for PHP $version"
+            write_failed=1
+            continue
+        fi
+        if ! sed "s#XDEBUG_PATH#$xdebug_extension#" "$HERD_DEBUG_TEMPLATE" > "$debug_ini"; then
+            warn "Could not install the Herd debug configuration for PHP $version"
+            write_failed=1
+        fi
 
         always_ini="$HERD_PHP_CONFIG_DIR/$version_slug/xdebug.ini"
-        printf 'zend_extension=%s\nxdebug.mode=off\n' "$xdebug_extension" > "$always_ini" \
-            || error "Could not install the always-loaded Xdebug ini for PHP $version"
+        if ! printf 'zend_extension=%s\nxdebug.mode=off\n' "$xdebug_extension" > "$always_ini"; then
+            warn "Could not install the always-loaded Xdebug ini for PHP $version"
+            write_failed=1
+        fi
     done <<< "$installed_versions"
-    success "Herd Xdebug ini files installed"
+    if [ "$write_failed" -eq 0 ]; then
+        success "Herd Xdebug ini files installed"
+    fi
 fi

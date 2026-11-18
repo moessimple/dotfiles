@@ -11,7 +11,7 @@ echo ""
 # Entry point; nothing below runs until this is confirmed.
 step "Install Dotfiles"
 echo ""
-warn "This will install/update your terminal setup"
+note "This will install/update your terminal setup"
 echo ""
 read -p "Continue? (y/n) " -r
 echo ""
@@ -150,12 +150,12 @@ touch ~/.extra
 step "Applying macOS defaults"
 ~/.dotfiles/bin/macos-defaults.sh
 
-echo ""
-success "Installation complete!"
-echo ""
 step "Next steps:"
 echo "  • extra    — opens ~/.extra; add your personal aliases, tokens, and machine-specific settings here"
 echo ""
 echo "Optional:"
 echo "  • Discover more agent skills: https://skills.sh"
+
+# Last, so the result is the final thing on screen.
+finish "Installation complete!"
 echo ""

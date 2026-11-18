@@ -105,3 +105,11 @@ assert_no_ini_files_for() {
     assert_path_does_not_exist "$(ini_path "$slug/xdebug.ini")"
     assert_path_does_not_exist "$(ini_path "$slug/debug")"
 }
+
+# Puts a regular file where the PHP version's Herd configuration directory belongs, so
+# nothing can be written for that version.
+given_herd_config_directory_blocked_for() {
+    local slug="$1"
+    mkdir -p "$(ini_path "")"
+    printf 'not a directory\n' > "$(ini_path "$slug")"
+}

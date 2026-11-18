@@ -9,6 +9,7 @@ call_cleanup_function() {
     HOME="${test_home:-$HOME}" HOMEBREW_PREFIX="$fixture" bash -ec '
         step() { :; }
         warn() { echo "WARN: $*"; }
+        note() { echo "NOTE: $*"; }
         success() { echo "SUCCESS: $*"; }
         source "$1"
         "$2"
@@ -25,6 +26,7 @@ run_setup_script() {
     HOME="${test_home:-$HOME}" HOMEBREW_PREFIX="$fixture" bash -ec '
         step() { echo "STEP: $*"; }
         warn() { echo "WARN: $*"; }
+        note() { echo "NOTE: $*"; }
         success() { echo "SUCCESS: $*"; }
         error() { echo "ERROR: $*"; exit 1; }
         source "$1"
@@ -204,7 +206,7 @@ assert_settings_still_linked_into_repository() {
 declared_marketplaces_with_auto_update_not_off() {
     local file="$1" settings="$2" marketplaces url
     marketplaces=$(HOME="${test_home:-$HOME}" bash -ec '
-        step() { :; }; warn() { :; }; success() { :; }
+        step() { :; }; warn() { :; }; note() { :; }; success() { :; }
         source "$1" >/dev/null
         printf "%s\n" "${CLAUDE_PLUGIN_MARKETPLACES[@]}"
     ' bash "$file") || return 1

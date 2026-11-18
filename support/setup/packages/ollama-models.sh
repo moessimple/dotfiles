@@ -60,7 +60,7 @@ ollama_models_cleanup() {
         printf '%s\n' "${OLLAMA_MODELS[@]}" | grep -qxF "$name" && continue
 
         found_undeclared=1
-        warn "Removing undeclared Ollama model: $name (not in ollama-models.sh)"
+        note "Removing undeclared Ollama model: $name (not in ollama-models.sh)"
         ollama rm "$name" || warn "Could not remove $name, remove it manually"
     done <<< "$installed"
 

@@ -10,12 +10,12 @@ export PATH="$HOME/Library/Application Support/Herd/bin:$PATH"
 
 if ! command -v herd &>/dev/null; then
     open -a Herd
-    warn "Herd needs a one-time setup: complete its onboarding in the app (it will ask for your admin password), this continues automatically once it's done"
+    note "Herd needs a one-time setup: complete its onboarding in the app (it will ask for your admin password), this continues automatically once it's done"
     attempt=0
     until command -v herd &>/dev/null; do
         attempt=$((attempt + 1))
         if [ $((attempt % 12)) -eq 0 ]; then
-            warn "Still waiting for Herd's onboarding to finish..."
+            note "Still waiting for Herd's onboarding to finish..."
         fi
         sleep 5
     done

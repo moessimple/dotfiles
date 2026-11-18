@@ -38,42 +38,53 @@ git -C ~/.dotfiles pull origin main
 success "Dotfiles updated"
 
 # Homebrew: update/upgrade first so bundle's own install and the cleanup below act on
-# current formula versions.
+# current formula versions. A package that cannot be updated is reported and the update
+# goes on, as in install.sh.
 step "Updating Homebrew packages"
-brew update
-brew upgrade
-brew bundle --file=~/.dotfiles/support/config/Brewfile
+brew update || warn "Could not update Homebrew itself, see the output above"
+brew upgrade || warn "Could not upgrade every Homebrew package, see the output above"
+brew bundle --file=~/.dotfiles/support/config/Brewfile \
+    || warn "Some Brewfile packages failed to install, see the output above"
 # Without --force this only prompts, and an unattended prompt does nothing.
 brew bundle cleanup --force --file=~/.dotfiles/support/config/Brewfile \
     || warn "Could not remove every undeclared Homebrew package, see the output above"
 # --prune=all: update, upgrade and bundle just downloaded every declared package they
 # needed, so the whole download cache is stale. The default 120-day window lets casks
 # like Docker.dmg pile up GBs between prunes.
-brew cleanup --prune=all
-success "Homebrew packages updated"
+brew cleanup --prune=all || warn "Could not prune Homebrew's download cache"
+success "Homebrew packages processed"
 
 # Install any global Composer packages newly added to the list, then update all
 source ~/.dotfiles/support/setup/packages/composer-packages.sh
 step "Updating global Composer packages"
-composer global update
-success "Composer packages updated"
+if composer global update; then
+    success "Composer packages updated"
+else
+    warn "Could not update the global Composer packages, see the output above"
+fi
 composer_packages_cleanup
 
 # Install any global npm packages newly added to the list, then update all
 source ~/.dotfiles/support/setup/packages/npm-packages.sh
 step "Updating global npm packages"
-global_npm update -g --force
-success "npm packages updated"
+if global_npm update -g --force; then
+    success "npm packages updated"
+else
+    warn "Could not update the global npm packages, see the output above"
+fi
 npm_packages_cleanup
 # npm never evicts its cache; every `npm`/`npx` run only adds to it. `verify` removes
 # unreferenced content and trims the cache toward `cache-max`.
-global_npm cache verify
+global_npm cache verify || warn "Could not verify the npm cache"
 
 # Install any Python packages newly added to the list, then update all
 source ~/.dotfiles/support/setup/packages/python-packages.sh
 step "Updating Python packages"
-python_pip install --user --quiet --no-warn-script-location --upgrade "${PYTHON_PACKAGES[@]}"
-success "Python packages updated"
+if python_pip install --user --quiet --no-warn-script-location --upgrade "${PYTHON_PACKAGES[@]}"; then
+    success "Python packages updated"
+else
+    warn "Could not update the Python packages, see the output above"
+fi
 python_packages_cleanup
 
 # Install any Claude Code skills newly added to the list, then update them. A new upstream version of
@@ -121,8 +132,11 @@ raise_npm_pin() {
     fi
     [ -n "$newest" ] || return 0
 
-    sed -i '' "s/^$variable=\"$current\"$/$variable=\"$newest\"/" "$file"
-    warn "Raised $package from $current to $newest in ${file#"$HOME/"}. Release notes: https://www.npmjs.com/package/$package/v/$newest. Commit the change before the next update."
+    if ! sed -i '' "s/^$variable=\"$current\"$/$variable=\"$newest\"/" "$file"; then
+        warn "Could not raise $package from $current to $newest in ${file#"$HOME/"}"
+        return 0
+    fi
+    note "Raised $package from $current to $newest in ${file#"$HOME/"}. Release notes: https://www.npmjs.com/package/$package/v/$newest. Commit the change before the next update."
 }
 
 step "Checking pinned npm packages"
@@ -130,10 +144,9 @@ raise_npm_pin chrome-devtools-mcp ~/.dotfiles/support/setup/claude/claude-plugin
 raise_npm_pin skills ~/.dotfiles/support/setup/claude/claude-skills.sh SKILLS_CLI_VERSION
 
 step "Applying dotfiles configuration"
-"$HOME/.dotfiles/bin/reconfigure.sh"
+~/.dotfiles/bin/reconfigure.sh || warn "Could not apply the dotfiles configuration, see the output above"
 
+finish "Update complete!"
 echo ""
-success "Update complete!"
-echo ""
-warn "Restart your terminal or run: exec zsh"
+note "Restart your terminal or run: exec zsh"
 echo ""

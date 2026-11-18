@@ -91,6 +91,13 @@ with agent-specific tools, paths, or runtime behavior stay exclusive to that age
 - `bin/macos-defaults.sh` (alias `macos-defaults` in `home/.aliases`) applies macOS preferences directly,
   with confirmation, sudo, and application termination.
 
+Failure handling follows `brew bundle`, using the helpers in `support/setup/output.sh`. A step that later steps
+depend on (the profile, the `~/.dotfiles` checkout, Homebrew itself, `clean-state.sh`, the symlinks) stops the run
+with `error`. Any other step that cannot be completed, such as one package, PHP version, or service, reports it with
+`warn` and the run goes on. `finish` ends install, reconfigure, and update: it prints the success message only when
+nothing warned, and otherwise lists every warning and exits 1. `note` is for information that is not a problem
+(an undeclared package being removed, a reminder to restart the terminal) and is never counted.
+
 `support/setup/herd-debug-ini.sh` reapplies both managed Xdebug ini files on every install/reconfigure/update run,
 replacing local changes. `support/setup/services.sh` likewise rewrites `/opt/homebrew/var/config.toml` with
 `upgrade_db = true`, so the Meilisearch service migrates its local database after a version bump instead of

@@ -49,6 +49,10 @@ given_every_external_tool_update_touches_is_faked() {
     given_fake_claude '[]' ""
     given_skill_lock_file '{"skills":{}}'
     given_fake_ollama_listing ''
+    # Every set-up machine has settings.json, which claude-plugins.sh rewrites after it adds a
+    # marketplace.
+    mkdir -p "$test_home/.claude"
+    cp "$dotfiles_dir/home/.claude/settings.json" "$test_home/.claude/settings.json"
 }
 
 given_homebrew_cleanup_fails() {
@@ -172,4 +176,24 @@ given_update_ran_days_ago() {
     call_update > /dev/null 2>&1 || true
     given_first_sightings_aged_by_days "$days"
     rm -f "$fake_bin"/*.calls
+}
+
+given_homebrew_upgrade_fails() {
+    write_fake_binary brew '[ "$*" = "upgrade" ] && exit 1
+exit 0'
+}
+
+given_global_composer_update_fails() {
+    write_fake_binary composer 'case "$*" in
+    "global show -D --format=json") printf "%s\n" "{\"installed\":[]}" ;;
+    "global update") exit 1 ;;
+esac'
+}
+
+# The update ended with exit status 1 and listed <problem> in its closing summary instead of
+# reporting completion.
+assert_update_finished_with_problem() {
+    [ "$status" -eq 1 ]
+    assert_output_contains "  • $1"
+    assert_output_does_not_contain "Update complete!"
 }

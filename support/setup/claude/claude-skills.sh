@@ -71,7 +71,7 @@ step "Installing Claude Code skills"
 for entry in "${THIRD_PARTY_SKILLS[@]}"; do
     repo="${entry%%:*}"
     skill="${entry#*:}"
-    skills_cli add "$repo" -s "$skill" --global -y --agent claude-code 2>/dev/null || warn "$skill already installed or failed"
+    skills_cli add "$repo" -s "$skill" --global -y --agent claude-code 2>/dev/null || note "$skill already installed or failed"
 done
 claude_skills_trim_clarity || warn "Could not trim Clarity's repository extras"
 success "Claude Code skills processed"
@@ -104,7 +104,7 @@ claude_skills_cleanup() {
         printf '%s\n' "${declared_names[@]}" | grep -qxF "$name" && continue
 
         found_undeclared=1
-        warn "Removing undeclared skill: $name (not in claude-skills.sh)"
+        note "Removing undeclared skill: $name (not in claude-skills.sh)"
         # No --agent: with it, the CLI removes only that agent's copy and keeps the lock
         # entry, so the skill stays listed as installed. -y keeps the run unattended.
         skills_cli remove "$name" --global -y 2>/dev/null || warn "Could not remove $name, remove it manually"

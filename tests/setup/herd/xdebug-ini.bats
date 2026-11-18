@@ -55,7 +55,7 @@ teardown() {
     assert_success
     assert_always_loaded_xdebug_ini 84
     assert_no_ini_files_for 86
-    assert_output_contains "WARN: Herd has no Xdebug build for PHP 8.6"
+    assert_output_contains "NOTE: Herd has no Xdebug build for PHP 8.6"
 }
 
 @test "a PHP version Herd reports as not installed is not configured" {
@@ -117,4 +117,22 @@ teardown() {
     assert_success
     assert_no_ini_files_for 84
     assert_output_contains "WARN: Herd's debug.ini template was not found"
+}
+
+@test "a PHP version whose ini files cannot be written is reported and the other versions are still configured" {
+    # Arrange
+    given_herd_reports_installed_php_versions 8.3 8.4
+    given_herd_ships_xdebug_build_for 83 84
+    given_herd_debug_template_is_present
+    given_herd_config_directory_blocked_for 83
+
+    # Act
+    run run_herd_debug_ini_setup
+
+    # Assert
+    assert_success
+    assert_output_contains "WARN: Could not create the Herd debug configuration directory for PHP 8.3"
+    assert_always_loaded_xdebug_ini 84
+    assert_herd_debug_ini 84
+    assert_output_does_not_contain "SUCCESS:"
 }

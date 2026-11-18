@@ -5,7 +5,7 @@ set -e
 source "$(dirname -- "${BASH_SOURCE[0]}")/../support/setup/output.sh"
 
 echo ""
-warn "This will change macOS system settings."
+note "This will change macOS system settings."
 echo "Close System Settings before continuing."
 echo ""
 read -p "Continue? (y/n) " -n 1 -r
@@ -479,5 +479,5 @@ done
 echo ""
 success "macOS defaults configured!"
 echo ""
-warn "Some changes require a logout/restart to take effect."
+note "Some changes require a logout/restart to take effect."
 echo ""

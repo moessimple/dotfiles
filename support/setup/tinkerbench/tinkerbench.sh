@@ -9,13 +9,11 @@ step "Setting up tinkerbench.test"
 
 TINKERBENCH_TARGET="$HOME/Code/tinkerbench"
 
-if [ ! -d "$TINKERBENCH_TARGET" ]; then
-    git clone git@github.com:moessimple/tinkerbench.git "$TINKERBENCH_TARGET" \
-        || error "Could not clone tinkerbench"
+if [ ! -d "$TINKERBENCH_TARGET" ] \
+    && ! git clone git@github.com:moessimple/tinkerbench.git "$TINKERBENCH_TARGET"; then
+    warn "Could not clone tinkerbench"
+elif [ ! -f "$TINKERBENCH_TARGET/.env" ] && ! (cd "$TINKERBENCH_TARGET" && composer setup); then
+    warn "Could not set up tinkerbench"
+else
+    success "tinkerbench.test ready"
 fi
-
-if [ ! -f "$TINKERBENCH_TARGET/.env" ]; then
-    (cd "$TINKERBENCH_TARGET" && composer setup) || error "Could not set up tinkerbench"
-fi
-
-success "tinkerbench.test ready"

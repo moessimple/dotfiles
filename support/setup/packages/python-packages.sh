@@ -54,7 +54,7 @@ python_packages_cleanup() {
         printf '%s\n' "${PYTHON_PACKAGES[@]}" | grep -qixF "$name" && continue
 
         found_undeclared=1
-        warn "Removing undeclared Python package: $name (not in python-packages.sh)"
+        note "Removing undeclared Python package: $name (not in python-packages.sh)"
         python_pip uninstall --yes --quiet "$name" || warn "Could not remove $name, remove it manually"
     done <<< "$installed"
 

@@ -93,7 +93,7 @@ teardown() {
     assert_output_contains "No undeclared Ollama models found"
 }
 
-@test "a failed configuration step fails the update without reporting completion" {
+@test "a failed configuration step fails the update and is listed in its summary" {
     # Arrange
     given_clean_repository_on_main
     given_repository_with_real_setup_scripts
@@ -107,8 +107,7 @@ teardown() {
     run call_update
 
     # Assert
-    [ "$status" -eq 17 ]
-    assert_output_does_not_contain "Update complete!"
+    assert_update_finished_with_problem "Could not apply the dotfiles configuration"
 }
 
 @test "Clarity is trimmed again after the skills are installed or updated" {
@@ -199,8 +198,7 @@ teardown() {
     run call_update
 
     # Assert
-    assert_success
-    assert_output_contains "Could not check chrome-devtools-mcp for a newer release"
+    assert_update_finished_with_problem "Could not check chrome-devtools-mcp for a newer release"
 }
 
 @test "plugin states unchanged for 3 days are updated, official and third-party alike" {
@@ -244,7 +242,7 @@ teardown() {
     assert_binary_not_called_with_substring claude "plugin marketplace update"
 }
 
-@test "a failed marketplace listing is reported and the update still completes" {
+@test "a failed marketplace listing is reported and the remaining updates still run" {
     # Arrange
     given_clean_repository_on_main
     given_repository_with_real_setup_scripts
@@ -257,9 +255,8 @@ teardown() {
     run call_update
 
     # Assert
-    assert_success
-    assert_output_contains "Could not list the plugin marketplaces, plugins not updated"
-    assert_output_contains "Update complete!"
+    assert_update_finished_with_problem "Could not list the plugin marketplaces, plugins not updated"
+    assert_output_contains "No undeclared Ollama models found"
 }
 
 @test "a failed Homebrew cleanup is reported instead of swallowed" {
@@ -275,6 +272,40 @@ teardown() {
     run call_update
 
     # Assert
-    assert_success
-    assert_output_contains "Could not remove every undeclared Homebrew package"
+    assert_update_finished_with_problem "Could not remove every undeclared Homebrew package"
+}
+
+@test "a failed Homebrew upgrade is reported and the remaining updates still run" {
+    # Arrange
+    given_clean_repository_on_main
+    given_repository_with_real_setup_scripts
+    given_bare_origin_remote
+    git -C "$repository" push -q origin main
+    given_every_external_tool_update_touches_is_faked
+    given_homebrew_upgrade_fails
+
+    # Act
+    run call_update
+
+    # Assert
+    assert_update_finished_with_problem "Could not upgrade every Homebrew package"
+    assert_output_contains "No undeclared global Composer packages found"
+}
+
+@test "a failed global Composer update is reported and the remaining updates still run" {
+    # Arrange
+    given_clean_repository_on_main
+    given_repository_with_real_setup_scripts
+    given_bare_origin_remote
+    git -C "$repository" push -q origin main
+    given_every_external_tool_update_touches_is_faked
+    given_global_composer_update_fails
+
+    # Act
+    run call_update
+
+    # Assert
+    assert_update_finished_with_problem "Could not update the global Composer packages"
+    assert_output_does_not_contain "Composer packages updated"
+    assert_output_contains "No undeclared global npm packages found"
 }

@@ -47,7 +47,7 @@ step "Installing global npm packages"
 # precedence. Set before the installs below so they wait too.
 global_npm config set min-release-age 3 || warn "Could not set the npm cooldown"
 for package in "${NPM_PACKAGES[@]}"; do
-    global_npm install -g "$package" || warn "$package already installed or failed"
+    global_npm install -g "$package" || warn "Could not install $package"
 done
 agent-browser install 2>/dev/null || warn "agent-browser setup skipped"
 agent_browser_prune_chrome
@@ -74,7 +74,7 @@ npm_packages_cleanup() {
         printf '%s\n' "${NPM_PACKAGES[@]}" "${NPM_PACKAGES_KEEP[@]}" | grep -qxF "$name" && continue
 
         found_undeclared=1
-        warn "Removing undeclared global npm package: $name (not in npm-packages.sh)"
+        note "Removing undeclared global npm package: $name (not in npm-packages.sh)"
         global_npm uninstall -g "$name" || warn "Could not remove $name, remove it manually"
     done <<< "$installed"
 

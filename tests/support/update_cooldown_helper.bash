@@ -7,6 +7,7 @@ call_update_plugins_after_cooldown() {
     HOME="$test_home" XDG_CONFIG_HOME="$test_home/.config" bash -c '
         set -e
         warn() { echo "WARN: $*"; }
+        note() { echo "NOTE: $*"; }
         source "$1"
         shift
         CLAUDE_PLUGINS=("$@")
@@ -21,6 +22,7 @@ call_update_skills_after_cooldown() {
         set -e
         step() { :; }
         warn() { echo "WARN: $*"; }
+        note() { echo "NOTE: $*"; }
         success() { :; }
         source "$1" > /dev/null
         source "$2"

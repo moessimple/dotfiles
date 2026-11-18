@@ -38,3 +38,5 @@ source ~/.dotfiles/support/setup/tinkerbench/tinkerbench.sh
 step "Starting background services"
 source ~/.dotfiles/support/setup/services.sh
 success "Background services started"
+
+finish "Configuration applied"

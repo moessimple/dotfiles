@@ -67,7 +67,7 @@ if command -v claude &>/dev/null; then
         warn "Could not list the plugin marketplaces, skipping adding them"
     fi
     for plugin in "${CLAUDE_PLUGINS[@]}"; do
-        claude plugin install "$plugin" 2>/dev/null || warn "$plugin already installed"
+        claude plugin install "$plugin" 2>/dev/null || note "$plugin already installed"
     done
     # `claude mcp add` refuses an existing name, so a registration with another version is
     # removed first; that is how a raised version takes effect. `mcp get` fails when the server
@@ -106,7 +106,7 @@ claude_plugins_cleanup() {
             printf '%s\n' "${CLAUDE_PLUGINS[@]}" "${LOCAL_PLUGINS[@]}" | grep -qxF "$name" && continue
 
             found_undeclared=1
-            warn "Uninstalling undeclared plugin: $name (not in claude-plugins.sh)"
+            note "Uninstalling undeclared plugin: $name (not in claude-plugins.sh)"
             claude plugin uninstall "$name" || warn "Could not uninstall $name, remove it manually"
         done <<< "$installed_plugins"
     fi
@@ -128,7 +128,7 @@ claude_plugins_cleanup() {
             printf '%s\n' "${CLAUDE_MCP_SERVERS[@]}" | grep -qxF "$name" && continue
 
             found_undeclared=1
-            warn "Removing undeclared MCP server: $name (not in claude-plugins.sh)"
+            note "Removing undeclared MCP server: $name (not in claude-plugins.sh)"
             claude mcp remove "$name" -s user || warn "Could not remove $name, remove it manually"
         done <<< "$mcp_names"
     fi

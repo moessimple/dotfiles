@@ -20,7 +20,7 @@ composer config --global policy.cooldown.period "3 days" || warn "Could not set 
 composer config --global policy.cooldown.audit report || warn "Could not set the Composer cooldown audit mode"
 composer global config --no-plugins allow-plugins.ion-bazan/composer-diff true || warn "Could not allow-list the composer-diff plugin"
 for package in "${COMPOSER_PACKAGES[@]}"; do
-    composer global require --no-interaction "$package" || warn "$package already installed or failed"
+    composer global require --no-interaction "$package" || warn "Could not install $package"
 done
 success "Composer packages processed"
 
@@ -46,7 +46,7 @@ composer_packages_cleanup() {
         printf '%s\n' "${COMPOSER_PACKAGES[@]}" | grep -qxF "$name" && continue
 
         found_undeclared=1
-        warn "Removing undeclared Composer package: $name (not in composer-packages.sh)"
+        note "Removing undeclared Composer package: $name (not in composer-packages.sh)"
         composer global remove "$name" || warn "Could not remove $name, remove it manually"
     done <<< "$installed"
 
