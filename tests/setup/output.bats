@@ -23,10 +23,10 @@ teardown() {
 
 @test "an error stops the script with a failure" {
     # Act
-    run bash -c 'source "$1"; error "Broken"; echo "not reached"' bash "$output_file"
+    run --separate-stderr bash -c 'source "$1"; error "Broken"; echo "not reached"' bash "$output_file"
 
     # Assert
     assert_failure
-    assert_output_contains "Broken"
+    assert_stderr_contains "Broken"
     assert_output_does_not_contain "not reached"
 }

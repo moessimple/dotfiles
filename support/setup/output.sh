@@ -12,4 +12,4 @@ NC='\033[0m'
 step() { echo ""; echo -e "${BLUE}➜${NC} $1"; }
 success() { echo -e "${GREEN}✓${NC} $1"; }
 warn() { echo -e "${YELLOW}⚠${NC} $1"; }
-error() { echo -e "${RED}✗${NC} $1"; exit 1; }
+error() { echo -e "${RED}✗${NC} $1" >&2; exit 1; }

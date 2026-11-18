@@ -28,11 +28,11 @@ teardown() {
     given_repository_on_feature_branch
 
     # Act
-    run call_merge
+    run --separate-stderr call_merge
 
     # Assert
     assert_failure
-    assert_output_contains "No branch name given."
+    assert_stderr_contains "No branch name given."
 }
 
 @test "a successful merge restores stashed local changes" {

@@ -118,7 +118,7 @@ fork() {
         return 0
     fi
 
-    [ -z "$1" ] && { echo "No repo was given."; return 1; }
+    [ -z "$1" ] && { echo "No repo was given." >&2; return 1; }
 
     gh config set -h github.com git_protocol ssh
     gh repo fork "$1" --clone
@@ -613,7 +613,7 @@ _all_databases() {
 
 # Drop all project databases: main, test, and all parallel test shards
 dropdbs() {
-    [ ! -f .env ] && { echo "No .env file found."; return 1; }
+    [ ! -f .env ] && { echo "No .env file found." >&2; return 1; }
     _require_local_database || return
 
     local -a dbs
@@ -639,7 +639,7 @@ mfsa() { mfa && herd php artisan db:seed; }
 
 # Open the current project's database in a GUI client using credentials from .env
 opendb() {
-    [ ! -f .env ] && { echo "No .env file found."; return 1; }
+    [ ! -f .env ] && { echo "No .env file found." >&2; return 1; }
 
     local DB_CONNECTION=$(_env_val DB_CONNECTION)
     local DB_HOST=$(_env_val DB_HOST)
@@ -650,7 +650,7 @@ opendb() {
 
     local var
     for var in DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME; do
-        [[ -z "${(P)var}" ]] && { echo "$var not found in .env file."; return 1; }
+        [[ -z "${(P)var}" ]] && { echo "$var not found in .env file." >&2; return 1; }
     done
 
     open "${DB_CONNECTION}://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}"

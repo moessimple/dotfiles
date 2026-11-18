@@ -32,11 +32,11 @@ teardown() {
     given_switch_repository_on_feature_branch
 
     # Act
-    run call_switch
+    run --separate-stderr call_switch
 
     # Assert
     assert_failure
-    assert_output_contains "No branch name given."
+    assert_stderr_contains "No branch name given."
     assert_current_branch feature
 }
 
@@ -45,11 +45,11 @@ teardown() {
     given_switch_repository_on_feature_branch
 
     # Act
-    run call_switch main another-branch
+    run --separate-stderr call_switch main another-branch
 
     # Assert
     assert_failure
-    assert_output_contains "Expected exactly one branch name."
+    assert_stderr_contains "Expected exactly one branch name."
     assert_current_branch feature
 }
 

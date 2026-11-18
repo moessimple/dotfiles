@@ -17,11 +17,11 @@ teardown() {
 
 @test "opendb requires a .env file" {
     # Act
-    run call_opendb
+    run --separate-stderr call_opendb
 
     # Assert
     assert_failure
-    assert_output_contains "No .env file found."
+    assert_stderr_contains "No .env file found."
     assert_binary_not_called open
 }
 
@@ -30,11 +30,11 @@ teardown() {
     given_env_file DB_CONNECTION=mysql DB_PORT=3306 DB_DATABASE=mydb DB_USERNAME=root
 
     # Act
-    run call_opendb
+    run --separate-stderr call_opendb
 
     # Assert
     assert_failure
-    assert_output_contains "DB_HOST not found in .env file."
+    assert_stderr_contains "DB_HOST not found in .env file."
     assert_binary_not_called open
 }
 

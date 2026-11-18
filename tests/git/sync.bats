@@ -28,11 +28,11 @@ teardown() {
     given_repository_on_feature_branch
 
     # Act
-    run call_sync
+    run --separate-stderr call_sync
 
     # Assert
     assert_failure
-    assert_output_contains "No upstream remote configured"
+    assert_stderr_contains "No upstream remote configured"
 }
 
 @test "sync restores the starting branch and local changes after a push fails" {

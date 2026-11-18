@@ -25,11 +25,11 @@ teardown() {
 
 @test "fork requires a repository" {
     # Act
-    run call_fork
+    run --separate-stderr call_fork
 
     # Assert
     assert_failure
-    assert_output_contains "No repo was given."
+    assert_stderr_contains "No repo was given."
     assert_binary_not_called gh
 }
 

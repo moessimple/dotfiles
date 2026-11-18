@@ -1,3 +1,6 @@
+# run --separate-stderr needs 1.5.0.
+bats_require_minimum_version 1.5.0
+
 new_dotfiles_fixture() {
     dotfiles_dir="$(cd "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
     functions_file="$dotfiles_dir/home/.functions"
@@ -190,6 +193,10 @@ assert_output_contains_before() {
     local first="$1" second="$2"
     [[ "$output" == *"$second"* ]] || false
     [[ "${output%%"$second"*}" == *"$first"* ]] || false
+}
+
+assert_stderr_contains() {
+    [[ "$stderr" == *"$1"* ]] || false
 }
 
 assert_output_equals() {

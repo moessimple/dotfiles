@@ -17,11 +17,11 @@ teardown() {
 
 @test "dropdbs requires a .env file" {
     # Act
-    run call_dropdbs
+    run --separate-stderr call_dropdbs
 
     # Assert
     assert_failure
-    assert_output_contains "No .env file found."
+    assert_stderr_contains "No .env file found."
     assert_binary_not_called mysql
 }
 

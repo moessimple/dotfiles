@@ -20,7 +20,7 @@ function sync() {
     fi
 
     if ! git remote | grep -qxF upstream; then
-        echo 'No upstream remote configured'
+        echo 'No upstream remote configured' >&2
         return 1
     fi
 
