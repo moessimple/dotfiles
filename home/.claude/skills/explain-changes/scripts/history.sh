@@ -18,7 +18,7 @@ head="${2:-}"
 
 # Removed lines are blamed at the merge base, not at <base>: once the base branch has moved on,
 # its tip may already have changed or dropped the very lines the change removes.
-merge_base=$(git merge-base "$base" "${head:-HEAD}")
+merge_base="$(git merge-base "$base" "${head:-HEAD}")"
 
 if [[ -n "$head" ]]; then
     diff_range=("$merge_base" "$head")
@@ -85,7 +85,7 @@ lines_by_commit() {
 
 github_repository() {
     local url
-    url=$(git remote get-url origin 2>/dev/null) || return 0
+    url="$(git remote get-url origin 2>/dev/null)" || return 0
     printf '%s\n' "$url" \
         | sed -nE 's#^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)([^/]+/[^/]+)$#\2#p' \
         | sed 's/\.git$//'
@@ -103,7 +103,7 @@ describe_commit() {
 
     if [[ -z "$repository" ]]; then
         echo "pr: not looked up, origin is not a GitHub repository"
-    elif ! pulls=$(gh api "repos/$repository/commits/$sha/pulls" 2>/dev/null); then
+    elif ! pulls="$(gh api "repos/$repository/commits/$sha/pulls" 2>/dev/null)"; then
         echo "pr: lookup failed (gh api)"
     elif (($(jq 'length' <<<"$pulls") > 0)); then
         jq -r '.[0] | "pr: #\(.number) \(.title)\nurl: \(.html_url)\n"' <<<"$pulls"
@@ -118,15 +118,15 @@ describe_commit() {
     git show -s --format='%B' "$sha" | indent
 }
 
-ranges=$(removed_ranges)
+ranges="$(removed_ranges)"
 
 if [[ -z "$ranges" ]]; then
     echo "No removed or replaced lines: the change only adds code."
     exit 0
 fi
 
-repository=$(github_repository)
-commits=$(blamed_lines <<<"$ranges" | lines_by_commit)
+repository="$(github_repository)"
+commits="$(blamed_lines <<<"$ranges" | lines_by_commit)"
 
 while IFS=$'\t' read -r sha lines; do
     describe_commit "$sha" "$lines" "$repository"

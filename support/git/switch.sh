@@ -16,7 +16,7 @@ _switch_stash_marker() {
 # an exact match, since `git stash push -m` prepends "On <branch>: " to the message.
 _switch_find_stash() {
     local marker line ref message
-    marker=$(_switch_stash_marker "$1")
+    marker="$(_switch_stash_marker "$1")"
     while IFS= read -r line; do
         ref="${line%%:*}"
         message="${line#*: }"
@@ -63,16 +63,16 @@ switch() {
     fi
 
     local requested_branch="$1" branch
-    branch=$(git check-ref-format --branch "$requested_branch" 2>/dev/null) || {
+    branch="$(git check-ref-format --branch "$requested_branch" 2>/dev/null)" || {
         echo "Invalid branch name: $requested_branch" >&2
         return 1
     }
 
     local current_branch
-    current_branch=$(git symbolic-ref --quiet --short HEAD) || current_branch=$(git rev-parse --short HEAD) || return
+    current_branch="$(git symbolic-ref --quiet --short HEAD)" || current_branch="$(git rev-parse --short HEAD)" || return
 
     local stashed=0 leaving=0 exit_code status_output remote_branches
-    status_output=$(git status --porcelain) || return
+    status_output="$(git status --porcelain)" || return
     if [[ -n "$status_output" ]]; then
         echo "You have changes on this branch. What would you like to do with them?"
         echo "  1) Leave my changes on $current_branch"
@@ -87,7 +87,7 @@ switch() {
         case "$choice" in
             1)
                 local existing_stash existing_stash_commit=""
-                existing_stash=$(_switch_find_stash "$current_branch")
+                existing_stash="$(_switch_find_stash "$current_branch")"
                 if [[ -n "$existing_stash" ]]; then
                     if ! read -q "?Overwrite the existing stash on $current_branch with your current changes? [y/N] "; then
                         echo
@@ -99,7 +99,7 @@ switch() {
                     # below shifts every existing entry's index by one. The old entry is
                     # dropped only after the replacement exists, so a failed push cannot
                     # leave the branch with neither stash.
-                    existing_stash_commit=$(git rev-parse --verify --quiet "$existing_stash")
+                    existing_stash_commit="$(git rev-parse --verify --quiet "$existing_stash")"
                 fi
                 _git_stash_guard "$(_switch_stash_marker "$current_branch")" || return
                 [[ -n "$existing_stash_commit" ]] && _switch_drop_stash_by_commit "$existing_stash_commit"
@@ -117,13 +117,13 @@ switch() {
         esac
     fi
 
-    remote_branches=$(git for-each-ref --format='%(refname)' "refs/remotes/*/$branch") || return
+    remote_branches="$(git for-each-ref --format='%(refname)' "refs/remotes/*/$branch")" || return
     if git show-ref --verify --quiet "refs/heads/$branch" || [[ -n "$remote_branches" ]]; then
         git switch "$branch"
     else
         git switch -c "$branch"
     fi
-    exit_code=$?
+    exit_code="$?"
 
     if ((exit_code != 0)); then
         ((stashed == 1)) && echo "Switch failed; your changes remain in the stash." >&2

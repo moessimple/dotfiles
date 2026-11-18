@@ -20,7 +20,7 @@ mkdir -p "$HOME/.ssh"
 ssh-keygen -t ed25519 -C "$1" -f "$key"
 
 if [[ -z "${SSH_AUTH_SOCK:-}" ]]; then
-    agent=$(ssh-agent -s)
+    agent="$(ssh-agent -s)"
     eval "$agent"
 fi
 

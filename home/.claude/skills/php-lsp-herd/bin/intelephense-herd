@@ -6,7 +6,7 @@
 # PATH ever re-invokes `herd` and there is no recursion to guard against.
 set -euo pipefail
 
-php_bin=$(command -v herd &>/dev/null && herd which-php 2>/dev/null) || php_bin=""
+php_bin="$(command -v herd &>/dev/null && herd which-php 2>/dev/null)" || php_bin=""
 if [[ -x "$php_bin" ]]; then
     # Fixed shim dir, symlink refreshed on every launch. exec below runs no
     # cleanup trap, so a fresh mktemp dir per launch would leak one directory

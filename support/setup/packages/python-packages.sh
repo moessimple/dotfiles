@@ -51,10 +51,10 @@ clean_up_python_packages() {
     # dependencies of declared packages are never candidates. shortcut: the dependencies of a
     # removed package become candidates only on the following run, which removes them then.
     local installed
-    if ! installed=$(
+    if ! installed="$(
         set -o pipefail
         python_pip list --user --not-required --format=json 2>/dev/null | jq -r '.[].name'
-    ); then
+    )"; then
         warn "Could not read user-installed Python packages, skipping cleanup"
         return 0
     fi

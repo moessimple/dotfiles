@@ -14,7 +14,7 @@ wait_for_herd_onboarding() {
         note "Herd needs a one-time setup: complete its onboarding in the app (it will ask for your admin password), this continues automatically once it's done"
         local attempt=0
         until command -v herd &>/dev/null; do
-            attempt=$((attempt + 1))
+            attempt="$((attempt + 1))"
             if ((attempt % 12 == 0)); then
                 note "Still waiting for Herd's onboarding to finish..."
             fi

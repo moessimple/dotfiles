@@ -50,10 +50,10 @@ clean_up_ollama_models() {
     step "Checking for undeclared Ollama models"
 
     local installed
-    if ! installed=$(
+    if ! installed="$(
         set -o pipefail
         ollama list 2>/dev/null | awk 'NR > 1 { print $1 }'
-    ); then
+    )"; then
         warn "Could not read Ollama models, skipping cleanup"
         return 0
     fi

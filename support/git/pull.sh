@@ -11,17 +11,17 @@ pull() {
     fi
 
     local current_branch
-    current_branch=$(git symbolic-ref --quiet --short HEAD) || {
+    current_branch="$(git symbolic-ref --quiet --short HEAD)" || {
         echo "Cannot pull while HEAD is detached." >&2
         return 1
     }
 
     local stashed exit_code
     _git_stash_guard || return
-    stashed=$_git_stash_guard_active
+    stashed="$_git_stash_guard_active"
 
     git pull origin "$current_branch" "$@"
-    exit_code=$?
+    exit_code="$?"
 
     if ((exit_code != 0)); then
         ((stashed == 1)) && echo "Pull failed; your changes remain in the stash." >&2

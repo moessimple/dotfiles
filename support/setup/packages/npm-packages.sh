@@ -30,7 +30,7 @@ prune_agent_browser_chrome() {
     [[ -d "$browsers" ]] || return 0
 
     local newest
-    newest=$(printf '%s\n' "$browsers"/chrome-* | sed 's#.*/chrome-##' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1)
+    newest="$(printf '%s\n' "$browsers"/chrome-* | sed 's#.*/chrome-##' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1)"
 
     local dir
     for dir in "$browsers"/chrome-*; do
@@ -76,10 +76,10 @@ clean_up_npm_packages() {
     step "Checking for undeclared global npm packages"
 
     local installed
-    if ! installed=$(
+    if ! installed="$(
         set -o pipefail
         global_npm ls -g --depth=0 --json 2>/dev/null | jq -r '.dependencies // {} | keys[]'
-    ); then
+    )"; then
         warn "Could not read global npm packages, skipping cleanup"
         return 0
     fi
@@ -105,10 +105,10 @@ clean_up_npm_packages() {
 raise_npm_pin() {
     local package="$1" file="$2" variable="$3"
     local current newest
-    current=$(sed -n "s/^$variable=\"\(.*\)\"$/\1/p" "$file")
+    current="$(sed -n "s/^$variable=\"\(.*\)\"$/\1/p" "$file")"
     # pipefail, so a failed npm lookup is reported instead of reading as "no newer release".
     # npm 12 wraps `npm view --json` output in an array, hence the leading .[0].
-    if ! newest=$(
+    if ! newest="$(
         set -o pipefail
         global_npm view "$package" time --json 2>/dev/null \
             | jq -r --arg current "$current" '
@@ -119,7 +119,7 @@ raise_npm_pin() {
             | map(select((.value | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601) <= now - 3 * 86400))
             | map(select((.key | numbers) > ($current | numbers)))
             | max_by(.key | numbers) | .key // empty'
-    ); then
+    )"; then
         warn "Could not check $package for a newer release"
         return 0
     fi

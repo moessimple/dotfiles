@@ -2,7 +2,7 @@
 bats_require_minimum_version 1.5.0
 
 new_dotfiles_fixture() {
-    dotfiles_dir=$(cd "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)
+    dotfiles_dir="$(cd "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
     functions_file="$dotfiles_dir/home/.functions"
     aliases_file="$dotfiles_dir/home/.aliases"
     fixture="$BATS_TEST_TMPDIR/dotfiles-fixture"

@@ -26,10 +26,10 @@ resolve_project_root() {
     # silently swallowing the printf -v write meant for the caller's variable.
     local _rpr_git_root _rpr_candidate
 
-    _rpr_git_root=$(git -C "$start_dir" rev-parse --show-toplevel 2>/dev/null) || return 1
-    _rpr_git_root=$(cd "$_rpr_git_root" && pwd -P) || return 1
+    _rpr_git_root="$(git -C "$start_dir" rev-parse --show-toplevel 2>/dev/null)" || return 1
+    _rpr_git_root="$(cd "$_rpr_git_root" && pwd -P)" || return 1
 
-    _rpr_candidate=$(cd "$start_dir" && pwd -P) || return 1
+    _rpr_candidate="$(cd "$start_dir" && pwd -P)" || return 1
 
     while :; do
         if [[ -f "$_rpr_candidate/composer.json" ]]; then
@@ -38,7 +38,7 @@ resolve_project_root() {
             return 0
         fi
         [[ "$_rpr_candidate" == "$_rpr_git_root" ]] && break
-        _rpr_candidate=$(dirname -- "$_rpr_candidate")
+        _rpr_candidate="$(dirname -- "$_rpr_candidate")"
     done
 
     return 1

@@ -18,20 +18,20 @@ echo_meta() {
     echo "${color_meta}$1${color_none}"
 }
 
-path=$1
-old_file=$2
-old_hex=$3
-old_mode=$4
-new_file=$5
-new_hex=$6
-new_mode=$7
+path="$1"
+old_file="$2"
+old_hex="$3"
+old_mode="$4"
+new_file="$5"
+new_hex="$6"
+new_mode="$7"
 
-color_frag=$(git config --get-color color.diff.frag cyan)
-color_func=$(git config --get-color color.diff.func '')
-color_meta=$(git config --get-color color.diff.meta 'normal bold')
-color_new=$(git config --get-color color.diff.new green)
-color_old=$(git config --get-color color.diff.old red)
-color_none=$(tput sgr 0 2>/dev/null || true)
+color_frag="$(git config --get-color color.diff.frag cyan)"
+color_func="$(git config --get-color color.diff.func '')"
+color_meta="$(git config --get-color color.diff.meta 'normal bold')"
+color_new="$(git config --get-color color.diff.new green)"
+color_old="$(git config --get-color color.diff.old red)"
+color_none="$(tput sgr 0 2>/dev/null || true)"
 
 only_match_flag=""
 if { grepdiff -h 2>&1 || true; } | grep -q -e '--only-match'; then
@@ -52,8 +52,8 @@ for ((i = 0; i < ${#GREPDIFF_REGEX}; i++)); do
             safe_regex+="\\$char"
             ;;
         *)
-            lower=$(printf '%s' "$char" | /usr/bin/tr '[:upper:]' '[:lower:]')
-            upper=$(printf '%s' "$char" | /usr/bin/tr '[:lower:]' '[:upper:]')
+            lower="$(printf '%s' "$char" | /usr/bin/tr '[:upper:]' '[:lower:]')"
+            upper="$(printf '%s' "$char" | /usr/bin/tr '[:lower:]' '[:upper:]')"
             if [[ "$lower" != "$upper" ]]; then
                 safe_regex+="($lower|$upper)"
             else
@@ -68,9 +68,9 @@ if [[ "$safe_regex" == -* ]]; then
     safe_regex="[-]${safe_regex:1}"
 fi
 
-diff_output=$(git diff --no-color --no-ext-diff -p --src-prefix=a/ --dst-prefix=b/ "$old_file" "$new_file" || true)
+diff_output="$(git diff --no-color --no-ext-diff -p --src-prefix=a/ --dst-prefix=b/ "$old_file" "$new_file" || true)"
 
-filtered_diff=$({ echo "$diff_output" \
+filtered_diff="$({ echo "$diff_output" \
     | { grepdiff -E "$safe_regex" --output-matching=hunk ${only_match_flag} || true; } \
     | grep -v -e '^--- a/' -e '^+++ b/' \
     | grep -v -e '^--- /dev/null' -e '^+++ /dev/null' \
@@ -79,7 +79,7 @@ filtered_diff=$({ echo "$diff_output" \
     | GREP_COLOR=7 GREP_COLORS="ms=7" grep --color=always -E "$safe_regex|$" \
     | sed -e $'s/\x1b\[m\x1b\[K/\x1b\[27m/g' -e $'s/\x1b\[K//g' \
     | sed -e "s/^\(+.*\)/${color_new}\1${color_none}/" \
-    | sed -e "s/^\(-.*\)/${color_old}\1${color_none}/"; } || true)
+    | sed -e "s/^\(-.*\)/${color_old}\1${color_none}/"; } || true)"
 
 a_path="a/$path"
 b_path="b/$path"

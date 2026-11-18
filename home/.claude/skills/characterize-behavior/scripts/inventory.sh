@@ -10,7 +10,7 @@ if [[ ! -f artisan ]]; then
 fi
 
 # An application that does not boot would list no routes and no schedule, which reads like "none".
-if ! boot_error=$(php artisan about 2>&1 >/dev/null); then
+if ! boot_error="$(php artisan about 2>&1 >/dev/null)"; then
     echo "The application does not boot, so its entry points cannot be listed:" >&2
     echo "$boot_error" >&2
     exit 1
@@ -23,7 +23,7 @@ section() {
 # Prints the given lines as list entries in backticks, or "- none" when there are none.
 print_list() {
     local lines
-    lines=$(cat)
+    lines="$(cat)"
 
     if [[ -n $lines ]]; then
         sed 's/^/- `/; s/$/`/' <<<"$lines"

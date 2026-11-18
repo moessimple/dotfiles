@@ -11,7 +11,7 @@ nah() {
     fi
 
     local git_path
-    git_path=$(git rev-parse --git-dir) || return
+    git_path="$(git rev-parse --git-dir)" || return
 
     if [[ -d "${git_path}/rebase-merge" ]] || [[ -d "${git_path}/rebase-apply" ]]; then
         git rebase --abort

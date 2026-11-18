@@ -23,10 +23,10 @@ install_herd_xdebug() {
 
     if [[ ! -f "$debug_template" ]]; then
         warn "Herd's debug.ini template was not found, skipping Xdebug debug.ini setup"
-    elif ! installed_versions=$(
+    elif ! installed_versions="$(
         set -o pipefail
         herd php:list --json | jq -r '.[] | select(.installed) | .version'
-    ); then
+    )"; then
         warn "Could not read Herd's PHP versions, skipping Xdebug ini setup"
     else
         write_failed=0

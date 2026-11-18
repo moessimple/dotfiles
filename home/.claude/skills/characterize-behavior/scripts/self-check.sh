@@ -24,7 +24,7 @@ hits=0
 
 # Prints a heading and the given lines when there are any, and counts them as a hit.
 report() {
-    local heading=$1 lines=$2
+    local heading="$1" lines="$2"
 
     if [[ -n $lines ]]; then
         printf '\n## %s\n\n%s\n' "$heading" "$lines"
@@ -68,7 +68,7 @@ changed_acceptance_guard() {
 
     local current=""
     if [[ -f tests/acceptance.lock.json ]]; then
-        current=$(lock_entries <tests/acceptance.lock.json)
+        current="$(lock_entries <tests/acceptance.lock.json)"
     fi
 
     git show HEAD:tests/acceptance.lock.json | lock_entries | while read -r entry; do
@@ -83,7 +83,7 @@ changed_acceptance_guard() {
 unlocked_acceptance_tests() {
     local keys=""
     if [[ -f tests/acceptance.lock.json ]]; then
-        keys=$(lock_entries <tests/acceptance.lock.json | sed -E 's/^"([^"]+)": .*/\1/')
+        keys="$(lock_entries <tests/acceptance.lock.json | sed -E 's/^"([^"]+)": .*/\1/')"
     fi
 
     {

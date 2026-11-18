@@ -40,7 +40,7 @@ dataurl() {
     fi
 
     local mime_type
-    mime_type=$(file -b --mime-type "$1")
+    mime_type="$(file -b --mime-type "$1")"
     if [[ $mime_type == text/* ]]; then
         mime_type="${mime_type};charset=utf-8"
     fi
@@ -152,7 +152,7 @@ commit() {
                 done
             done
         } &|
-        local spinner_pid=$!
+        local spinner_pid="$!"
 
         # zsh cannot end commit from a trap while a command substitution runs,
         # so the trap only records the Ctrl-C and commit checks the flag after
@@ -161,21 +161,21 @@ commit() {
         trap 'interrupted=1' INT
 
         local diff_input
-        diff_input=$(echo "=== Summary ===" && git diff --cached --stat && echo -e "\n=== Diff (truncated if large) ===" && git diff --cached | head -c 50000)
+        diff_input="$(echo "=== Summary ===" && git diff --cached --stat && echo -e "\n=== Diff (truncated if large) ===" && git diff --cached | head -c 50000)"
 
         local claude_result=""
 
         if command -v claude &>/dev/null \
-            && claude_result=$(printf '%s\n' "$diff_input" | claude -p --no-session-persistence --output-format json "$prompt" 2>/dev/null); then
-            commit_message=$(printf '%s\n' "$claude_result" | jq -er 'select(.type == "result" and .is_error == false) | .result | select(type == "string" and test("\\S"))') || commit_message=""
+            && claude_result="$(printf '%s\n' "$diff_input" | claude -p --no-session-persistence --output-format json "$prompt" 2>/dev/null)"; then
+            commit_message="$(printf '%s\n' "$claude_result" | jq -er 'select(.type == "result" and .is_error == false) | .result | select(type == "string" and test("\\S"))')" || commit_message=""
         fi
 
         if [[ -z "${commit_message//[[:space:]]/}" ]] && ((! interrupted)); then
             local codex_result=""
 
             if command -v codex &>/dev/null \
-                && codex_result=$(printf '%s\n' "$diff_input" | codex exec --json --ephemeral --sandbox read-only "$prompt" 2>/dev/null); then
-                commit_message=$(printf '%s\n' "$codex_result" | jq -ser '
+                && codex_result="$(printf '%s\n' "$diff_input" | codex exec --json --ephemeral --sandbox read-only "$prompt" 2>/dev/null)"; then
+                commit_message="$(printf '%s\n' "$codex_result" | jq -ser '
                     if any(.[]; .type == "turn.completed") and all(.[]; .type != "turn.failed" and .type != "error") then
                         [.[] | select(.type == "item.completed" and .item.type == "agent_message") | .item.text]
                         | last
@@ -183,7 +183,7 @@ commit() {
                     else
                         empty
                     end
-                ') || commit_message=""
+                ')" || commit_message=""
             fi
         fi
 
@@ -277,7 +277,7 @@ pwf() { pw --filter "$@"; }
 _run_until_fail() {
     local count=0
     while true; do
-        count=$((count + 1))
+        count="$((count + 1))"
         if ! "$@"; then
             echo "❌ Failed after $count run(s)"
             return 1
@@ -484,14 +484,14 @@ cchangelog() {
             local all_diff direct_diff indirect_output package
             local -a indirect_packages filter_options
 
-            all_diff=$(herd composer diff "${branch}:composer.lock" --with-platform --format=json --no-ansi) || return
-            direct_diff=$(herd composer diff "${branch}:composer.lock" --with-platform --direct --format=json --no-ansi) || return
-            indirect_output=$(jq -nr --argjson all "$all_diff" --argjson direct "$direct_diff" '
+            all_diff="$(herd composer diff "${branch}:composer.lock" --with-platform --format=json --no-ansi)" || return
+            direct_diff="$(herd composer diff "${branch}:composer.lock" --with-platform --direct --format=json --no-ansi)" || return
+            indirect_output="$(jq -nr --argjson all "$all_diff" --argjson direct "$direct_diff" '
                 (($direct.packages // {}) + ($direct["packages-dev"] // {})) as $direct_packages
                 | (($all.packages // {}) + ($all["packages-dev"] // {}))
                 | keys[]
                 | select($direct_packages[.] == null)
-            ') || return
+            ')" || return
 
             if [[ -z "$indirect_output" ]]; then
                 echo "No indirect dependency changes."
@@ -548,9 +548,9 @@ importdump() {
 
 _env_val() {
     local value
-    value=$(grep "^$1=" .env 2>/dev/null | tail -n1 | cut -d= -f2- | tr -d '\r')
+    value="$(grep "^$1=" .env 2>/dev/null | tail -n1 | cut -d= -f2- | tr -d '\r')"
     if [[ "$value" == \"*\" || "$value" == \'*\' ]]; then
-        value=${value:1:-1}
+        value="${value:1:-1}"
     fi
     print -r -- "$value"
 }
@@ -559,7 +559,7 @@ _env_val() {
 # before their first mysql or artisan call, because artisan reads DB_HOST from .env itself.
 _require_local_database() {
     local host
-    host=$(_env_val DB_HOST)
+    host="$(_env_val DB_HOST)"
     case "$host" in
         "" | 127.0.0.1 | ::1 | localhost) return 0 ;;
     esac
@@ -569,10 +569,10 @@ _require_local_database() {
 
 _mysql_cmd() {
     local host port user pass
-    host=$(_env_val DB_HOST)
-    port=$(_env_val DB_PORT)
-    user=$(_env_val DB_USERNAME)
-    pass=$(_env_val DB_PASSWORD)
+    host="$(_env_val DB_HOST)"
+    port="$(_env_val DB_PORT)"
+    user="$(_env_val DB_USERNAME)"
+    pass="$(_env_val DB_PASSWORD)"
     # For localhost the mysql client connects over the Unix socket and ignores -P,
     # which would reach whichever server owns the socket instead of DB_PORT.
     [[ -z "$host" || "$host" == localhost ]] && host=127.0.0.1
@@ -632,9 +632,9 @@ _migrate_databases() {
     for db in "$@"; do
         _mysql_cmd -e "DROP DATABASE IF EXISTS \`$db\`; CREATE DATABASE \`$db\`;" || return
         if [[ -d "database/skeema" ]]; then
-            DB_DATABASE=$db herd php artisan skeema:push --allow-unsafe --force --skip-lint --env=local || failed=1
+            DB_DATABASE="$db" herd php artisan skeema:push --allow-unsafe --force --skip-lint --env=local || failed=1
         else
-            DB_DATABASE=$db herd php artisan migrate || failed=1
+            DB_DATABASE="$db" herd php artisan migrate || failed=1
         fi
     done
     return "$failed"
@@ -643,9 +643,9 @@ _migrate_databases() {
 # Resolve all databases (main + test + parallel shards) from .env and phpunit.xml
 _all_databases() {
     local main_db test_db phpunit_config="phpunit.xml"
-    main_db=$(_env_val DB_DATABASE)
+    main_db="$(_env_val DB_DATABASE)"
     [[ -f "$phpunit_config" ]] || phpunit_config="phpunit.xml.dist"
-    test_db=$(grep -o 'name="DB_DATABASE" value="[^"]*' "$phpunit_config" 2>/dev/null | sed 's/.*value="//' | tail -n1)
+    test_db="$(grep -o 'name="DB_DATABASE" value="[^"]*' "$phpunit_config" 2>/dev/null | sed 's/.*value="//' | tail -n1)"
 
     local databases=("$main_db")
     if [[ -n "$test_db" ]]; then
@@ -696,12 +696,12 @@ opendb() {
     fi
 
     local DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD
-    DB_CONNECTION=$(_env_val DB_CONNECTION)
-    DB_HOST=$(_env_val DB_HOST)
-    DB_PORT=$(_env_val DB_PORT)
-    DB_DATABASE=$(_env_val DB_DATABASE)
-    DB_USERNAME=$(_env_val DB_USERNAME)
-    DB_PASSWORD=$(_env_val DB_PASSWORD)
+    DB_CONNECTION="$(_env_val DB_CONNECTION)"
+    DB_HOST="$(_env_val DB_HOST)"
+    DB_PORT="$(_env_val DB_PORT)"
+    DB_DATABASE="$(_env_val DB_DATABASE)"
+    DB_USERNAME="$(_env_val DB_USERNAME)"
+    DB_PASSWORD="$(_env_val DB_PASSWORD)"
 
     local var
     for var in DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME; do
@@ -716,8 +716,8 @@ opendb() {
     local encode='gsub("%"; "%25") | gsub("@"; "%40") | gsub(":"; "%3A") | gsub("/"; "%2F")
         | gsub("\\?"; "%3F") | gsub("#"; "%23") | gsub(" "; "%20")'
     local username password
-    username=$(jq -rn --arg value "$DB_USERNAME" "\$value | $encode") || return
-    password=$(jq -rn --arg value "$DB_PASSWORD" "\$value | $encode") || return
+    username="$(jq -rn --arg value "$DB_USERNAME" "\$value | $encode")" || return
+    password="$(jq -rn --arg value "$DB_PASSWORD" "\$value | $encode")" || return
 
     open "${DB_CONNECTION}://${username}:${password}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
 }

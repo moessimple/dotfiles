@@ -11,7 +11,7 @@ setup() {
     repository="$test_home/.dotfiles"
     mkdir -p "$repository"
     given_fake_bin_on_path
-    REAL_GIT=$(command -v git)
+    REAL_GIT="$(command -v git)"
     export REAL_GIT
     export UPDATE_SIDE_EFFECT_REACHED="$fixture/update-side-effect-reached"
 }

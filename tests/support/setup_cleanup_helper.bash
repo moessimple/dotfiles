@@ -289,8 +289,8 @@ assert_herd_npm_not_called() {
 # Points $target at a fixture copy of the setup script with the given pin, so tests do not
 # break each time bin/update.sh raises the real pin.
 given_setup_script_pinned() {
-    local variable="$1" version="$2"
-    local copy="$fixture/$(basename "$target")"
+    local variable="$1" version="$2" copy
+    copy="$fixture/$(basename "$target")"
     sed "s/^$variable=\".*\"$/$variable=\"$version\"/" "$target" >"$copy"
     target="$copy"
 }

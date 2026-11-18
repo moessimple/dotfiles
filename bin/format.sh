@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-repository=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
+repository="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 cd "$repository"
 
 # Formats in place by default; --check only prints the diff and fails if anything is unformatted.

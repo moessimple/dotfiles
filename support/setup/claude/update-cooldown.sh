@@ -13,9 +13,9 @@ UPDATE_COOLDOWN_FIRST_SEEN="${XDG_CONFIG_HOME:-$HOME/.config}/claude-update-cool
 # before is recorded as first seen now, replacing the previous one, so the cooldown starts again.
 has_cooled_down() {
     local id="$1" state="$2" now seen
-    now=$(date +%s)
-    seen=$(awk -F '\t' -v id="$id" -v state="$state" '$1 == id && $2 == state { print $3 }' \
-        "$UPDATE_COOLDOWN_FIRST_SEEN" 2>/dev/null)
+    now="$(date +%s)"
+    seen="$(awk -F '\t' -v id="$id" -v state="$state" '$1 == id && $2 == state { print $3 }' \
+        "$UPDATE_COOLDOWN_FIRST_SEEN" 2>/dev/null)"
     # Shell arithmetic reads a word as 0, which would end the cooldown, so only digits count.
     case "$seen" in
         '' | *[!0-9]*)
@@ -36,15 +36,15 @@ has_cooled_down() {
 # source is another repository, whose changes this checkout cannot see.
 print_plugin_state() {
     local name="$1" checkout="$2" url="$3" entry source folder slug="" tree
-    entry=$(git -C "$checkout" show HEAD:.claude-plugin/marketplace.json 2>/dev/null \
-        | jq -ce --arg name "$name" 'first(.plugins[] | select(.name == $name))') || return 1
-    source=$(jq -c '.source' <<<"$entry")
+    entry="$(git -C "$checkout" show HEAD:.claude-plugin/marketplace.json 2>/dev/null \
+        | jq -ce --arg name "$name" 'first(.plugins[] | select(.name == $name))')" || return 1
+    source="$(jq -c '.source' <<<"$entry")"
     case "$url" in
-        https://github.com/*) slug=${url#https://github.com/} && slug=${slug%.git} ;;
+        https://github.com/*) slug="${url#https://github.com/}" && slug="${slug%.git}" ;;
     esac
-    if folder=$(jq -er 'strings' <<<"$source"); then
-        folder=${folder#./}
-        folder=${folder%/}
+    if folder="$(jq -er 'strings' <<<"$source")"; then
+        folder="${folder#./}"
+        folder="${folder%/}"
         [[ "$folder" != "." ]] || folder=""
     elif jq -e --arg url "${url%.git}" --arg slug "$slug" \
         '((.repo // "") == $slug and $slug != "") or (((.url // "") | sub("\\.git$"; "")) == $url)' \
@@ -53,7 +53,7 @@ print_plugin_state() {
     else
         return 1
     fi
-    tree=$(git -C "$checkout" rev-parse --verify --quiet "HEAD:$folder") || return 1
+    tree="$(git -C "$checkout" rev-parse --verify --quiet "HEAD:$folder")" || return 1
     echo "$tree+$(printf '%s' "$entry" | git hash-object --stdin)"
 }
 
@@ -64,11 +64,11 @@ print_plugin_state() {
 update_plugins_after_cooldown() {
     local marketplaces
     # pipefail, so a failed listing is reported instead of reading as "no marketplaces to check".
-    if ! marketplaces=$(
+    if ! marketplaces="$(
         set -o pipefail
         claude plugin marketplace list --json 2>/dev/null \
             | jq -r '.[] | select(.url != null) | [.name, .url] | @tsv'
-    ); then
+    )"; then
         warn "Could not list the plugin marketplaces, plugins not updated"
         return 0
     fi
@@ -77,7 +77,7 @@ update_plugins_after_cooldown() {
     # The list arrives on fd 3, so the claude calls in the loop cannot consume it from stdin.
     while IFS=$'\t' read -r -u 3 name url; do
         [[ -n "$name" ]] || continue
-        checkout=$(mktemp -d)
+        checkout="$(mktemp -d)"
         if ! git clone --quiet --filter=blob:none --no-checkout "$url" "$checkout" 2>/dev/null; then
             warn "Could not check the $name marketplace, its plugins are not updated"
             rm -rf "$checkout"
@@ -91,7 +91,7 @@ update_plugins_after_cooldown() {
         # cooldown. Every state is still checked, so each one's first sighting is recorded.
         for plugin in "${CLAUDE_PLUGINS[@]}"; do
             [[ "${plugin#*@}" == "$name" ]] || continue
-            if ! state=$(print_plugin_state "${plugin%@*}" "$checkout" "$url"); then
+            if ! state="$(print_plugin_state "${plugin%@*}" "$checkout" "$url")"; then
                 warn "Could not check $plugin in the $name marketplace, not updated"
                 all_cooled_down=0
                 continue
@@ -118,7 +118,7 @@ update_plugins_after_cooldown() {
 # root; ^{tree} turns both into the tree that upstream is compared against.
 print_installed_skill_tree() {
     local name="$1" checkout="$2" hash
-    hash=$(jq -r --arg name "$name" '.skills[$name].skillFolderHash // empty' "$SKILL_LOCK_FILE" 2>/dev/null) || return 1
+    hash="$(jq -r --arg name "$name" '.skills[$name].skillFolderHash // empty' "$SKILL_LOCK_FILE" 2>/dev/null)" || return 1
     [[ -n "$hash" ]] || return 1
     git -C "$checkout" rev-parse --verify --quiet "$hash^{tree}"
 }
@@ -127,9 +127,9 @@ print_installed_skill_tree() {
 # installed one and has passed the cooldown.
 update_skills_after_cooldown() {
     local entries
-    if ! entries=$(jq -r '.skills // {} | to_entries[]
+    if ! entries="$(jq -r '.skills // {} | to_entries[]
             | [.key, .value.sourceUrl, (.value.skillPath | sub("/?SKILL\\.md$"; ""))] | @tsv' \
-        "$SKILL_LOCK_FILE" 2>/dev/null); then
+        "$SKILL_LOCK_FILE" 2>/dev/null)"; then
         warn "Could not read $SKILL_LOCK_FILE, skills not updated"
         return 0
     fi
@@ -140,9 +140,9 @@ update_skills_after_cooldown() {
         [[ -n "$name" ]] || continue
         # shortcut: one clone per skill, even for skills from the same repository. Each takes about
         # a second; share them per repository if the list grows.
-        checkout=$(mktemp -d)
+        checkout="$(mktemp -d)"
         if ! git clone --quiet --filter=blob:none --no-checkout "$url" "$checkout" 2>/dev/null \
-            || ! upstream=$(git -C "$checkout" rev-parse --verify --quiet "HEAD:$skill_dir"); then
+            || ! upstream="$(git -C "$checkout" rev-parse --verify --quiet "HEAD:$skill_dir")"; then
             warn "Could not check $name, not updated"
         elif [[ "$upstream" != "$(print_installed_skill_tree "$name" "$checkout")" ]] && has_cooled_down "$name" "$upstream"; then
             skills_cli update "$name" -g || warn "Could not update $name"

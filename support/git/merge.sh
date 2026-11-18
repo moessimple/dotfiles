@@ -18,10 +18,10 @@ merge() {
 
     local stashed exit_code
     _git_stash_guard || return
-    stashed=$_git_stash_guard_active
+    stashed="$_git_stash_guard_active"
 
     git merge "$@"
-    exit_code=$?
+    exit_code="$?"
 
     if ((exit_code != 0)); then
         ((stashed == 1)) && echo "Merge failed; your changes remain in the stash." >&2

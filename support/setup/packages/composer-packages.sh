@@ -45,10 +45,10 @@ clean_up_composer_packages() {
     step "Checking for undeclared global Composer packages"
 
     local installed
-    if ! installed=$(
+    if ! installed="$(
         set -o pipefail
         composer global show -D --format=json 2>/dev/null | jq -r '.installed // [] | .[].name'
-    ); then
+    )"; then
         warn "Could not read global Composer packages, skipping cleanup"
         return 0
     fi

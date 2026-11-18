@@ -21,12 +21,12 @@ setup() {
 @test "shared skill frontmatter contains no agent-specific fields" {
     # Assert
     for skill in "${shared_skills[@]}"; do
-        frontmatter=$(awk 'NR == 1 && $0 == "---" { inside = 1; next } inside && $0 == "---" { exit } inside { print }' "$skills_dir/$skill/SKILL.md")
+        frontmatter="$(awk 'NR == 1 && $0 == "---" { inside = 1; next } inside && $0 == "---" { exit } inside { print }' "$skills_dir/$skill/SKILL.md")"
 
         # Manual-only skills need Claude's disable-model-invocation; Codex gets the same
         # restriction from agents/openai.yaml (see the manual-only test below).
         if [ -f "$skills_dir/$skill/agents/openai.yaml" ]; then
-            frontmatter=$(grep -v '^disable-model-invocation: true$' <<<"$frontmatter")
+            frontmatter="$(grep -v '^disable-model-invocation: true$' <<<"$frontmatter")"
         fi
 
         ! grep -Eq '^(argument-hint|disable-model-invocation|disallowed-tools|user-invocable):' <<<"$frontmatter" || false
@@ -149,7 +149,7 @@ setup() {
 @test "shared skill descriptions are valid YAML for strict parsers such as Codex" {
     # Assert
     for skill in "${shared_skills[@]}"; do
-        description=$(grep -m1 '^description: ' "$skills_dir/$skill/SKILL.md")
+        description="$(grep -m1 '^description: ' "$skills_dir/$skill/SKILL.md")"
 
         # A plain (unquoted) scalar may not contain ": ", which strict YAML rejects.
         if ! grep -Eq '^description: ["'"'"'>|]' <<<"$description"; then

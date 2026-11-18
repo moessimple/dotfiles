@@ -2,7 +2,7 @@ source "$(cd "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/test_helper.bash"
 
 new_quality_fixture() {
     new_dotfiles_fixture
-    fixture=$(cd "$fixture" && pwd -P)
+    fixture="$(cd "$fixture" && pwd -P)"
 
     hooks_dir="$dotfiles_dir/home/.claude/hooks"
     gate="$hooks_dir/quality-gate.sh"
@@ -264,7 +264,7 @@ path_without_composer() {
 # so the fake records that directory for assert_herd_resolved_php_in.
 given_herd_resolving_to_system_php() {
     local system_php
-    system_php=$(command -v php)
+    system_php="$(command -v php)"
     herd_which_php_directory_log="$fixture/herd-which-php-directory"
 
     cat >"$fake_bin/herd" <<HERD
@@ -287,7 +287,7 @@ HERD
 # GATE_PATH="$(path_without_composer)" and GATE_HOME="$test_home".
 given_herd_only_at_its_default_install_path() {
     local real_php herd_home
-    real_php=$(command -v php)
+    real_php="$(command -v php)"
     herd_home="$test_home/Library/Application Support/Herd/bin"
     mkdir -p "$herd_home"
 

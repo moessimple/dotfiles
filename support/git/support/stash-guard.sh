@@ -19,9 +19,9 @@ _git_stash_guard() {
     local stash_before stash_after
     local -a message_options
     [[ -n "${1:-}" ]] && message_options=(-m "$1")
-    stash_before=$(git rev-parse -q --verify refs/stash 2>/dev/null)
+    stash_before="$(git rev-parse -q --verify refs/stash 2>/dev/null)"
     git stash push --include-untracked "${message_options[@]}" || return
-    stash_after=$(git rev-parse -q --verify refs/stash 2>/dev/null)
+    stash_after="$(git rev-parse -q --verify refs/stash 2>/dev/null)"
 
     if [[ -z "$stash_after" ]] || [[ "$stash_after" == "$stash_before" ]]; then
         echo "Could not stash local changes." >&2

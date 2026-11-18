@@ -45,7 +45,7 @@ install_claude_skills() {
     # installed skill changes only through update_skills_after_cooldown. No lock file yet means
     # nothing is installed.
     local installed_skills="" entry repo skill
-    if [[ -f "$SKILL_LOCK_FILE" ]] && ! installed_skills=$(jq -r '.skills // {} | keys[]' "$SKILL_LOCK_FILE" 2>/dev/null); then
+    if [[ -f "$SKILL_LOCK_FILE" ]] && ! installed_skills="$(jq -r '.skills // {} | keys[]' "$SKILL_LOCK_FILE" 2>/dev/null)"; then
         warn "Could not read $SKILL_LOCK_FILE, adding every declared skill"
         installed_skills=""
     fi
@@ -83,7 +83,7 @@ clean_up_claude_skills() {
     done
 
     local installed
-    if ! installed=$(jq -r '.skills // {} | keys[]' "$SKILL_LOCK_FILE" 2>/dev/null); then
+    if ! installed="$(jq -r '.skills // {} | keys[]' "$SKILL_LOCK_FILE" 2>/dev/null)"; then
         warn "Could not read $SKILL_LOCK_FILE, skipping cleanup"
         return 0
     fi

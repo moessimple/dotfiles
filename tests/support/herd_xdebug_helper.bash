@@ -85,7 +85,7 @@ ini_path() {
 assert_always_loaded_xdebug_ini() {
     local slug="$1"
     local ini
-    ini=$(ini_path "$slug/xdebug.ini")
+    ini="$(ini_path "$slug/xdebug.ini")"
     assert_file_exists "$ini"
     grep -qxF "zend_extension=$herd_resources/xdebug/xdebug-$slug-arm64.so" "$ini" || return 1
     grep -qxF "xdebug.mode=off" "$ini" || return 1
@@ -94,7 +94,7 @@ assert_always_loaded_xdebug_ini() {
 assert_herd_debug_ini() {
     local slug="$1"
     local ini
-    ini=$(ini_path "$slug/debug/debug.ini")
+    ini="$(ini_path "$slug/debug/debug.ini")"
     assert_file_exists "$ini"
     grep -qxF "zend_extension=$herd_resources/xdebug/xdebug-$slug-arm64.so" "$ini" || return 1
     grep -qxF "xdebug.mode=debug,develop" "$ini" || return 1

@@ -264,8 +264,8 @@ teardown() {
     # Assert
     assert_success
     record="$config_home/claude-quality/runs$project.json"
-    recorded_start=$(jq -r .started "$record")
-    pint_start=$(cat "$fixture/pint-started")
+    recorded_start="$(jq -r .started "$record")"
+    pint_start="$(cat "$fixture/pint-started")"
     [ "$recorded_start" \< "$pint_start" ] || [ "$recorded_start" = "$pint_start" ]
 }
 

@@ -39,7 +39,7 @@ fi
 
 email=""
 if [[ -f "$HOME/.config/dotfiles/profile" ]]; then
-    email=$(git config --file "$HOME/.gitconfig-local" --get user.email 2>/dev/null || true)
+    email="$(git config --file "$HOME/.gitconfig-local" --get user.email 2>/dev/null || true)"
 else
     echo "What kind of machine is this?"
     echo "1) Private"
@@ -63,7 +63,7 @@ fi
 if [[ -z "${email//[[:space:]]/}" ]]; then
     email_default=""
     if [[ "$DOTFILES_PROFILE" == "private" ]]; then
-        email_default=$(git config --global --includes --get user.email 2>/dev/null || true)
+        email_default="$(git config --global --includes --get user.email 2>/dev/null || true)"
     fi
     while true; do
         read -r -p "Git email for this $DOTFILES_PROFILE machine${email_default:+ [$email_default]}: " email \

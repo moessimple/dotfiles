@@ -41,7 +41,7 @@ pint_covers_path() {
     [[ -f pint.json ]] || return 0
 
     local excluded_paths
-    excluded_paths=$(jq -r '(.exclude // []) + (.notPath // []) | .[]' pint.json 2>/dev/null)
+    excluded_paths="$(jq -r '(.exclude // []) + (.notPath // []) | .[]' pint.json 2>/dev/null)"
     [[ -n "$excluded_paths" ]] || return 0
 
     local excluded_path
@@ -119,11 +119,11 @@ if [[ "$mode" == "file" ]]; then
         exit "$EXIT_USAGE"
     fi
 
-    canonical=$(canonical_file_path "$file") || exit "$EXIT_USAGE"
+    canonical="$(canonical_file_path "$file")" || exit "$EXIT_USAGE"
 
     # A repository can nest several Composer projects, so the file's own
     # directory decides which one is gated, not the shell's current directory.
-    start_dir=$(dirname -- "$canonical")
+    start_dir="$(dirname -- "$canonical")"
 else
     start_dir="${CLAUDE_PROJECT_DIR:-$PWD}"
 fi
@@ -150,13 +150,13 @@ cd "$root" || exit "$EXIT_INTERNAL"
 #
 # Hooks run non-interactively, where .zshrc has not put Herd on PATH, so its
 # default install location is the fallback.
-herd_bin=$(command -v herd || true)
+herd_bin="$(command -v herd || true)"
 if [[ -z "$herd_bin" && -x "$HOME/Library/Application Support/Herd/bin/herd" ]]; then
     herd_bin="$HOME/Library/Application Support/Herd/bin/herd"
 fi
-php_bin=$([[ -n "$herd_bin" ]] && "$herd_bin" which-php 2>/dev/null)
+php_bin="$([[ -n "$herd_bin" ]] && "$herd_bin" which-php 2>/dev/null)"
 if [[ -x "$php_bin" ]]; then
-    php_shim_dir=$(mktemp -d)
+    php_shim_dir="$(mktemp -d)"
     trap 'rm -rf "$php_shim_dir"' EXIT
     ln -s "$php_bin" "$php_shim_dir/php"
     PATH="$php_shim_dir:$PATH"
@@ -188,7 +188,7 @@ if ! $has_pint && ! $has_phpstan && ! $has_rector && ! $has_pest && ! $has_phpun
 fi
 
 status=0
-started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 # PHP's default 128M is too little for PHPStan or a test run, and PHP does not
 # read PHP_MEMORY_LIMIT on its own, so the limit is passed explicitly to
@@ -199,32 +199,32 @@ case "$mode" in
     file)
         relative="${canonical#"$root"/}"
         if [[ "$(basename -- "$canonical")" == "composer.json" ]]; then
-            $has_composer && { composer validate --no-check-all --strict || status=$?; }
+            $has_composer && { composer validate --no-check-all --strict || status="$?"; }
         elif is_hidden_path "$relative"; then
             : # See is_hidden_path.
         else
             if $has_pint && pint_covers_path "$relative"; then
-                vendor/bin/pint --test "$canonical" || status=$?
+                vendor/bin/pint --test "$canonical" || status="$?"
             fi
             if $has_rector && [[ -z "${CLAUDE_QUALITY_SKIP_RECTOR:-}" ]]; then
-                vendor/bin/rector process "$canonical" --dry-run --no-progress-bar --memory-limit="$memory_limit" || status=$?
+                vendor/bin/rector process "$canonical" --dry-run --no-progress-bar --memory-limit="$memory_limit" || status="$?"
             fi
         fi
         ;;
     fast)
-        $has_pint && { vendor/bin/pint --dirty --test || status=$?; }
-        $has_rector && [[ -z "${CLAUDE_QUALITY_SKIP_RECTOR:-}" ]] && { run_rector_dirty || status=$?; }
-        $has_phpstan && { vendor/bin/phpstan analyse --no-progress --memory-limit="$memory_limit" || status=$?; }
-        $has_composer && { composer validate --no-check-all --strict || status=$?; }
-        [[ -z "${CLAUDE_QUALITY_SKIP_TESTS:-}" ]] && { run_test_suite || status=$?; }
+        $has_pint && { vendor/bin/pint --dirty --test || status="$?"; }
+        $has_rector && [[ -z "${CLAUDE_QUALITY_SKIP_RECTOR:-}" ]] && { run_rector_dirty || status="$?"; }
+        $has_phpstan && { vendor/bin/phpstan analyse --no-progress --memory-limit="$memory_limit" || status="$?"; }
+        $has_composer && { composer validate --no-check-all --strict || status="$?"; }
+        [[ -z "${CLAUDE_QUALITY_SKIP_TESTS:-}" ]] && { run_test_suite || status="$?"; }
         ;;
     full)
-        $has_pint && { vendor/bin/pint --test || status=$?; }
-        $has_phpstan && { vendor/bin/phpstan analyse --no-progress --memory-limit="$memory_limit" || status=$?; }
-        $has_rector && { vendor/bin/rector process --dry-run --no-progress-bar --memory-limit="$memory_limit" || status=$?; }
-        $has_composer && { composer validate --no-check-all --strict || status=$?; }
-        $has_composer && { composer audit || status=$?; }
-        run_test_suite || status=$?
+        $has_pint && { vendor/bin/pint --test || status="$?"; }
+        $has_phpstan && { vendor/bin/phpstan analyse --no-progress --memory-limit="$memory_limit" || status="$?"; }
+        $has_rector && { vendor/bin/rector process --dry-run --no-progress-bar --memory-limit="$memory_limit" || status="$?"; }
+        $has_composer && { composer validate --no-check-all --strict || status="$?"; }
+        $has_composer && { composer audit || status="$?"; }
+        run_test_suite || status="$?"
         ;;
 esac
 
@@ -233,7 +233,7 @@ if [[ "$mode" != "file" ]]; then
     marker="$QUALITY_RUNS_DIR$root.dirty"
     mkdir -p "$(dirname -- "$record")"
 
-    sha=$(git rev-parse --short HEAD 2>/dev/null || echo none)
+    sha="$(git rev-parse --short HEAD 2>/dev/null || echo none)"
     tree="clean"
     [[ -n "$(git status --porcelain 2>/dev/null)" ]] && tree="dirty"
 

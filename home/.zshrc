@@ -8,7 +8,7 @@ export ZSH=~/.oh-my-zsh
 ZSH_THEME="agnoster"
 
 # Hide username in prompt
-DEFAULT_USER=$(whoami)
+DEFAULT_USER="$(whoami)"
 
 # Oh My Zsh plugins
 plugins=(git composer macos)

@@ -35,9 +35,9 @@ CHROME_DEVTOOLS_MCP_VERSION="1.13.0"
 # the link rather than replaced.
 disable_marketplace_auto_update() {
     local url="$1" settings="$HOME/.claude/settings.json" updated
-    updated=$(jq --arg url "${url%.git}" '.extraKnownMarketplaces |= with_entries(
+    updated="$(jq --arg url "${url%.git}" '.extraKnownMarketplaces |= with_entries(
         if (.value.source.url // "" | sub("\\.git$"; "")) == $url then .value.autoUpdate = false else . end)' \
-        "$settings" 2>/dev/null) || return 1
+        "$settings" 2>/dev/null)" || return 1
     printf '%s\n' "$updated" >"$settings"
 }
 
@@ -57,15 +57,15 @@ install_claude_plugins() {
         # Only marketplaces Claude Code does not know yet are added, and their autoUpdate is set off
         # again afterwards: without it Claude Code updates plugins on its own and bypasses the cooldown
         # in update.sh.
-        if ! declared_marketplaces=$(
+        if ! declared_marketplaces="$(
             set -o pipefail
             read_claude_marketplaces | jq -r '.[].source.url | sub("\\.git$"; "")'
-        ); then
+        )"; then
             warn "Could not read declared plugin marketplaces, skipping adding them"
-        elif known_marketplaces=$(
+        elif known_marketplaces="$(
             set -o pipefail
             claude plugin marketplace list --json 2>/dev/null | jq -r '.[] | .url // empty | sub("\\.git$"; "")'
-        ); then
+        )"; then
             while IFS= read -r marketplace; do
                 [[ -n "$marketplace" ]] || continue
                 printf '%s\n' "$known_marketplaces" | grep -qxF "$marketplace" && continue
@@ -79,10 +79,10 @@ install_claude_plugins() {
             warn "Could not list the plugin marketplaces, skipping adding them"
         fi
         # Only missing plugins are installed, so a failed install is a real problem.
-        if ! installed_plugins=$(
+        if ! installed_plugins="$(
             set -o pipefail
             claude plugin list --json 2>/dev/null | jq -r '.[] | select(.scope == "user") | .id'
-        ); then
+        )"; then
             warn "Could not read installed Claude Code plugins, installing every declared one"
             installed_plugins=""
         fi
@@ -93,7 +93,7 @@ install_claude_plugins() {
         # `claude mcp add` refuses an existing name, so a registration with another version is
         # removed first; that is how a raised version takes effect. `mcp get` fails when the server
         # is not configured yet, which under the entry points' `set -e` would end the whole run.
-        registered_mcp=$(claude mcp get chrome-devtools 2>/dev/null) || registered_mcp=""
+        registered_mcp="$(claude mcp get chrome-devtools 2>/dev/null)" || registered_mcp=""
         if [[ "$registered_mcp" != *"chrome-devtools-mcp@$CHROME_DEVTOOLS_MCP_VERSION "* ]]; then
             if [[ -n "$registered_mcp" ]]; then
                 claude mcp remove chrome-devtools -s user &>/dev/null || true
@@ -125,18 +125,18 @@ clean_up_claude_plugins() {
 
     # Only user-scope plugins are ours to manage, same reasoning as for the MCP servers below.
     local installed_plugins plugin_listing
-    if ! plugin_listing=$(
+    if ! plugin_listing="$(
         set -o pipefail
         claude plugin list --json 2>/dev/null | jq -cs '
             if length == 1 and (.[0] | type == "array" and all(.[];
                 (.id | type == "string") and (.scope | type == "string")))
             then .[0] else error("Expected plugin list with scopes") end'
-    ); then
+    )"; then
         read_failed=1
         plugin_listing=""
         warn "Could not read installed Claude Code plugins, skipping their cleanup and the marketplace cleanup"
     else
-        installed_plugins=$(printf '%s\n' "$plugin_listing" | jq -r '.[] | select(.scope == "user") | .id')
+        installed_plugins="$(printf '%s\n' "$plugin_listing" | jq -r '.[] | select(.scope == "user") | .id')"
         while IFS= read -r name; do
             [[ -n "$name" ]] || continue
             printf '%s\n' "${CLAUDE_PLUGINS[@]}" "${LOCAL_PLUGINS[@]}" | grep -qxF "$name" && continue
@@ -150,19 +150,19 @@ clean_up_claude_plugins() {
     local declared_marketplaces known_marketplaces
     if [[ -z "$plugin_listing" ]]; then
         : # Removing a marketplace uninstalls its plugins in every scope, which only the listing shows.
-    elif ! declared_marketplaces=$(
+    elif ! declared_marketplaces="$(
         set -o pipefail
         read_claude_marketplaces | jq -r 'keys[]'
-    ); then
+    )"; then
         read_failed=1
         warn "Could not read declared plugin marketplaces, skipping their cleanup"
-    elif ! known_marketplaces=$(
+    elif ! known_marketplaces="$(
         set -o pipefail
         claude plugin marketplace list --json 2>/dev/null | jq -rs '
             if length == 1 and (.[0] | type == "array" and all(.[];
                 .name | type == "string" and length > 0))
             then .[0][].name else error("Expected marketplace list with names") end'
-    ); then
+    )"; then
         read_failed=1
         warn "Could not read configured plugin marketplaces, skipping their cleanup"
     else
@@ -187,12 +187,12 @@ clean_up_claude_plugins() {
     # No pipefail here: grep exits 1 when no server is configured at all, which is a valid
     # empty state rather than a failure, so only `claude mcp list` itself is checked.
     local mcp_output
-    if ! mcp_output=$(claude mcp list 2>/dev/null); then
+    if ! mcp_output="$(claude mcp list 2>/dev/null)"; then
         read_failed=1
         warn "Could not read configured MCP servers, skipping their cleanup"
     else
         local mcp_names
-        mcp_names=$(printf '%s\n' "$mcp_output" | grep -oE '^[a-zA-Z0-9_-]+:' | tr -d ':')
+        mcp_names="$(printf '%s\n' "$mcp_output" | grep -oE '^[a-zA-Z0-9_-]+:' | tr -d ':')"
         while IFS= read -r name; do
             [[ -n "$name" ]] || continue
             # Only user-scope servers are ours to manage. Project-scoped ones belong to

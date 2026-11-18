@@ -9,7 +9,7 @@ push() {
     fi
 
     local current_branch
-    current_branch=$(git symbolic-ref --quiet --short HEAD) || {
+    current_branch="$(git symbolic-ref --quiet --short HEAD)" || {
         echo "Cannot push while HEAD is detached." >&2
         return 1
     }

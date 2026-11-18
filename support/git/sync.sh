@@ -14,9 +14,9 @@ sync() {
     fi
 
     local current_branch current_commit
-    current_branch=$(git symbolic-ref --quiet --short HEAD)
+    current_branch="$(git symbolic-ref --quiet --short HEAD)"
     if [[ -z "$current_branch" ]]; then
-        current_commit=$(git rev-parse HEAD) || return
+        current_commit="$(git rev-parse HEAD)" || return
     fi
 
     if ! git remote | grep -qxF upstream; then
@@ -28,7 +28,7 @@ sync() {
 
     local stashed
     _git_stash_guard || return
-    stashed=$_git_stash_guard_active
+    stashed="$_git_stash_guard_active"
 
     local branch exit_code=0
     for branch in "${LONG_LIVED_BRANCHES[@]}"; do
@@ -41,13 +41,13 @@ sync() {
         fi \
             && git reset --hard "upstream/$branch" \
             && git push origin "$branch" --force
-        exit_code=$?
+        exit_code="$?"
         ((exit_code == 0)) || break
     done
 
     if ((exit_code == 0)); then
         git push origin --tags
-        exit_code=$?
+        exit_code="$?"
     fi
 
     local restore_exit
@@ -56,7 +56,7 @@ sync() {
     else
         git switch --detach "$current_commit"
     fi
-    restore_exit=$?
+    restore_exit="$?"
 
     if ((restore_exit != 0)); then
         ((stashed == 1)) && echo "Could not restore the starting ref; your changes remain in the stash." >&2
@@ -67,7 +67,7 @@ sync() {
     local pop_exit=0
     if ((stashed == 1)); then
         _git_stash_restore
-        pop_exit=$?
+        pop_exit="$?"
     fi
 
     ((exit_code != 0)) && return "$exit_code"

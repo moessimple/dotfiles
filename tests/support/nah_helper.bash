@@ -44,7 +44,7 @@ given_conflicting_revert_in_progress() {
     printf 'v1\n' >"$repository/tracked.txt"
     git -C "$repository" commit -qam "tracked.txt to v1"
     local revertable_commit
-    revertable_commit=$(git -C "$repository" rev-parse HEAD)
+    revertable_commit="$(git -C "$repository" rev-parse HEAD)"
     printf 'v2\n' >"$repository/tracked.txt"
     git -C "$repository" commit -qam "tracked.txt to v2"
     git -C "$repository" revert --no-edit "$revertable_commit" || true
@@ -64,7 +64,7 @@ assert_no_merge_in_progress() {
 
 assert_no_rebase_in_progress() {
     local git_dir
-    git_dir=$(git -C "$repository" rev-parse --absolute-git-dir)
+    git_dir="$(git -C "$repository" rev-parse --absolute-git-dir)"
     [ ! -d "$git_dir/rebase-merge" ] && [ ! -d "$git_dir/rebase-apply" ]
 }
 

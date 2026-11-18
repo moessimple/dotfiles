@@ -142,7 +142,7 @@ teardown() {
     repository="$fixture/outside"
     mkdir -p "$repository"
     export REAL_GIT
-    REAL_GIT=$(command -v git)
+    REAL_GIT="$(command -v git)"
     given_fake_bin_on_path
     write_fake_binary git 'exec "$REAL_GIT" "$@"'
 

@@ -11,7 +11,7 @@ compare() {
     local base branch
     base="${1:-$(git default-branch)}"
 
-    branch=$(
+    branch="$(
         git for-each-ref \
             --sort=-authordate \
             --format='%(refname:short)' \
@@ -23,7 +23,7 @@ compare() {
                 --preview-window=right:65%:wrap \
                 --height=90% \
                 --header="compare vs ${base}. Enter: full diff"
-    )
+    )"
 
     [[ -n "$branch" ]] && git diff "${base}...${branch}"
 }

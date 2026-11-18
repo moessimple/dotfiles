@@ -22,7 +22,7 @@ prune() {
     # Both preconditions are guarded: prune deletes local and remote branches, so a
     # failed default-branch resolution or a failed fetch must stop it rather than let
     # it act on a stale or wrong merge base.
-    default_branch=$(git default-branch) || return
+    default_branch="$(git default-branch)" || return
 
     # Prune obsolete remote-tracking branches: branches we once tracked that have since
     # been deleted on the remote.
@@ -34,9 +34,9 @@ prune() {
     # The default branch is compared literally, because a branch name may contain
     # regex characters.
     local merged_branches
-    merged_branches=$(git branch --merged origin/$default_branch \
+    merged_branches="$(git branch --merged origin/$default_branch \
         | grep -E -v "${protected_pattern}" \
-        | awk -v branch="$default_branch" '$NF != branch { print $NF }')
+        | awk -v branch="$default_branch" '$NF != branch { print $NF }')"
     print -r -- "$merged_branches" | xargs git branch -d
 
     # Delete the remote counterparts of the branches deleted above, and only those, when
@@ -44,10 +44,10 @@ prune() {
     # belongs to someone else, such as a colleague's freshly pushed branch on a shared
     # repository, which counts as merged before it has commits of its own.
     local merged_remote_branches branch push_output
-    merged_remote_branches=$(git branch -r --merged origin/$default_branch | awk '{ print $NF }')
+    merged_remote_branches="$(git branch -r --merged origin/$default_branch | awk '{ print $NF }')"
     for branch in ${(f)merged_branches}; do
         print -r -- "$merged_remote_branches" | grep -qxF "origin/$branch" || continue
-        if push_output=$(git push origin --delete "$branch" 2>&1); then
+        if push_output="$(git push origin --delete "$branch" 2>&1)"; then
             print -r -- "$push_output" | grep --color=never 'deleted'
         else
             print -r -- "$push_output" >&2

@@ -296,7 +296,9 @@ These conventions apply to the repository's own shell code, excluding third-part
 - Use snake_case; reserve uppercase for constants, declaration lists, and required environment names.
   Private function prefixes belong to interactive zsh helpers, where they keep completion and names tidy.
 - Group unassigned locals and separate declarations from command substitutions to preserve exit statuses.
-- Write `value=$(command)` without outer quotes in assignments; quote expansions in arguments to prevent splitting.
+- Quote every expansion, assignments included (`value="$(command)"`, `path="$dir/file"`), as Google's Shell Style
+  Guide does. Bash and zsh do not split or glob assignment values, so the quotes change nothing there; one rule
+  without that exception stays correct when a value is moved into an argument or an array.
 - Suppress both output streams with `&>/dev/null` and redirect errors with `>&2`, using one spelling each.
 - Setup reports through `support/setup/output.sh`; other errors go to stderr with a failing return or exit,
   so callers can distinguish diagnostics from normal output.

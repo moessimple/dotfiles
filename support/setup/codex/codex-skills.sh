@@ -30,7 +30,7 @@ CLAUDE_INSTALLED_PLUGINS="${CLAUDE_INSTALLED_PLUGINS:-$HOME/.claude/plugins/inst
 # reports itself.
 link_codex_skill() {
     local source_path="$1" skill target_path
-    skill=$(basename "$source_path")
+    skill="$(basename "$source_path")"
     target_path="$CODEX_SKILLS_TARGET/$skill"
 
     if [[ ! -f "$source_path/SKILL.md" ]]; then
@@ -69,7 +69,7 @@ link_codex_skills() {
     # Codex or the user installed independently.
     for target_path in "$CODEX_SKILLS_TARGET"/*; do
         [[ -L "$target_path" ]] || continue
-        linked_path=$(readlink "$target_path")
+        linked_path="$(readlink "$target_path")"
         case "$linked_path" in
             "$CODEX_SKILLS_SOURCE"/*) rm "$target_path" ;;
             "$CLAUDE_PLUGIN_CACHE"/*)
@@ -82,7 +82,7 @@ link_codex_skills() {
 
     for skill in "${CODEX_COMPATIBLE_SKILLS[@]}"; do
         if link_codex_skill "$CODEX_SKILLS_SOURCE/$skill"; then
-            linked=$((linked + 1))
+            linked="$((linked + 1))"
         fi
     done
 
@@ -90,12 +90,12 @@ link_codex_skills() {
         for plugin_skill in "${CODEX_COMPATIBLE_CLAUDE_PLUGIN_SKILLS[@]}"; do
             plugin_id="${plugin_skill%%:*}"
             relative_path="${plugin_skill#*:}"
-            install_path=$(jq -r --arg plugin_id "$plugin_id" '
+            install_path="$(jq -r --arg plugin_id "$plugin_id" '
                 .plugins[$plugin_id] // []
                 | map(select(.scope == "user"))
                 | sort_by(.lastUpdated)
                 | last.installPath // empty
-            ' "$CLAUDE_INSTALLED_PLUGINS")
+            ' "$CLAUDE_INSTALLED_PLUGINS")"
 
             if [[ -z "$install_path" ]] || [[ ! -d "$install_path" ]]; then
                 warn "Skipping $plugin_id, no active Claude plugin installation found"
@@ -105,7 +105,7 @@ link_codex_skills() {
             plugin_source="$install_path/$relative_path"
             if [[ -f "$plugin_source/SKILL.md" ]]; then
                 if link_codex_skill "$plugin_source"; then
-                    linked=$((linked + 1))
+                    linked="$((linked + 1))"
                 fi
                 continue
             fi
@@ -118,7 +118,7 @@ link_codex_skills() {
             for source_path in "$plugin_source"/*; do
                 [[ -f "$source_path/SKILL.md" ]] || continue
                 if link_codex_skill "$source_path"; then
-                    linked=$((linked + 1))
+                    linked="$((linked + 1))"
                 fi
             done
         done

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-input=$(cat)
+input="$(cat)"
 
 # Pull the directory and the whole-number context percentage in one pass.
 IFS=$'\t' read -r cwd ctx_pct < <(

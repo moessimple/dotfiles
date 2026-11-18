@@ -16,8 +16,8 @@
 set -u
 
 for remote in upstream origin; do
-    head=$(git ls-remote --symref "$remote" HEAD 2>/dev/null \
-        | sed -n 's|^ref: refs/heads/\(.*\)[[:space:]]HEAD$|\1|p')
+    head="$(git ls-remote --symref "$remote" HEAD 2>/dev/null \
+        | sed -n 's|^ref: refs/heads/\(.*\)[[:space:]]HEAD$|\1|p')"
     if [ -n "$head" ]; then
         printf '%s\n' "$head"
         exit 0
@@ -25,7 +25,7 @@ for remote in upstream origin; do
 done
 
 for remote in upstream origin; do
-    head=$(git symbolic-ref --quiet --short "refs/remotes/$remote/HEAD" 2>/dev/null)
+    head="$(git symbolic-ref --quiet --short "refs/remotes/$remote/HEAD" 2>/dev/null)"
     if [ -n "$head" ]; then
         printf '%s\n' "${head#"$remote"/}"
         exit 0

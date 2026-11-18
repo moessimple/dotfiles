@@ -92,7 +92,7 @@ given_npm_releases() {
     for release in "$@"; do
         version="${release%%:*}"
         days="${release#*:}"
-        published=$(/bin/date -u -v-"${days}"d +%Y-%m-%dT%H:%M:%S.000Z)
+        published="$(/bin/date -u -v-"${days}"d +%Y-%m-%dT%H:%M:%S.000Z)"
         entries="$entries\"$version\":\"$published\","
     done
     write_fake_binary npm "case \"\$*\" in

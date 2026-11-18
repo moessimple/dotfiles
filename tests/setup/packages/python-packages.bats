@@ -112,7 +112,7 @@ teardown() {
     while IFS= read -r call; do
         if [[ "$call" == *"-m pip install "* ]]; then
             [[ "$call" == *"--uploaded-prior-to P3D"* ]]
-            installs=$((installs + 1))
+            installs="$((installs + 1))"
         else
             [[ "$call" != *"--uploaded-prior-to"* ]]
         fi

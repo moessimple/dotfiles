@@ -27,7 +27,7 @@ configure_profile() (
     } | /bin/bash "$dotfiles_dir/bin/install.sh"; then
         return 0
     else
-        result=$?
+        result="$?"
     fi
     if [ "$result" -eq 73 ]; then
         return 0
@@ -77,7 +77,7 @@ configure_profile() (
 }
 
 @test "work selection stores only the email locally and inherits the name" {
-    name=$(git config --global user.name)
+    name="$(git config --global user.name)"
     run configure_profile <<<$'2\ndeveloper@example.invalid'
     assert_success
     [ "$(cat "$profile_file")" = work ]

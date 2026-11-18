@@ -115,7 +115,7 @@ teardown() {
     # Arrange
     given_repository_on_feature_branch
     given_upstream_main_and_empty_origin
-    detached_commit=$(git -C "$repository" rev-parse HEAD)
+    detached_commit="$(git -C "$repository" rev-parse HEAD)"
     git -C "$repository" switch -q --detach
 
     # Act

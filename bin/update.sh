@@ -30,7 +30,7 @@ if [[ -z "${DOTFILES_UPDATE_PULLED:-}" ]]; then
         error "~/.dotfiles is not a Git repository."
     fi
 
-    if ! current_branch=$(git -C ~/.dotfiles symbolic-ref --quiet --short HEAD); then
+    if ! current_branch="$(git -C ~/.dotfiles symbolic-ref --quiet --short HEAD)"; then
         error "~/.dotfiles is in detached HEAD state. Check out main, then run update again."
     fi
 
