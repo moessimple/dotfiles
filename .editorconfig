@@ -8,6 +8,7 @@ indent_size = 4
 binary_next_line = true
 switch_case_indent = true
 
-# Skills are left as their authors wrote them.
-[home/.claude/skills/**]
+# Third-party skills stay as their authors wrote them, since update reinstalls them from upstream. Keep this list in
+# sync with THIRD_PARTY_SKILLS in support/setup/claude/claude-skills.sh.
+[home/.claude/skills/{clarity,diagnosing-bugs,pdf,skill-creator,speeding-up-laravel-tests}/**]
 ignore = true

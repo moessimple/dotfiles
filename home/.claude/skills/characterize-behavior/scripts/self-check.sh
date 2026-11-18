@@ -61,11 +61,11 @@ changed_acceptance_guard() {
 
     local current=""
     if [[ -f tests/acceptance.lock.json ]]; then
-        current=$(lock_entries < tests/acceptance.lock.json)
+        current=$(lock_entries <tests/acceptance.lock.json)
     fi
 
     git show HEAD:tests/acceptance.lock.json | lock_entries | while read -r entry; do
-        if ! grep -qxF -- "$entry" <<< "$current"; then
+        if ! grep -qxF -- "$entry" <<<"$current"; then
             printf 'tests/acceptance.lock.json: %s\n' "$entry"
         fi
     done
@@ -76,11 +76,14 @@ changed_acceptance_guard() {
 unlocked_acceptance_tests() {
     local keys=""
     if [[ -f tests/acceptance.lock.json ]]; then
-        keys=$(lock_entries < tests/acceptance.lock.json | sed -E 's/^"([^"]+)": .*/\1/')
+        keys=$(lock_entries <tests/acceptance.lock.json | sed -E 's/^"([^"]+)": .*/\1/')
     fi
 
-    { git ls-files -- tests; git ls-files --others --exclude-standard -- tests; } | { grep '\.php$' || true; } | while read -r file; do
-        if grep -E "group\(['\"]acceptance['\"]\)" "$file" >/dev/null 2>&1 && ! grep -qxF -- "$file" <<< "$keys"; then
+    {
+        git ls-files -- tests
+        git ls-files --others --exclude-standard -- tests
+    } | { grep '\.php$' || true; } | while read -r file; do
+        if grep -E "group\(['\"]acceptance['\"]\)" "$file" >/dev/null 2>&1 && ! grep -qxF -- "$file" <<<"$keys"; then
             printf '%s\n' "$file"
         fi
     done

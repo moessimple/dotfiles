@@ -30,23 +30,23 @@ removed_ranges() {
     local path start end
     # Read literal filenames, not the C-quoted paths in patch headers. Treat renames as
     # deletion/addition so blame always uses the path that exists at the merge base.
-    git diff --no-renames --name-only -z --no-ext-diff "${diff_range[@]}" |
-        while IFS= read -r -d '' path; do
+    git diff --no-renames --name-only -z --no-ext-diff "${diff_range[@]}" \
+        | while IFS= read -r -d '' path; do
             case "$path" in
-                *$'\t'*|*$'\n'*)
+                *$'\t'* | *$'\n'*)
                     echo "history: filenames containing tabs or newlines are not supported" >&2
                     return 1
                     ;;
             esac
             git diff -U0 --no-renames --no-color --no-ext-diff --no-textconv \
-                "${diff_range[@]}" -- "$path" |
-                awk '/^@@ / {
+                "${diff_range[@]}" -- "$path" \
+                | awk '/^@@ / {
                     split($2, old, ",")
                     start = substr(old[1], 2)
                     count = (old[2] == "") ? 1 : old[2]
                     if (count > 0) printf "%d\t%d\n", start, start + count - 1
-                }' |
-                while IFS=$'\t' read -r start end; do
+                }' \
+                | while IFS=$'\t' read -r start end; do
                     printf '%s\t%s\t%s\n' "$path" "$start" "$end"
                 done
         done
@@ -56,8 +56,8 @@ removed_ranges() {
 blamed_lines() {
     local path start end
     while IFS=$'\t' read -r path start end; do
-        git blame -w --porcelain -L "$start,$end" "$merge_base" -- "$path" |
-            HISTORY_PATH="$path" awk '
+        git blame -w --porcelain -L "$start,$end" "$merge_base" -- "$path" \
+            | HISTORY_PATH="$path" awk '
                 length($1) == 40 && $1 ~ /^[0-9a-f]+$/ && $3 ~ /^[0-9]+$/ {
                     printf "%s\t%s\t%d\n", $1, ENVIRON["HISTORY_PATH"], $3
                 }'
@@ -86,9 +86,9 @@ lines_by_commit() {
 github_repository() {
     local url
     url=$(git remote get-url origin 2>/dev/null) || return 0
-    printf '%s\n' "$url" |
-        sed -nE 's#^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)([^/]+/[^/]+)$#\2#p' |
-        sed 's/\.git$//'
+    printf '%s\n' "$url" \
+        | sed -nE 's#^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)([^/]+/[^/]+)$#\2#p' \
+        | sed 's/\.git$//'
 }
 
 indent() {
@@ -105,9 +105,9 @@ describe_commit() {
         echo "pr: not looked up, origin is not a GitHub repository"
     elif ! pulls=$(gh api "repos/$repository/commits/$sha/pulls" 2>/dev/null); then
         echo "pr: lookup failed (gh api)"
-    elif [ "$(jq 'length' <<< "$pulls")" -gt 0 ]; then
-        jq -r '.[0] | "pr: #\(.number) \(.title)\nurl: \(.html_url)\n"' <<< "$pulls"
-        jq -r '.[0].body // ""' <<< "$pulls" | indent
+    elif [ "$(jq 'length' <<<"$pulls")" -gt 0 ]; then
+        jq -r '.[0] | "pr: #\(.number) \(.title)\nurl: \(.html_url)\n"' <<<"$pulls"
+        jq -r '.[0].body // ""' <<<"$pulls" | indent
         echo
         return
     else
@@ -126,8 +126,8 @@ if [ -z "$ranges" ]; then
 fi
 
 repository=$(github_repository)
-commits=$(blamed_lines <<< "$ranges" | lines_by_commit)
+commits=$(blamed_lines <<<"$ranges" | lines_by_commit)
 
 while IFS=$'\t' read -r sha lines; do
     describe_commit "$sha" "$lines" "$repository"
-done <<< "$commits"
+done <<<"$commits"

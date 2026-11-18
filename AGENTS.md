@@ -66,8 +66,9 @@ bin/format.sh --check
 The style lives in `.editorconfig`, because shfmt ignores it as soon as a style flag is passed on the command line:
 4-space indent plus `-ci -bn`, the options shfmt's documentation names for Google's Shell Style Guide.
 `bin/format.sh` passes only tracked files, adds the zsh dotfiles by name because shfmt does not detect them, and
-leaves out `home/.zshrc` and `home/.zprofile` (Herd and Docker Desktop write into them) and `home/.claude/skills/`
-(skills stay as their authors wrote them).
+leaves out `home/.zshrc` and `home/.zprofile` (Herd and Docker Desktop write into them) and the third-party skills
+under `home/.claude/skills/`, which update reinstalls from upstream. Adding a third-party skill to `THIRD_PARTY_SKILLS`
+in `support/setup/claude/claude-skills.sh` means adding it to the ignore list in `.editorconfig` too.
 
 CI (`.github/workflows/tests.yml`) runs `bin/test.sh` on `macos-latest`, matching the interpreter and userland
 (`/bin/bash` 3.2, BSD tools) the target machine actually has, with `bats-core`, `php`, `patchutils`, and
@@ -76,7 +77,8 @@ CI (`.github/workflows/tests.yml`) runs `bin/test.sh` on `macos-latest`, matchin
 its single job share one name (`tests`, `lint`). The `main` ruleset requires both checks by job name; renaming a
 job means updating the ruleset in the same change.
 
-There is no build step. The `lint` workflow only checks formatting so far; ShellCheck does not run yet.
+There is no build step and no static analysis. Bash and zsh get the same checks, formatting and tests: ShellCheck
+covers only Bash, and no zsh linter is mature enough to depend on, so neither language gets one.
 
 ## Architecture
 

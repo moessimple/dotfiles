@@ -32,6 +32,9 @@
 # Investigate automating it, e.g. a pre-install check that scans a skill's
 # source for network calls, credential/keychain/cookie access, and hardcoded
 # secrets before `skills_cli add` runs, so review does not rely on memory.
+#
+# Also add each skill to the third-party ignore list in .editorconfig, so
+# bin/format.sh leaves its scripts as upstream wrote them.
 THIRD_PARTY_SKILLS=(
     "addyosmani/clarity:clarity"
     "anthropics/skills:pdf"
