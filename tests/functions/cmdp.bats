@@ -6,7 +6,7 @@ load ../support/cmdp_helper
 setup() {
     new_dotfiles_fixture
     given_fake_bin_on_path
-    write_fake_binary rush "cat >/dev/null"
+    write_fake_binary rush "cat >\"$fixture/rush-input\""
 }
 
 teardown() {
@@ -63,20 +63,22 @@ teardown() {
     assert_binary_not_called rush
 }
 
-@test "cmdp runs a single-word command n times in parallel via rush" {
+@test "cmdp requests four parallel executions of the supplied command" {
     # Act
     run call_cmdp 4 echo
 
     # Assert
     assert_success
-    assert_binary_called_with rush "-j 4 -I echo"
+    assert_binary_called_with_args rush -j 4 -I echo
+    assert_file_content "$fixture/rush-input" $'1\n2\n3\n4'
 }
 
-@test "cmdp joins a multi-word command into a single rush template" {
+@test "cmdp passes the command and its arguments as one executable template to rush" {
     # Act
     run call_cmdp 2 date +%s
 
     # Assert
     assert_success
-    assert_binary_called_with rush "-j 2 -I date +%s"
+    assert_binary_called_with_args rush -j 2 -I "date +%s"
+    assert_file_content "$fixture/rush-input" $'1\n2'
 }

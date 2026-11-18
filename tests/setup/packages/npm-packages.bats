@@ -95,7 +95,7 @@ teardown() {
     assert_binary_not_called_with_substring npm "uninstall -g"
 }
 
-@test "no undeclared packages reports a clean state without removing anything" {
+@test "npm cleanup reports a clean state when all global packages are declared" {
     # Arrange
     given_fake_npm_reporting_installed '{"dependencies":{"typescript":{},"intelephense":{}}}'
 
@@ -108,7 +108,7 @@ teardown() {
     assert_binary_not_called_with_substring npm "uninstall -g"
 }
 
-@test "a failed read of installed packages skips cleanup instead of removing everything" {
+@test "npm cleanup warns and removes no packages when the installed list cannot be read" {
     # Arrange
     given_fake_npm_failing_to_report_installed
 
@@ -167,7 +167,7 @@ teardown() {
     assert_path_does_not_exist "$test_home/.agent-browser"
 }
 
-@test "a failed removal is reported while remaining undeclared entries are still removed" {
+@test "npm cleanup reports a failed removal of stale-one and continues with stale-two" {
     given_fake_npm_reporting_installed '{"dependencies":{"stale-one":{},"stale-two":{},"typescript":{}}}'
     printf '\nif [[ "$*" == "uninstall -g stale-one" ]]; then exit 17; fi\n' >>"$fake_bin/npm"
 

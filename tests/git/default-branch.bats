@@ -66,7 +66,7 @@ teardown() {
     assert_output_equals main
 }
 
-@test "exits non-zero and prints nothing when nothing resolves" {
+@test "default-branch fails without output when neither a remote default nor main or master exists" {
     # Arrange
     given_clean_repository_on_main
     given_no_main_or_master_branch

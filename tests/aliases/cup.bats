@@ -13,7 +13,7 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "cup updates only prod dependencies and bumps prod constraints" {
+@test "cup updates production dependencies and bumps only their Composer constraints" {
     # Act
     run call_cup
 

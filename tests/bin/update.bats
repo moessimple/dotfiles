@@ -54,7 +54,7 @@ teardown() {
     assert_update_side_effect_was_not_reached
 }
 
-@test "a dirty main worktree is still rejected before the repository or packages are updated" {
+@test "update rejects uncommitted changes on main before pulling or updating packages" {
     # Arrange
     given_clean_repository_on_main
     given_repository_with_real_setup_scripts
@@ -208,7 +208,7 @@ teardown() {
     assert_output_does_not_contain "Raised skills"
 }
 
-@test "a failed release lookup is reported instead of silently keeping the pin" {
+@test "update reports a failed npm release lookup in its final summary" {
     # Arrange
     given_clean_repository_on_main
     given_repository_with_real_setup_scripts
@@ -282,7 +282,7 @@ teardown() {
     assert_output_contains "No undeclared Ollama models found"
 }
 
-@test "a failed Homebrew cleanup is reported instead of swallowed" {
+@test "update fails its final summary when Homebrew cannot remove undeclared packages" {
     # Arrange
     given_clean_repository_on_main
     given_repository_with_real_setup_scripts

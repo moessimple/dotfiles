@@ -19,7 +19,7 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "mfsa migrates every database and then seeds once" {
+@test "mfsa migrates the main and test databases before seeding once" {
     # Arrange
     write_fake_binary php
 
@@ -28,14 +28,13 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_call_count php 4
-    assert_binary_called_with php "artisan db:seed"
+    assert_file_content "$fake_bin/php.calls" $'artisan migrate\nartisan migrate\nartisan migrate\nartisan db:seed'
 }
 
-@test "mfsa still migrates every database when the first one fails, but skips seeding" {
-    # Arrange: the loop never stops early, so all three databases are still
-    # attempted even though the first one (maindb) fails.
-    write_fake_binary php "[ \"\$DB_DATABASE\" != maindb ]"
+@test "mfsa attempts the test databases after the main migration fails and does not seed" {
+    # Arrange: the main database fails while both test databases can migrate.
+    write_fake_binary php "printf '%s\n' \"\$DB_DATABASE\" >> \"$fixture/attempted-migrations\"
+[ \"\$DB_DATABASE\" != maindb ]"
 
     # Act
     run call_mfsa
@@ -43,4 +42,6 @@ teardown() {
     # Assert
     assert_failure
     assert_binary_call_count php 3
+    assert_file_content "$fixture/attempted-migrations" $'maindb\ntestdb\ntestdb_test_1'
+    assert_binary_not_called_with_substring php "db:seed"
 }

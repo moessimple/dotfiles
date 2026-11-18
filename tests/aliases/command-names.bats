@@ -10,7 +10,7 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "the git, Composer and Herd shortcuts have names of their own" {
+@test "changes, timeline, changelog, and site expose the Git, Composer, and Herd shortcuts" {
     # Act
     run zsh -c 'source "$1"; alias changes timeline changelog site' zsh "$aliases_file"
 
@@ -22,7 +22,7 @@ teardown() {
     assert_output_contains "site='herd open'"
 }
 
-@test "diff, log, cc and view are no longer aliases" {
+@test "shell aliases do not shadow diff, log, cc, or view" {
     # Act
     run zsh -c 'source "$1"; whence -w diff log cc view' zsh "$aliases_file"
 

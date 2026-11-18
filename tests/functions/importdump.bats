@@ -8,7 +8,7 @@ setup() {
     working_directory="$fixture/project"
     mkdir -p "$working_directory"
     given_fake_bin_on_path
-    given_fake_mysql
+    given_mysql_recording_imports
     given_fake_pv
     printf 'dump content\n' >"$working_directory/dump.sql"
 }
@@ -54,7 +54,8 @@ teardown() {
     # Assert
     assert_success
     assert_output_contains "Importing: dump.sql"
-    assert_binary_called_with mysql "-h127.0.0.1 -P3306 -uroot --force --binary-mode mydb"
+    assert_binary_called_with_args mysql -h127.0.0.1 -P3306 -uroot --force --binary-mode mydb
+    assert_file_content "$fixture/imported-sql" "dump content"
 }
 
 @test "importdump uses host, user, and password from .env when present" {
@@ -83,7 +84,7 @@ teardown() {
     assert_binary_not_called mysql
 }
 
-@test "importdump imports every given file" {
+@test "importdump streams both SQL files into the database in argument order" {
     # Arrange
     printf 'more content\n' >"$working_directory/other.sql"
 
@@ -95,6 +96,7 @@ teardown() {
     assert_output_contains "Importing: dump.sql"
     assert_output_contains "Importing: other.sql"
     assert_binary_call_count mysql 2
+    assert_file_content "$fixture/imported-sql" $'dump content\nmore content'
 }
 
 @test "importdump fails when an earlier file fails even if a later one succeeds" {

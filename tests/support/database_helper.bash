@@ -12,8 +12,8 @@ given_env_file() {
     printf '%s\n' "$@" >"$working_directory/.env"
 }
 
-given_fake_mysql() {
-    write_fake_binary mysql "cat >/dev/null"
+given_mysql_recording_imports() {
+    write_fake_binary mysql "cat >>\"$fixture/imported-sql\""
 }
 
 given_fake_pv() {

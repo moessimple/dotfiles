@@ -40,7 +40,7 @@ teardown() {
     assert_binary_not_called composer
 }
 
-@test "every setup file can be sourced without external commands or output" {
+@test "all setup files load successfully and silently with an empty PATH" {
     mkdir -p "$fixture/empty-bin"
     local file
     for file in "$dotfiles_dir"/support/setup/*.sh "$dotfiles_dir"/support/setup/*/*.sh; do
@@ -48,4 +48,29 @@ teardown() {
         assert_success
         [ -z "$output" ]
     done
+}
+
+@test "sourcing home-directories leaves existing directories untouched" {
+    mkdir -p "$test_home/.claude/skills"
+    touch "$test_home/.claude/skills/local-skill"
+
+    run env HOME="$test_home" /bin/bash -c 'source "$1"' bash \
+        "$dotfiles_dir/support/setup/home-directories.sh"
+
+    assert_success
+    [ -z "$output" ]
+    assert_file_exists "$test_home/.claude/skills/local-skill"
+    assert_path_does_not_exist "$test_home/Screenshots"
+}
+
+@test "sourcing dotfile-links leaves existing files untouched" {
+    printf 'local aliases\n' >"$test_home/.aliases"
+
+    run env HOME="$test_home" /bin/bash -c 'source "$1"' bash \
+        "$dotfiles_dir/support/setup/dotfile-links.sh"
+
+    assert_success
+    [ -z "$output" ]
+    [ ! -L "$test_home/.aliases" ]
+    [ "$(cat "$test_home/.aliases")" = "local aliases" ]
 }

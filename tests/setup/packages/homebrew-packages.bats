@@ -26,7 +26,7 @@ teardown() {
     assert_binary_not_called brew
 }
 
-@test "install installs the packages declared in the Brewfile" {
+@test "Homebrew installation applies the repository Brewfile" {
     # Arrange
     write_fake_binary brew
 
@@ -51,7 +51,7 @@ teardown() {
     assert_output_contains "WARN: Some Brewfile packages failed to install"
 }
 
-@test "update upgrades every package, installs new Brewfile entries, removes undeclared ones, and prunes the cache" {
+@test "Homebrew update upgrades packages, applies the Brewfile, removes undeclared packages, and clears the download cache" {
     # Arrange
     write_fake_binary brew
 

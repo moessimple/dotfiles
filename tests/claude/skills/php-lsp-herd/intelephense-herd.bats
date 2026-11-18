@@ -29,7 +29,7 @@ given_tmpdir_is_a_file() {
     : >"$TMPDIR"
 }
 
-@test "intelephense is exec'd with php on PATH resolved to the Herd binary" {
+@test "Intelephense resolves PHP from Herd when a project-specific PHP binary is available" {
     # Act
     run "$script" --stdio
 

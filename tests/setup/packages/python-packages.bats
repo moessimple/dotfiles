@@ -39,7 +39,7 @@ teardown() {
     assert_binary_called_with_substring python3 "pdfplumber"
 }
 
-@test "pip runs with Homebrew's externally-managed lock lifted, which it otherwise refuses" {
+@test "Python package operations enable pip to manage the user site of externally managed Homebrew Python" {
     # Arrange
     given_fake_python_reporting_installed '[{"name":"leftpad"}]'
 
@@ -80,7 +80,7 @@ teardown() {
     assert_binary_not_called_with_substring python3 "uninstall"
 }
 
-@test "a failed read of installed packages skips cleanup instead of removing everything" {
+@test "Python cleanup warns and removes no packages when the installed list cannot be read" {
     # Arrange
     given_fake_python_failing_to_report_installed
 
@@ -120,7 +120,7 @@ teardown() {
     [ "$installs" -eq 2 ]
 }
 
-@test "a failed removal is reported while remaining undeclared entries are still removed" {
+@test "Python cleanup reports a failed removal of stale-one and continues with stale-two" {
     given_fake_python_reporting_installed '[{"name":"stale-one"},{"name":"stale-two"},{"name":"pypdf"}]'
     printf '\ncase "$*" in "-m pip uninstall --yes --quiet stale-one "*) exit 17 ;; esac\n' >>"$fake_bin/python3"
 

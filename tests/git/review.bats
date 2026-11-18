@@ -25,7 +25,7 @@ teardown() {
     assert_output_contains "Usage: review [base]"
 }
 
-@test "the base defaults to the remote's HEAD branch" {
+@test "review compares changed files with the remote's default branch when no base is given" {
     # Arrange
     given_clean_repository_on_main
     given_repository_with_origin_head_set_to main
@@ -41,7 +41,7 @@ teardown() {
     assert_fzf_offered_candidate "changed-on-feature.txt"
 }
 
-@test "the base falls back to main when the repository has no remote" {
+@test "review compares changed files with main when no remote is configured" {
     # Arrange
     given_repository_on_feature_branch
     given_committed_file_change changed-on-feature.txt
@@ -55,22 +55,24 @@ teardown() {
     assert_fzf_offered_candidate "changed-on-feature.txt"
 }
 
-@test "an explicit base overrides the default branch" {
+@test "review uses the explicitly selected base to exclude changes already present on that branch" {
     # Arrange
     given_repository_on_feature_branch
-    git -C "$repository" switch -qc other main
-    given_committed_file_change changed-on-other.txt
-    given_fzf_selects "changed-on-other.txt"
+    given_committed_file_change shared-with-base.txt
+    git -C "$repository" branch other-base
+    given_committed_file_change changed-after-base.txt
+    given_fzf_selects "changed-after-base.txt"
 
     # Act
-    run call_review main
+    run call_review other-base
 
     # Assert
     assert_success
-    assert_fzf_offered_candidate "changed-on-other.txt"
+    assert_fzf_offered_candidate "changed-after-base.txt"
+    assert_fzf_did_not_offer_candidate "shared-with-base.txt"
 }
 
-@test "staged changes are offered alongside committed ones" {
+@test "review offers staged files together with files changed by branch commits" {
     # Arrange
     given_repository_on_feature_branch
     given_committed_file_change changed-on-feature.txt
@@ -86,7 +88,7 @@ teardown() {
     assert_fzf_offered_candidate "staged.txt"
 }
 
-@test "unstaged changes to tracked files are offered" {
+@test "review offers tracked files with unstaged changes" {
     # Arrange
     given_repository_on_feature_branch
     given_unstaged_change_to tracked.txt
@@ -100,7 +102,7 @@ teardown() {
     assert_fzf_offered_candidate "tracked.txt"
 }
 
-@test "untracked files are offered" {
+@test "review offers untracked files" {
     # Arrange
     given_repository_on_feature_branch
     given_untracked_file untracked.txt
@@ -114,7 +116,7 @@ teardown() {
     assert_fzf_offered_candidate "untracked.txt"
 }
 
-@test "on the base branch itself only uncommitted changes are offered" {
+@test "review on the base branch offers uncommitted changes and excludes committed files" {
     # Arrange
     given_clean_repository_on_main
     given_committed_file_change committed-on-main.txt
@@ -130,7 +132,7 @@ teardown() {
     assert_fzf_did_not_offer_candidate "committed-on-main.txt"
 }
 
-@test "files unchanged since the base are not offered alongside changed files" {
+@test "review excludes files unchanged since the base branch" {
     # Arrange
     given_repository_on_feature_branch
     given_committed_file_change changed-on-feature.txt

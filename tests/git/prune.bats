@@ -204,7 +204,7 @@ teardown() {
     assert_remote_branch_exists merged
 }
 
-@test "an unmerged branch whose upstream is gone is deleted as well" {
+@test "prune deletes an unmerged local branch when its upstream branch has been removed" {
     # Arrange
     given_repository_with_origin_on main
     given_unmerged_branch_with_gone_upstream squashed

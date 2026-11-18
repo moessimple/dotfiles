@@ -23,7 +23,7 @@ setup() {
     done
 }
 
-@test "manual-only skills are only invoked explicitly, in Claude and in Codex" {
+@test "manual-only skills disable automatic invocation in Claude and Codex configuration" {
     # Assert
     for skill in explain-changes pr document-product characterize-behavior raise-quality-gate; do
         skill_dir="$skills_dir/$skill"
@@ -46,7 +46,7 @@ setup() {
     done
 }
 
-@test "product skills work without the reference projects they were modelled on" {
+@test "product skill files exclude personal paths and references to the original projects" {
     # Assert
     for skill in document-product characterize-behavior raise-quality-gate; do
         ! grep -rniE 'starter.?kit|/Users/|~/Code' "$skills_dir/$skill" || false
@@ -67,7 +67,7 @@ setup() {
     grep -Eq 'RULE-[0-9]{3}' "$skills_dir/document-product/references/document-format.md"
 }
 
-@test "characterize-behavior finds confirmed rules by the terms document-product writes" {
+@test "characterize-behavior instructions reference the confirmed-rule labels written by document-product" {
     # Assert
     grep -Fq '`Confirmed rules:`' "$skills_dir/characterize-behavior/SKILL.md"
     grep -Fq '`RULE-`' "$skills_dir/characterize-behavior/SKILL.md"
@@ -90,7 +90,7 @@ setup() {
     grep -Fq '`Capabilities`' "$skills_dir/raise-quality-gate/references/record-format.md"
 }
 
-@test "shared skill descriptions are valid YAML for strict parsers such as Codex" {
+@test "plain YAML skill descriptions do not contain unquoted colon-space separators" {
     # Assert
     for skill in "${shared_skills[@]}"; do
         description="$(grep -m1 '^description: ' "$skills_dir/$skill/SKILL.md")"

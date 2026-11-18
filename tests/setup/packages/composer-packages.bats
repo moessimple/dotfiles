@@ -65,7 +65,7 @@ teardown() {
     assert_binary_not_called_with_substring composer "global remove laravel/pint"
 }
 
-@test "no undeclared packages reports a clean state without removing anything" {
+@test "Composer cleanup reports a clean state when all global packages are declared" {
     # Arrange
     given_fake_composer_reporting_installed '{"installed":[{"name":"laravel/pint"},{"name":"cpx/cpx"}]}'
 
@@ -78,7 +78,7 @@ teardown() {
     assert_binary_not_called_with_substring composer "global remove"
 }
 
-@test "a failed read of installed packages skips cleanup instead of removing everything" {
+@test "Composer cleanup warns and removes no packages when the installed list cannot be read" {
     # Arrange
     given_fake_composer_failing_to_report_installed
 
@@ -103,7 +103,7 @@ teardown() {
     assert_output_does_not_contain "Could not read global Composer packages"
 }
 
-@test "a failed removal is reported while remaining undeclared entries are still removed" {
+@test "Composer cleanup reports a failed removal of stale/one and continues with stale/two" {
     given_fake_composer_reporting_installed '{"installed":[{"name":"stale/one"},{"name":"stale/two"},{"name":"laravel/pint"}]}'
     printf '\nif [[ "$*" == "global remove stale/one" ]]; then exit 17; fi\n' >>"$fake_bin/composer"
 

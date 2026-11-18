@@ -25,7 +25,7 @@ teardown() {
     assert_output_contains "Usage: compare [base]"
 }
 
-@test "the base defaults to the remote's HEAD branch" {
+@test "compare uses the remote's default branch when no base is given" {
     # Arrange
     given_clean_repository_on_main
     given_repository_with_origin_head_set_to main
@@ -41,7 +41,7 @@ teardown() {
     assert_output_contains "change on feature-change.txt"
 }
 
-@test "the base falls back to main when the repository has no remote" {
+@test "compare uses main as its base when no remote is configured" {
     # Arrange
     given_repository_on_feature_branch
     given_fzf_selects "feature"
@@ -55,7 +55,7 @@ teardown() {
     assert_fzf_did_not_offer_candidate "main"
 }
 
-@test "the base branch is excluded from the selectable branches" {
+@test "compare excludes the base branch from branch selection" {
     # Arrange
     given_repository_on_feature_branch
     given_fzf_selects "feature"
@@ -69,7 +69,7 @@ teardown() {
     assert_fzf_did_not_offer_candidate "main"
 }
 
-@test "only the exact base branch name is excluded from the selectable branches" {
+@test "compare excludes release-1.0 but keeps the distinct branch release-1x0" {
     # Arrange
     given_repository_on_feature_branch
     git -C "$repository" branch release-1.0
@@ -85,7 +85,7 @@ teardown() {
     assert_fzf_did_not_offer_candidate "release-1.0"
 }
 
-@test "selecting no branch shows no diff and fails" {
+@test "cancelling branch selection in compare returns failure without a diff" {
     # Arrange
     given_repository_on_feature_branch
     given_fzf_selects_nothing

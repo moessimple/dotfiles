@@ -33,10 +33,11 @@ teardown() {
     assert_binary_called_with mysql '-h127.0.0.1 -P3306 -uroot -e DROP DATABASE IF EXISTS `testdb_test_1`; CREATE DATABASE `testdb_test_1`;'
 }
 
-@test "mfa still migrates every database when one fails, but reports overall failure" {
+@test "mfa attempts the test databases after the main migration fails and returns failure" {
     # Arrange: maindb fails first, but that must not mask itself behind a
     # later successful migration (testdb, testdb_test_1).
-    write_fake_binary php "[ \"\$DB_DATABASE\" != maindb ]"
+    write_fake_binary php "printf '%s\n' \"\$DB_DATABASE\" >> \"$fixture/attempted-migrations\"
+[ \"\$DB_DATABASE\" != maindb ]"
 
     # Act
     run call_mfa
@@ -45,6 +46,7 @@ teardown() {
     assert_failure
     assert_binary_call_count mysql 3
     assert_binary_call_count php 3
+    assert_file_content "$fixture/attempted-migrations" $'maindb\ntestdb\ntestdb_test_1'
 }
 
 @test "mfa refuses a database host that is not local" {

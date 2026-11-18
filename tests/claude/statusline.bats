@@ -11,26 +11,50 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "the status line floors context use and changes colors at 40 and 60 percent" {
-    local percentage color whole
-    while read -r percentage color whole; do
-        run /bin/bash "$target" <<<"{\"workspace\":{\"current_dir\":\"/Code/a project\"},\"context_window\":{\"used_percentage\":$percentage}}"
-
-        assert_success
-        assert_output_equals "$(printf '\033[01;36ma project\033[00m | ctx: \033[01;%sm%s%%\033[00m' "$color" "$whole")"
-    done <<'CASES'
-39.9 32 39
-40 33 40
-59.9 33 59
-60 31 60
-CASES
+assert_context_display() {
+    local percentage="$1" color="$2" terminal_color
+    case "$color" in
+        green) terminal_color=32 ;;
+        yellow) terminal_color=33 ;;
+        red) terminal_color=31 ;;
+        *) return 1 ;;
+    esac
+    assert_output_equals "$(printf '\033[01;36mproject\033[00m | ctx: \033[01;%sm%s%%\033[00m' "$terminal_color" "$percentage")"
 }
 
-@test "the status line defaults missing context use to zero" {
+@test "context usage below 40 percent is rounded down and displayed in green" {
+    run /bin/bash "$target" <<<'{"workspace":{"current_dir":"/Code/project"},"context_window":{"used_percentage":39.9}}'
+
+    assert_success
+    assert_context_display 39 green
+}
+
+@test "context usage at 40 percent is displayed in yellow" {
+    run /bin/bash "$target" <<<'{"workspace":{"current_dir":"/Code/project"},"context_window":{"used_percentage":40}}'
+
+    assert_success
+    assert_context_display 40 yellow
+}
+
+@test "context usage below 60 percent is rounded down and remains yellow" {
+    run /bin/bash "$target" <<<'{"workspace":{"current_dir":"/Code/project"},"context_window":{"used_percentage":59.9}}'
+
+    assert_success
+    assert_context_display 59 yellow
+}
+
+@test "context usage at 60 percent is displayed in red" {
+    run /bin/bash "$target" <<<'{"workspace":{"current_dir":"/Code/project"},"context_window":{"used_percentage":60}}'
+
+    assert_success
+    assert_context_display 60 red
+}
+
+@test "the status line displays zero percent when context use is missing" {
     run /bin/bash "$target" <<<'{"workspace":{"current_dir":"/Code/project"}}'
 
     assert_success
-    assert_colorless_output_contains "project | ctx: 0%"
+    assert_context_display 0 green
 }
 
 @test "the status line still renders when its input cannot be parsed" {

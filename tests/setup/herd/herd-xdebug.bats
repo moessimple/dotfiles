@@ -105,7 +105,7 @@ teardown() {
     assert_no_ini_files_for 84
 }
 
-@test "no Herd debug template found: nothing is generated and a warning is shown" {
+@test "Xdebug setup warns and creates no ini files when the Herd debug template is missing" {
     # Arrange
     given_herd_reports_installed_php_versions 8.4
     given_herd_ships_xdebug_build_for 84

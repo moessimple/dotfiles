@@ -13,7 +13,7 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "cud updates only dev dependencies and bumps dev constraints" {
+@test "cud updates development dependencies and bumps only their Composer constraints" {
     # Act
     run call_cud
 

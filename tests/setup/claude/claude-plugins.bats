@@ -98,7 +98,7 @@ list_plugin_marketplaces_missing_from_settings() {
     assert_binary_called_with claude "plugin marketplace add https://github.com/pbakaus/impeccable"
 }
 
-@test "a marketplace Claude Code already knows is not added again, which would drop its autoUpdate setting" {
+@test "plugin installation preserves known marketplaces without registering them again" {
     # Arrange
     given_fake_claude '[]' ""
     given_claude_knows_marketplaces https://github.com/anthropics/claude-plugins-official.git
@@ -112,7 +112,7 @@ list_plugin_marketplaces_missing_from_settings() {
     assert_binary_called_with claude "plugin marketplace add https://github.com/laravel/claude-code"
 }
 
-@test "a newly added marketplace keeps autoUpdate off, which marketplace add drops from its settings entry" {
+@test "plugin installation disables automatic updates after registering a new marketplace" {
     # Arrange
     given_fake_claude '[]' ""
     given_settings_linked_from_repository_with_marketplace https://github.com/pbakaus/impeccable.git
@@ -126,7 +126,7 @@ list_plugin_marketplaces_missing_from_settings() {
     assert_settings_still_linked_into_repository
 }
 
-@test "an unreadable marketplace listing adds no marketplace and says so" {
+@test "plugin installation warns and registers no marketplaces when their installed list cannot be read" {
     # Arrange
     given_fake_claude '[]' ""
     given_claude_failing_to_list_marketplaces
@@ -200,7 +200,7 @@ list_plugin_marketplaces_missing_from_settings() {
     assert_output_contains "WARN: Could not install laravel@laravel"
 }
 
-@test "an unreadable plugin list installs every declared plugin and says so" {
+@test "plugin installation warns and attempts all declared plugins when the installed list cannot be read" {
     # Arrange
     given_fake_claude_failing_to_report_plugins_and_mcp_servers
 
@@ -245,7 +245,7 @@ list_plugin_marketplaces_missing_from_settings() {
     assert_binary_not_called_with_substring claude "plugin uninstall laravel-lsp@skills-dir"
 }
 
-@test "a skills-dir plugin not declared in LOCAL_PLUGINS is still uninstalled" {
+@test "plugin cleanup uninstalls an undeclared skills-directory plugin" {
     # Arrange
     given_fake_claude \
         '[{"id":"agent-skills@addy-agent-skills","scope":"user"},{"id":"stray-lsp@skills-dir","scope":"user"}]' \

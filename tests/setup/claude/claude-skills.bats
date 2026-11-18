@@ -27,7 +27,7 @@ teardown() {
     assert_binary_not_called npx
 }
 
-@test "Clarity keeps only runtime files after installation and updates" {
+@test "Clarity installation removes non-runtime files again when they reappear" {
     # Arrange
     clarity_dir="$test_home/.claude/skills/clarity"
     mkdir -p "$clarity_dir/references" "$clarity_dir/scripts" "$test_home/.claude/skills/other"
@@ -35,7 +35,8 @@ teardown() {
     touch "$clarity_dir/scripts/strip_markdown.py" "$clarity_dir/scripts/prose_stats.py"
     touch "$test_home/.claude/skills/other/keep"
 
-    for pass in install update; do
+    local attempt
+    for attempt in 1 2; do
         mkdir -p "$clarity_dir/site" "$clarity_dir/.github" "$clarity_dir/samples"
         touch "$clarity_dir/site/index.html" "$clarity_dir/.github/workflow.yml"
         touch "$clarity_dir/README.md" "$clarity_dir/scripts/validate_package.py"
@@ -99,7 +100,7 @@ teardown() {
     assert_output_contains "WARN: Could not install diagnosing-bugs"
 }
 
-@test "an unreadable lock file adds every declared skill and says so" {
+@test "skill installation warns and retries declared skills when the lock file is invalid" {
     # Arrange
     given_unreadable_skill_lock_file
 

@@ -11,29 +11,6 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "path lists one PATH entry per line" {
-    # Act
-    run env PATH="/first/bin:/second/bin:$PATH" zsh -c 'source "$1"; eval path' zsh "$aliases_file"
-
-    # Assert
-    assert_success
-    assert_output_contains $'/first/bin\n/second/bin\n'
-}
-
-@test "github opens the current directory in GitHub Desktop" {
-    # Arrange
-    write_fake_binary open
-    project="$fixture/project"
-    mkdir -p "$project"
-
-    # Act
-    run zsh -c 'source "$1"; cd "$2"; eval github' zsh "$aliases_file" "$project"
-
-    # Assert
-    assert_success
-    assert_binary_called_with open "-a /Applications/GitHub Desktop.app $project"
-}
-
 @test "rmorig removes .orig files at any depth and keeps everything else" {
     # Arrange
     tree="$fixture/tree"

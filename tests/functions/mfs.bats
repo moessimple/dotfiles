@@ -26,9 +26,7 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_call_count php 2
-    assert_binary_called_with php "artisan migrate"
-    assert_binary_called_with php "artisan db:seed"
+    assert_file_content "$fake_bin/php.calls" $'artisan migrate\nartisan db:seed'
 }
 
 @test "mfs does not seed when the migration fails" {
@@ -44,4 +42,30 @@ esac"
     assert_failure
     assert_binary_call_count php 1
     assert_binary_called_with php "artisan migrate"
+}
+
+@test "mfs refuses a database host that is not local" {
+    # Arrange
+    given_env_file DB_HOST=db.example.com DB_DATABASE=maindb
+    write_fake_binary php
+
+    # Act
+    run call_mfs
+
+    # Assert
+    assert_failure
+    assert_output_contains "db.example.com is not a local database host"
+    assert_binary_not_called mysql
+    assert_binary_not_called php
+}
+
+@test "mfs stops before migration and seeding when recreating the database fails" {
+    write_fake_binary mysql 'exit 1'
+    write_fake_binary php
+
+    run call_mfs
+
+    assert_failure
+    assert_binary_call_count mysql 1
+    assert_binary_not_called php
 }

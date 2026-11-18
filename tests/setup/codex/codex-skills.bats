@@ -104,7 +104,7 @@ exec /bin/ln "$@"'
     [ -L "$skills_dir/document-product" ]
 }
 
-@test "the Claude-activated plugin version is used" {
+@test "Codex skill links target the active Claude plugin version even when a newer cached version exists" {
     # Arrange
     inactive_skill="$plugin_cache/agent-browser/agent-browser/2.0.0/skills/agent-browser"
     mkdir -p "$inactive_skill"
@@ -172,7 +172,7 @@ exec /bin/ln "$@"'
     assert_path_does_not_exist "$skills_dir/skill-creator"
 }
 
-@test "an existing skill directory is preserved" {
+@test "Codex skill linking preserves an existing directory and its contents" {
     # Arrange
     mkdir -p "$skills_dir/explain-changes"
     touch "$skills_dir/explain-changes/keep"

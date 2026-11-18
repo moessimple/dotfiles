@@ -14,8 +14,11 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "meilisearch is started with a config.toml that upgrades its database in place" {
+@test "service setup enables Meilisearch database upgrades before starting Meilisearch" {
     # Arrange
+    write_fake_binary brew 'if [[ "$*" == "services start meilisearch" ]]; then
+    cat "$HOMEBREW_PREFIX/var/config.toml" >"$HOMEBREW_PREFIX/config-at-meilisearch-start"
+fi'
     printf 'http_addr = "0.0.0.0:7700"\n' >"$fixture/var/config.toml"
 
     # Act
@@ -24,7 +27,8 @@ teardown() {
     # Assert
     assert_success
     assert_file_content "$fixture/var/config.toml" "upgrade_db = true"
-    assert_binary_called_with brew "services start meilisearch"
+    assert_binary_called_with_args brew services start meilisearch
+    assert_file_content "$fixture/config-at-meilisearch-start" "upgrade_db = true"
 }
 
 @test "sourcing services does not start services or rewrite their config" {
@@ -38,7 +42,7 @@ teardown() {
     assert_file_content "$fixture/var/config.toml" "local config"
 }
 
-@test "a failed service start does not prevent other services and fails the final summary" {
+@test "a failed Mailpit start does not prevent Meilisearch or Ollama and fails the final summary" {
     write_fake_binary brew 'if [[ "$3" == mailpit ]]; then exit 17; fi'
 
     run env HOMEBREW_PREFIX="$fixture" /bin/bash -ec '
@@ -56,7 +60,7 @@ teardown() {
     assert_output_does_not_contain "Setup complete"
 }
 
-@test "an unwritable service config is reported while the remaining services are started" {
+@test "an unwritable Meilisearch config is reported without preventing service startup" {
     mkdir "$fixture/var/config.toml"
 
     run env HOMEBREW_PREFIX="$fixture" /bin/bash -ec '

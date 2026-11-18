@@ -66,7 +66,7 @@ given_installer_that_installs_brew() {
     assert_output_contains "SUCCESS: Homebrew installed"
 }
 
-@test "a failed installer download stops the run even though every command exits 0" {
+@test "a failed Homebrew download stops setup even when the empty installer exits successfully" {
     # Arrange
     write_fake_binary curl 'exit 22'
 

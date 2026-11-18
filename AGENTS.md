@@ -300,7 +300,8 @@ place that logic lives; callers never re-derive it. Its priority order is covere
 - `tests/bin/reconfigure.bats`: configuration application without macOS defaults or an unconditional sudo request
 - `tests/bin/setup-ssh.bats`: standalone SSH key setup and protection of existing keys
 - `tests/bin/test.bats`: interpreter selection, argument forwarding, and failure propagation in `bin/test.sh`
-- `tests/test-helper.bats`: lossless command argument assertions from `tests/support/test_helper.bash`
+- `tests/support/test-helper.bats`: lossless command argument assertions and fixture cleanup from
+  `tests/support/test_helper.bash`
 
 `tests/support/test_helper.bash` provides shared fixtures (`new_dotfiles_fixture`, `call_dotfiles_function`,
 `call_dotfiles_function_in`, `call_dotfiles_alias`) for building throwaway Git repos/projects under
@@ -317,6 +318,14 @@ that cannot safely run in tests, check command arguments and failure handling; u
 when practical. `tests/bin/macos-defaults.bats` records privileged calls without executing them and confines real
 PlistBuddy writes to its fixture HOME. These tests do not prove that macOS accepts every declared preference or
 that a fresh machine can install every external package.
+
+Read tests as behavior documentation. Each `@test` name identifies the command or process, the relevant condition,
+and the expected outcome. Arrange the scenario-specific state in the test; use `setup` for a clearly visible shared
+baseline and helpers for mechanical fixture construction. Assertions state the expected values and effects
+explicitly. A call count alone does not prove which database was migrated or which file was imported. Put
+single-command scenarios in that command's test file
+and source-only checks in `tests/setup/sourcing.bats`. Keep cross-component scenarios together with the behavior
+they document, such as the edit-to-stop lifecycle or the machine profile shared by the setup entry points.
 
 ## Shell conventions
 

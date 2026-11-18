@@ -13,7 +13,7 @@ teardown() {
     teardown_dotfiles_fixture
 }
 
-@test "the macos-defaults entry point keeps the confirmation prompt and cancellation" {
+@test "macOS setup asks for confirmation and exits successfully when the user declines" {
     # Act
     run run_standalone_answering n "$dotfiles_dir/bin/macos-defaults.sh"
 
@@ -23,7 +23,7 @@ teardown() {
     assert_output_contains "Cancelled."
 }
 
-@test "confirmed macOS setup applies security settings and keeps battery hibernation" {
+@test "confirmed macOS setup configures the firewall and screen lock without disabling battery hibernation" {
     given_fake_macos_commands
 
     run run_standalone_answering y "$target"

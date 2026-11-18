@@ -55,32 +55,9 @@ teardown() {
         [ -d "$test_home/$directory" ]
     done
     assert_file_exists "$test_home/.extra"
-    [[ "$output" == *"Preparing home directories"*"Home directories prepared"*"Creating symlinks"*"Symlinks created"* ]] || false
-}
-
-@test "sourcing home-directories leaves existing directories untouched" {
-    mkdir -p "$test_home/.claude/skills"
-    touch "$test_home/.claude/skills/local-skill"
-
-    run env HOME="$test_home" /bin/bash -c 'source "$1"' bash \
-        "$repository/support/setup/home-directories.sh"
-
-    assert_success
-    [ -z "$output" ]
-    assert_file_exists "$test_home/.claude/skills/local-skill"
-    assert_path_does_not_exist "$test_home/Screenshots"
-}
-
-@test "sourcing dotfile-links leaves existing files untouched" {
-    printf 'local aliases\n' >"$test_home/.aliases"
-
-    run env HOME="$test_home" /bin/bash -c 'source "$1"' bash \
-        "$repository/support/setup/dotfile-links.sh"
-
-    assert_success
-    [ -z "$output" ]
-    [ ! -L "$test_home/.aliases" ]
-    [ "$(cat "$test_home/.aliases")" = "local aliases" ]
+    assert_output_contains_before "Preparing home directories" "Home directories prepared"
+    assert_output_contains_before "Home directories prepared" "Creating symlinks"
+    assert_output_contains_before "Creating symlinks" "Symlinks created"
 }
 
 @test "reconfigure replaces managed drift and preserves local data on repeated runs" {

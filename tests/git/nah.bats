@@ -138,9 +138,10 @@ teardown() {
     assert_worktree_is_clean
 }
 
-@test "nah outside a repository stops after resolving the Git directory fails" {
+@test "nah refuses to discard files outside a Git repository" {
     repository="$fixture/outside"
     mkdir -p "$repository"
+    printf 'local file' >"$repository/keep.txt"
     export REAL_GIT
     REAL_GIT="$(command -v git)"
     given_fake_bin_on_path
@@ -151,4 +152,5 @@ teardown() {
     assert_failure
     assert_binary_called_with git "rev-parse --git-dir"
     assert_binary_call_count git 1
+    assert_file_content "$repository/keep.txt" "local file"
 }

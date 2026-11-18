@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load support/test_helper
+load test_helper
 
 setup() {
     new_dotfiles_fixture

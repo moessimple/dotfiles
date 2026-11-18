@@ -19,16 +19,16 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with code "."
+    assert_binary_called_with_args code "."
 }
 
-@test "code forwards a given path" {
+@test "code opens the specified file in VS Code" {
     # Act
     run call_code "src/App.php"
 
     # Assert
     assert_success
-    assert_binary_called_with code "src/App.php"
+    assert_binary_called_with_args code "src/App.php"
 }
 
 @test "code preserves multiple paths, spaces, and empty arguments" {

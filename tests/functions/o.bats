@@ -19,14 +19,14 @@ teardown() {
 
     # Assert
     assert_success
-    assert_binary_called_with open "."
+    assert_binary_called_with_args open "."
 }
 
-@test "o opens a given path" {
+@test "o opens the specified directory in Finder" {
     # Act
     run call_o "Downloads"
 
     # Assert
     assert_success
-    assert_binary_called_with open "Downloads"
+    assert_binary_called_with_args open "Downloads"
 }
