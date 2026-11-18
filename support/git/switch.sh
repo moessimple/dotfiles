@@ -48,7 +48,7 @@ function switch() {
         echo "Usage: switch <branch>"
         echo "  branch  Branch to switch to (created automatically if it does not exist)"
         echo "  With uncommitted changes, asks whether to bring them along, leave them"
-        echo "  stashed on the current branch, or cancel — like GitHub Desktop."
+        echo "  stashed on the current branch, or cancel, like GitHub Desktop."
         return 0
     fi
 
@@ -124,7 +124,7 @@ function switch() {
     fi
 
     if [ "$stashed" -eq 1 ] && [ "$leaving" -eq 0 ]; then
-        git stash pop --index || return
+        git stash pop || return
     fi
 
     if [ -n "$(_switch_find_stash "$branch")" ]; then

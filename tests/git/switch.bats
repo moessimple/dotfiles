@@ -110,7 +110,7 @@ teardown() {
     assert_stash_is_empty
 }
 
-@test "staged and unstaged changes keep their state after bringing them along" {
+@test "staged changes come along unstaged, as GitHub Desktop restores them" {
     # Arrange
     given_switch_repository_on_feature_branch
     stage_then_edit_tracked_file
@@ -121,7 +121,7 @@ teardown() {
     # Assert
     assert_success
     assert_current_branch main
-    assert_staged_file_contains tracked.txt "staged change"
+    assert_staged_file_contains tracked.txt "original"
     assert_worktree_file_contains tracked.txt $'staged change\nunstaged change'
     assert_stash_is_empty
 }

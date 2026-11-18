@@ -31,8 +31,9 @@ _git_stash_guard() {
     _git_stash_guard_active=1
 }
 
-# Restores what _git_stash_guard set aside, if anything. Returns `git stash
-# pop`'s exit code so a conflict on restore reaches the caller.
+# Restores what _git_stash_guard set aside, if anything. Like GitHub Desktop,
+# staged changes come back unstaged and conflicts are marked in the files.
+# Returns `git stash pop`'s exit code so a conflict on restore reaches the caller.
 _git_stash_restore() {
     [ "$_git_stash_guard_active" -eq 1 ] || return 0
     git stash pop

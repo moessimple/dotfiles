@@ -96,7 +96,8 @@ arguments print their usage with `--help`.
 
 - `commit [message]` stages and commits everything. Without a message, Claude writes one, falling back to Codex and
   then an interactive prompt.
-- `switch <branch>` switches or creates a branch and asks whether uncommitted changes come along or stay behind.
+- `switch <branch>` switches or creates a branch and asks whether uncommitted changes come along or stay behind,
+  like GitHub Desktop.
 - `review [base]` and `compare [base]` browse the branch's changes against a base branch with fzf.
 - `search <term>` finds the commits that added or removed a string.
 - `sync` resets long-lived branches to an `upstream` remote and force-pushes them to `origin`.
